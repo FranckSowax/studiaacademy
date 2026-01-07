@@ -162,3 +162,25 @@
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+
+/* Hide scrollbar for horizontal scroll containers */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Mobile touch improvements */
+@media (max-width: 640px) {
+  .touch-pan-x {
+    touch-action: pan-x;
+  }
+
+  /* Better touch targets */
+  button, a {
+    min-height: 44px;
+  }
+}

@@ -44,11 +44,16 @@ const menuItems: MenuItem[] = [
 interface StudiaSidebarProps {
   className?: string
   defaultOpen?: boolean
+  onNavigate?: () => void
 }
 
-export function StudiaSidebar({ className, defaultOpen = true }: StudiaSidebarProps) {
+export function StudiaSidebar({ className, defaultOpen = true, onNavigate }: StudiaSidebarProps) {
   const [sidebarOpen, setSidebarOpen] = useState(defaultOpen)
   const pathname = usePathname()
+
+  const handleNavClick = () => {
+    if (onNavigate) onNavigate()
+  }
 
   const isActive = (href: string) => {
     if (href === '/dashboard') return pathname === '/dashboard'
@@ -88,6 +93,7 @@ export function StudiaSidebar({ className, defaultOpen = true }: StudiaSidebarPr
               <li key={item.id}>
                 <Link
                   href={item.href}
+                  onClick={handleNavClick}
                   className={cn(
                     'w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group relative',
                     active
@@ -142,6 +148,7 @@ export function StudiaSidebar({ className, defaultOpen = true }: StudiaSidebarPr
             </p>
             <Link
               href="/pricing"
+              onClick={handleNavClick}
               className="w-full bg-white text-[#e97e42] font-semibold py-2 px-4 rounded-xl hover:bg-[#fbf8f3] transition-colors flex items-center justify-center gap-2"
             >
               Découvrir <ChevronRight className="w-4 h-4" />
