@@ -253,23 +253,23 @@ export default function DashboardPage() {
                 <Link
                   key={course.id}
                   href="/dashboard/courses"
-                  className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 hover:bg-white/20 transition-colors"
+                  className="bg-white rounded-2xl p-4 hover:shadow-lg transition-all text-gray-800"
                 >
                   <h3 className="font-bold mb-2">{course.title}</h3>
                   <div className="flex gap-2 mb-3">
-                    <span className="text-xs bg-white/20 px-2 py-1 rounded-full">{course.level}</span>
-                    <span className="text-xs bg-white/20 px-2 py-1 rounded-full">
+                    <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">{course.level}</span>
+                    <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
                       {course.completedClasses}/{course.totalClasses} classes
                     </span>
                   </div>
                   <div className="mb-3">
                     <div className="flex items-center justify-between text-sm mb-1">
-                      <span className="font-bold text-2xl">{course.progress}%</span>
-                      <span className="text-white/70">complété</span>
+                      <span className="font-bold text-2xl text-gray-800">{course.progress}%</span>
+                      <span className="text-gray-500">complété</span>
                     </div>
-                    <div className="h-1.5 bg-white/20 rounded-full overflow-hidden">
+                    <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-white rounded-full"
+                        className="h-full bg-[#e97e42] rounded-full"
                         style={{ width: `${course.progress}%` }}
                       />
                     </div>
@@ -277,8 +277,8 @@ export default function DashboardPage() {
                   <div className="flex items-center gap-2">
                     <span className="text-xl">{course.mentorAvatar}</span>
                     <div>
-                      <p className="text-xs text-white/70">Formateur</p>
-                      <p className="text-sm font-medium">{course.mentor}</p>
+                      <p className="text-xs text-gray-500">Formateur</p>
+                      <p className="text-sm font-medium text-gray-700">{course.mentor}</p>
                     </div>
                   </div>
                 </Link>
