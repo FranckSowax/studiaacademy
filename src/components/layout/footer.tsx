@@ -1,5 +1,6 @@
 import Link from 'next/link'
-import { Sparkles, Mail, Phone, MapPin } from 'lucide-react'
+import Image from 'next/image'
+import { Mail, Phone, MapPin } from 'lucide-react'
 
 export function Footer() {
   const currentYear = new Date().getFullYear()
@@ -42,9 +43,13 @@ export function Footer() {
           {/* Brand Column */}
           <div className="lg:col-span-2">
             <Link href="/" className="flex items-center gap-2 mb-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-[#e97e42] to-[#d56a2e] rounded-xl flex items-center justify-center shadow-md shadow-[#e97e42]/20">
-                <Sparkles className="w-5 h-5 text-white" />
-              </div>
+              <Image
+                src="/logo.png"
+                alt="Studia Academy"
+                width={40}
+                height={40}
+                className="w-10 h-10 object-contain"
+              />
               <div className="flex items-baseline">
                 <span className="text-xl font-bold text-gray-800">Studia</span>
                 <span className="text-xl font-light text-[#e97e42]"> Academy</span>

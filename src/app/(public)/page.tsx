@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import {
   Search,
@@ -171,9 +172,13 @@ export default function Home() {
                 {/* Main card */}
                 <div className="bg-[#fbf8f3] rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xl border border-[#f0ebe3]">
                   <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-[#e97e42] to-[#d56a2e] rounded-xl flex items-center justify-center">
-                      <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-                    </div>
+                    <Image
+                      src="/logo.png"
+                      alt="Studia Academy"
+                      width={48}
+                      height={48}
+                      className="w-10 h-10 sm:w-12 sm:h-12 object-contain"
+                    />
                     <div>
                       <h3 className="font-bold text-gray-800 text-sm sm:text-base">Studia Academy</h3>
                       <p className="text-xs sm:text-sm text-gray-500">Votre parcours personnalisé</p>

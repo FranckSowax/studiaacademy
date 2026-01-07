@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { StudiaSidebar } from '@/components/dashboard'
-import { Menu, X, Sparkles } from 'lucide-react'
+import { Menu, X } from 'lucide-react'
 import Link from 'next/link'
 
 export default function DashboardLayout({
@@ -18,9 +19,13 @@ export default function DashboardLayout({
       <header className="lg:hidden sticky top-0 z-50 bg-white border-b border-[#f0ebe3] px-4 py-3">
         <div className="flex items-center justify-between">
           <Link href="/dashboard" className="flex items-center gap-2">
-            <div className="w-9 h-9 bg-gradient-to-br from-[#e97e42] to-[#d56a2e] rounded-xl flex items-center justify-center shadow-md shadow-[#e97e42]/20">
-              <Sparkles className="w-5 h-5 text-white" />
-            </div>
+            <Image
+              src="/logo.png"
+              alt="Studia Academy"
+              width={36}
+              height={36}
+              className="w-9 h-9 object-contain"
+            />
             <div>
               <span className="text-lg font-bold text-gray-800">Studia</span>
               <span className="text-lg font-light text-[#e97e42]"> Academy</span>

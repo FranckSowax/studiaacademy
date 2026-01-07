@@ -1,7 +1,8 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { UserNav } from './user-nav'
 import { createClient } from '@/lib/supabase/server'
-import { Menu, Sparkles } from 'lucide-react'
+import { Menu } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { Sidebar } from './sidebar'
@@ -17,9 +18,13 @@ export async function Header() {
       <div className="container flex h-16 items-center">
         <div className="mr-4 hidden md:flex">
           <Link href="/" className="mr-8 flex items-center space-x-2">
-            <div className="w-9 h-9 bg-gradient-to-br from-[#e97e42] to-[#d56a2e] rounded-xl flex items-center justify-center shadow-md shadow-[#e97e42]/20">
-              <Sparkles className="w-5 h-5 text-white" />
-            </div>
+            <Image
+              src="/logo.png"
+              alt="Studia Academy"
+              width={40}
+              height={40}
+              className="w-10 h-10 object-contain"
+            />
             <div className="flex items-baseline">
               <span className="text-xl font-bold text-gray-800">Studia</span>
               <span className="text-xl font-light text-[#e97e42]"> Academy</span>
@@ -58,9 +63,13 @@ export async function Header() {
           </SheetTrigger>
           <SheetContent side="left" className="pr-0 bg-[#fbf8f3]">
             <div className="flex items-center gap-2 mb-8 px-4">
-              <div className="w-9 h-9 bg-gradient-to-br from-[#e97e42] to-[#d56a2e] rounded-xl flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-white" />
-              </div>
+              <Image
+                src="/logo.png"
+                alt="Studia Academy"
+                width={36}
+                height={36}
+                className="w-9 h-9 object-contain"
+              />
               <div className="flex items-baseline">
                 <span className="text-xl font-bold text-gray-800">Studia</span>
                 <span className="text-xl font-light text-[#e97e42]"> Academy</span>

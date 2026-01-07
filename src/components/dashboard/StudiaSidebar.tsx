@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import {
   Home,
@@ -14,7 +15,6 @@ import {
   MessageSquare,
   Bell,
   Settings,
-  Sparkles,
   ChevronRight,
   Menu,
 } from 'lucide-react'
@@ -70,9 +70,13 @@ export function StudiaSidebar({ className, defaultOpen = true, onNavigate }: Stu
     >
       {/* Logo Studia Academy */}
       <div className="flex items-center gap-3 mb-10">
-        <div className="w-10 h-10 bg-gradient-to-br from-[#e97e42] to-[#d56a2e] rounded-xl flex items-center justify-center shadow-lg shadow-[#e97e42]/20">
-          <Sparkles className="w-6 h-6 text-white" />
-        </div>
+        <Image
+          src="/logo.png"
+          alt="Studia Academy"
+          width={40}
+          height={40}
+          className="w-10 h-10 object-contain"
+        />
         {sidebarOpen && (
           <div>
             <span className="text-xl font-bold text-gray-800">Studia</span>
