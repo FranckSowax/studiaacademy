@@ -85,7 +85,7 @@ export function RecommendedCourses({ courses, isLoading }: RecommendedCoursesPro
           <h2 className="text-xl font-bold text-gray-800 italic">Formations Recommandées</h2>
           <Link
             href="/services"
-            className="text-orange-500 font-medium flex items-center gap-1 hover:gap-2 transition-all"
+            className="text-[#e97e42] font-medium flex items-center gap-1 hover:gap-2 transition-all"
           >
             Voir tout <ChevronRight className="w-4 h-4" />
           </Link>
@@ -94,7 +94,7 @@ export function RecommendedCourses({ courses, isLoading }: RecommendedCoursesPro
           {[1, 2, 3, 4].map((i) => (
             <div
               key={i}
-              className="bg-white/90 backdrop-blur-sm rounded-3xl overflow-hidden border border-orange-100 animate-pulse"
+              className="bg-white rounded-3xl overflow-hidden border border-[#f0ebe3] animate-pulse"
             >
               <div className="h-40 bg-gray-200" />
               <div className="p-4">
@@ -118,7 +118,7 @@ export function RecommendedCourses({ courses, isLoading }: RecommendedCoursesPro
         <h2 className="text-xl font-bold text-gray-800 italic">Formations Recommandées</h2>
         <Link
           href="/services"
-          className="text-orange-500 font-medium flex items-center gap-1 hover:gap-2 transition-all"
+          className="text-[#e97e42] font-medium flex items-center gap-1 hover:gap-2 transition-all"
         >
           Voir tout <ChevronRight className="w-4 h-4" />
         </Link>
@@ -128,13 +128,13 @@ export function RecommendedCourses({ courses, isLoading }: RecommendedCoursesPro
           <Link
             key={course.id}
             href={`/services/micro-courses/${course.slug}`}
-            className="bg-white/90 backdrop-blur-sm rounded-3xl overflow-hidden border border-orange-100 hover:shadow-lg hover:shadow-orange-100 transition-all group"
+            className="bg-white rounded-3xl overflow-hidden border border-[#f0ebe3] hover:shadow-lg hover:shadow-[#e97e42]/10 transition-all group"
           >
             {/* Video Thumbnail */}
             <div className="relative h-40 bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
               <span className="text-6xl">{course.image}</span>
               {course.isNew && (
-                <span className="absolute top-3 left-3 bg-orange-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
+                <span className="absolute top-3 left-3 bg-gradient-to-r from-[#e97e42] to-[#d56a2e] text-white text-xs font-semibold px-3 py-1 rounded-full">
                   Nouveau
                 </span>
               )}
@@ -144,7 +144,7 @@ export function RecommendedCourses({ courses, isLoading }: RecommendedCoursesPro
               </div>
               {/* Play overlay on hover */}
               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
+                <div className="w-16 h-16 bg-[#e97e42]/80 backdrop-blur-sm rounded-full flex items-center justify-center">
                   <Play className="w-8 h-8 text-white" fill="white" />
                 </div>
               </div>
@@ -152,17 +152,17 @@ export function RecommendedCourses({ courses, isLoading }: RecommendedCoursesPro
 
             {/* Course Info */}
             <div className="p-4">
-              <h4 className="font-bold text-gray-800 mb-1 group-hover:text-orange-600 transition-colors">
+              <h4 className="font-bold text-gray-800 mb-1 group-hover:text-[#e97e42] transition-colors">
                 {course.title}
               </h4>
               <p className="text-sm text-gray-500 mb-3">{course.instructor}</p>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1">
-                  <Star className="w-4 h-4 text-orange-400" fill="#FB923C" />
+                  <Star className="w-4 h-4 text-[#e97e42]" fill="#e97e42" />
                   <span className="font-semibold text-gray-800">{course.rating}</span>
                   <span className="text-gray-400 text-sm">({course.reviews})</span>
                 </div>
-                <span className="font-bold text-orange-600">{course.price}</span>
+                <span className="font-bold text-[#e97e42]">{course.price}</span>
               </div>
             </div>
           </Link>

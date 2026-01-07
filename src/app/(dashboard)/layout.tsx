@@ -8,7 +8,7 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-400 via-orange-300 to-amber-200 font-sans">
+    <div className="min-h-screen bg-[#fbf8f3] font-sans">
       <div className="flex">
         {/* Sidebar */}
         <StudiaSidebar />

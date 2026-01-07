@@ -24,12 +24,12 @@ const serviceIcons: Record<string, React.ElementType> = {
 
 // Couleurs par service
 const serviceColors: Record<string, string> = {
-  'competency-test': '#F97316',
+  'competency-test': '#e97e42',
   'cv-builder': '#8B5CF6',
   'cv-analysis': '#EC4899',
   'interview-simulator': '#10B981',
   'career-assistant': '#3B82F6',
-  'logo-creator': '#F59E0B',
+  'logo-creator': '#d56a2e',
 }
 
 interface MicroServicesGridProps {
@@ -67,7 +67,7 @@ export function MicroServicesGrid({ services, isLoading }: MicroServicesGridProp
           <h2 className="text-xl font-bold text-gray-800 italic">Micro-Services Populaires</h2>
           <Link
             href="/services"
-            className="text-orange-500 font-medium flex items-center gap-1 hover:gap-2 transition-all"
+            className="text-[#e97e42] font-medium flex items-center gap-1 hover:gap-2 transition-all"
           >
             Voir tout <ChevronRight className="w-4 h-4" />
           </Link>
@@ -76,7 +76,7 @@ export function MicroServicesGrid({ services, isLoading }: MicroServicesGridProp
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <div
               key={i}
-              className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 border border-orange-100 animate-pulse"
+              className="bg-white rounded-2xl p-4 border border-[#f0ebe3] animate-pulse"
             >
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 rounded-xl bg-gray-200" />
@@ -102,7 +102,7 @@ export function MicroServicesGrid({ services, isLoading }: MicroServicesGridProp
         <h2 className="text-xl font-bold text-gray-800 italic">Micro-Services Populaires</h2>
         <Link
           href="/services"
-          className="text-orange-500 font-medium flex items-center gap-1 hover:gap-2 transition-all"
+          className="text-[#e97e42] font-medium flex items-center gap-1 hover:gap-2 transition-all"
         >
           Voir tout <ChevronRight className="w-4 h-4" />
         </Link>
@@ -110,13 +110,13 @@ export function MicroServicesGrid({ services, isLoading }: MicroServicesGridProp
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {displayServices.map((service) => {
           const Icon = serviceIcons[service.slug] || FileText
-          const color = serviceColors[service.slug] || '#F97316'
+          const color = serviceColors[service.slug] || '#e97e42'
 
           return (
             <Link
               key={service.id}
               href={`/services/${service.slug}`}
-              className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 border border-orange-100 hover:shadow-lg hover:shadow-orange-100 transition-all cursor-pointer group hover:-translate-y-1"
+              className="bg-white rounded-2xl p-4 border border-[#f0ebe3] hover:shadow-lg hover:shadow-[#e97e42]/10 transition-all cursor-pointer group hover:-translate-y-1"
             >
               <div className="flex items-center gap-3 mb-3">
                 <div
@@ -126,7 +126,7 @@ export function MicroServicesGrid({ services, isLoading }: MicroServicesGridProp
                   <Icon className="w-5 h-5" style={{ color }} />
                 </div>
                 <div className="flex-1">
-                  <h4 className="font-semibold text-gray-800 text-sm group-hover:text-orange-600 transition-colors">
+                  <h4 className="font-semibold text-gray-800 text-sm group-hover:text-[#e97e42] transition-colors">
                     {service.name}
                   </h4>
                   <p className="text-xs text-gray-400">{service.users.toLocaleString()} utilisations</p>
@@ -138,11 +138,11 @@ export function MicroServicesGrid({ services, isLoading }: MicroServicesGridProp
                     Gratuit
                   </span>
                 ) : (
-                  <span className="text-xs font-medium text-orange-600 bg-orange-50 px-2 py-1 rounded-lg">
+                  <span className="text-xs font-medium text-[#e97e42] bg-[#fff7ed] px-2 py-1 rounded-lg">
                     {service.price} Crédits
                   </span>
                 )}
-                <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-orange-500 transition-colors" />
+                <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-[#e97e42] transition-colors" />
               </div>
             </Link>
           )

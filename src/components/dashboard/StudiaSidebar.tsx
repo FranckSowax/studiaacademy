@@ -56,20 +56,20 @@ export function StudiaSidebar({ className, defaultOpen = true }: StudiaSidebarPr
   return (
     <aside
       className={cn(
-        'bg-white/90 backdrop-blur-xl min-h-screen p-6 transition-all duration-300 flex flex-col border-r border-orange-100',
+        'bg-white min-h-screen p-6 transition-all duration-300 flex flex-col border-r border-[#f0ebe3]',
         sidebarOpen ? 'w-64' : 'w-20',
         className
       )}
     >
       {/* Logo Studia Academy */}
       <div className="flex items-center gap-3 mb-10">
-        <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg shadow-orange-200">
+        <div className="w-10 h-10 bg-gradient-to-br from-[#e97e42] to-[#d56a2e] rounded-xl flex items-center justify-center shadow-lg shadow-[#e97e42]/20">
           <Sparkles className="w-6 h-6 text-white" />
         </div>
         {sidebarOpen && (
           <div>
             <span className="text-xl font-bold text-gray-800">Studia</span>
-            <span className="text-xl font-light text-orange-500"> Academy</span>
+            <span className="text-xl font-light text-[#e97e42]"> Academy</span>
           </div>
         )}
       </div>
@@ -89,12 +89,12 @@ export function StudiaSidebar({ className, defaultOpen = true }: StudiaSidebarPr
                   className={cn(
                     'w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group relative',
                     active
-                      ? 'bg-orange-50 text-orange-600'
-                      : 'text-gray-600 hover:bg-orange-50/50 hover:text-orange-500'
+                      ? 'bg-[#fff7ed] text-[#e97e42]'
+                      : 'text-gray-600 hover:bg-[#fff7ed]/50 hover:text-[#e97e42]'
                   )}
                 >
                   <item.icon
-                    className={cn('w-5 h-5 flex-shrink-0', active && 'text-orange-500')}
+                    className={cn('w-5 h-5 flex-shrink-0', active && 'text-[#e97e42]')}
                   />
                   {sidebarOpen && (
                     <>
@@ -105,7 +105,7 @@ export function StudiaSidebar({ className, defaultOpen = true }: StudiaSidebarPr
                             'ml-auto text-xs px-2 py-0.5 rounded-full',
                             typeof item.badge === 'number'
                               ? 'bg-red-500 text-white'
-                              : 'bg-orange-100 text-orange-600'
+                              : 'bg-gradient-to-r from-[#e97e42] to-[#d56a2e] text-white'
                           )}
                         >
                           {item.badge}
@@ -114,7 +114,7 @@ export function StudiaSidebar({ className, defaultOpen = true }: StudiaSidebarPr
                     </>
                   )}
                   {active && (
-                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-orange-500 rounded-r-full" />
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-[#e97e42] to-[#d56a2e] rounded-r-full" />
                   )}
                 </Link>
               </li>
@@ -125,7 +125,7 @@ export function StudiaSidebar({ className, defaultOpen = true }: StudiaSidebarPr
 
       {/* CTA Premium - Studia Lab */}
       {sidebarOpen && (
-        <div className="mt-6 p-4 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl text-white relative overflow-hidden">
+        <div className="mt-6 p-4 bg-gradient-to-br from-[#e97e42] to-[#d56a2e] rounded-2xl text-white relative overflow-hidden">
           <div className="absolute -right-4 -bottom-4 w-20 h-20 bg-white/10 rounded-full" />
           <div className="absolute -right-2 -top-2 w-12 h-12 bg-white/10 rounded-full" />
           <div className="relative">
@@ -135,12 +135,12 @@ export function StudiaSidebar({ className, defaultOpen = true }: StudiaSidebarPr
               </div>
             </div>
             <h4 className="font-bold mb-1">Passez Premium !</h4>
-            <p className="text-xs text-orange-100 mb-3">
+            <p className="text-xs text-white/80 mb-3">
               Accès illimité à tous nos services et formations.
             </p>
             <Link
               href="/pricing"
-              className="w-full bg-white text-orange-600 font-semibold py-2 px-4 rounded-xl hover:bg-orange-50 transition-colors flex items-center justify-center gap-2"
+              className="w-full bg-white text-[#e97e42] font-semibold py-2 px-4 rounded-xl hover:bg-[#fbf8f3] transition-colors flex items-center justify-center gap-2"
             >
               Découvrir <ChevronRight className="w-4 h-4" />
             </Link>
@@ -151,7 +151,7 @@ export function StudiaSidebar({ className, defaultOpen = true }: StudiaSidebarPr
       {/* Toggle Sidebar */}
       <button
         onClick={() => setSidebarOpen(!sidebarOpen)}
-        className="mt-4 p-2 rounded-xl hover:bg-orange-50 text-gray-400 hover:text-orange-500 transition-colors self-center"
+        className="mt-4 p-2 rounded-xl hover:bg-[#fff7ed] text-gray-400 hover:text-[#e97e42] transition-colors self-center"
       >
         <Menu className="w-5 h-5" />
       </button>
