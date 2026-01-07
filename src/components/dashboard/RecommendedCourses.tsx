@@ -94,7 +94,7 @@ export function RecommendedCourses({ courses, isLoading }: RecommendedCoursesPro
           {[1, 2, 3, 4].map((i) => (
             <div
               key={i}
-              className="bg-white rounded-3xl overflow-hidden border border-[#f0ebe3] animate-pulse"
+              className="bg-[#fbf8f3] rounded-3xl overflow-hidden border border-[#f0ebe3] animate-pulse"
             >
               <div className="h-40 bg-gray-200" />
               <div className="p-4">
@@ -128,7 +128,7 @@ export function RecommendedCourses({ courses, isLoading }: RecommendedCoursesPro
           <Link
             key={course.id}
             href={`/services/micro-courses/${course.slug}`}
-            className="bg-white rounded-3xl overflow-hidden border border-[#f0ebe3] hover:shadow-lg hover:shadow-[#e97e42]/10 transition-all group"
+            className="bg-[#fbf8f3] rounded-3xl overflow-hidden border border-[#f0ebe3] hover:shadow-lg hover:shadow-[#e97e42]/10 transition-all group"
           >
             {/* Video Thumbnail */}
             <div className="relative h-40 bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">

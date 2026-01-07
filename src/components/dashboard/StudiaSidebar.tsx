@@ -12,6 +12,7 @@ import {
   GraduationCap,
   Award,
   MessageSquare,
+  Bell,
   Settings,
   Sparkles,
   ChevronRight,
@@ -36,6 +37,7 @@ const menuItems: MenuItem[] = [
   { id: 'courses', icon: GraduationCap, label: 'Catalogue', href: '/services', badge: null },
   { id: 'certificates', icon: Award, label: 'Certificats', href: '/dashboard/certificates', badge: null },
   { id: 'messages', icon: MessageSquare, label: 'Messages', href: '/dashboard/messages', badge: 3 },
+  { id: 'notifications', icon: Bell, label: 'Notifications', href: '/dashboard/notifications', badge: 2 },
   { id: 'settings', icon: Settings, label: 'Paramètres', href: '/dashboard/settings', badge: null },
 ]
 
@@ -56,7 +58,7 @@ export function StudiaSidebar({ className, defaultOpen = true }: StudiaSidebarPr
   return (
     <aside
       className={cn(
-        'bg-white min-h-screen p-6 transition-all duration-300 flex flex-col border-r border-[#f0ebe3]',
+        'bg-[#fbf8f3] min-h-screen p-6 transition-all duration-300 flex flex-col border-r border-[#f0ebe3] sticky top-0 h-screen',
         sidebarOpen ? 'w-64' : 'w-20',
         className
       )}

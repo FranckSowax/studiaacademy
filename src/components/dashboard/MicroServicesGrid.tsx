@@ -76,7 +76,7 @@ export function MicroServicesGrid({ services, isLoading }: MicroServicesGridProp
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <div
               key={i}
-              className="bg-white rounded-2xl p-4 border border-[#f0ebe3] animate-pulse"
+              className="bg-[#fbf8f3] rounded-2xl p-4 border border-[#f0ebe3] animate-pulse"
             >
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 rounded-xl bg-gray-200" />
@@ -116,7 +116,7 @@ export function MicroServicesGrid({ services, isLoading }: MicroServicesGridProp
             <Link
               key={service.id}
               href={`/services/${service.slug}`}
-              className="bg-white rounded-2xl p-4 border border-[#f0ebe3] hover:shadow-lg hover:shadow-[#e97e42]/10 transition-all cursor-pointer group hover:-translate-y-1"
+              className="bg-[#fbf8f3] rounded-2xl p-4 border border-[#f0ebe3] hover:shadow-lg hover:shadow-[#e97e42]/10 transition-all cursor-pointer group hover:-translate-y-1"
             >
               <div className="flex items-center gap-3 mb-3">
                 <div
