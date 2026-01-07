@@ -253,7 +253,7 @@ export default function DashboardPage() {
                 <Link
                   key={course.id}
                   href="/dashboard/courses"
-                  className="bg-white rounded-2xl p-4 hover:shadow-lg transition-all text-gray-800"
+                  className="bg-white rounded-2xl p-4 shadow-md hover:shadow-xl transition-all text-gray-800"
                 >
                   <h3 className="font-bold mb-2">{course.title}</h3>
                   <div className="flex gap-2 mb-3">
