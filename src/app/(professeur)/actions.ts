@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
-import type { TeacherProfile } from '@/types/teacher'
+import type { TeacherProfile, ClassStudent } from '@/types/teacher'
 
 /**
  * Récupère le profil professeur de l'utilisateur courant (ou null).
@@ -163,5 +163,81 @@ export async function updateCorrectionWizard(config: {
   if (error) return { success: false, error: error.message }
 
   revalidatePath('/professeur/correction/profil')
+  return { success: true }
+}
+
+// ── Registre d'élèves par classe ────────────
+
+/**
+ * Récupère les élèves d'une classe.
+ */
+export async function getClassStudents(classId: string): Promise<ClassStudent[]> {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('class_students')
+    .select('*')
+    .eq('class_id', classId)
+    .order('nom', { ascending: true })
+  return (data ?? []) as ClassStudent[]
+}
+
+/**
+ * Ajoute un élève au registre d'une classe.
+ */
+export async function addClassStudent(data: {
+  class_id: string
+  prenom: string
+  nom: string
+  eleve_phone?: string
+  parent_phone?: string
+}): Promise<{ success: boolean; error?: string }> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { success: false, error: 'Non authentifié' }
+
+  const { error } = await supabase.from('class_students').insert({
+    class_id: data.class_id,
+    prenom: data.prenom,
+    nom: data.nom,
+    eleve_phone: data.eleve_phone || null,
+    parent_phone: data.parent_phone || null,
+  })
+  if (error) return { success: false, error: error.message }
+
+  // Mettre à jour le compteur d'élèves
+  const { count } = await supabase
+    .from('class_students')
+    .select('*', { count: 'exact', head: true })
+    .eq('class_id', data.class_id)
+  await supabase.from('classes').update({ nb_eleves: count ?? 0 }).eq('id', data.class_id)
+
+  revalidatePath('/professeur/classes')
+  return { success: true }
+}
+
+/**
+ * Supprime un élève du registre.
+ */
+export async function deleteClassStudent(
+  studentId: string,
+  classId: string
+): Promise<{ success: boolean }> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { success: false }
+
+  await supabase.from('class_students').delete().eq('id', studentId)
+
+  const { count } = await supabase
+    .from('class_students')
+    .select('*', { count: 'exact', head: true })
+    .eq('class_id', classId)
+  await supabase.from('classes').update({ nb_eleves: count ?? 0 }).eq('id', classId)
+
+  revalidatePath('/professeur/classes')
   return { success: true }
 }

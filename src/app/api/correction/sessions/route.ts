@@ -5,11 +5,12 @@ import { runCorrectionSession } from '@/lib/workers/correction'
 export const dynamic = 'force-dynamic'
 export const maxDuration = 300
 
-interface EleveInput {
+interface CopieInput {
   nom: string
   prenom: string
   phone?: string
   parent_phone?: string
+  class_student_id?: string
   files: string[] // chemins Supabase Storage
 }
 
@@ -18,8 +19,13 @@ interface CreateSessionBody {
   matiere: string
   niveau: string
   class_id?: string
+  // Corrigé de référence (étape 2)
   bareme: { questions: Array<{ numero: number; enonce: string; reponse_attendue: string; points_max: number }> }
-  eleves: EleveInput[]
+  corrige_reference?: string
+  corrige_files?: string[]
+  corrige_type?: 'manuel' | 'upload' | 'mixte'
+  // Copies + élèves (étape 3)
+  copies: CopieInput[]
 }
 
 export async function POST(request: NextRequest) {
@@ -38,6 +44,18 @@ export async function POST(request: NextRequest) {
 
   const body = (await request.json()) as CreateSessionBody
 
+  const hasBareme = (body.bareme?.questions?.length ?? 0) > 0
+  const hasCorrige = Boolean(body.corrige_reference?.trim())
+  if (!hasBareme && !hasCorrige) {
+    return NextResponse.json(
+      { error: 'Fournir un corrigé (upload OCR) ou un barème manuel' },
+      { status: 400 }
+    )
+  }
+
+  const corrigeType: 'manuel' | 'upload' | 'mixte' =
+    hasBareme && hasCorrige ? 'mixte' : hasCorrige ? 'upload' : 'manuel'
+
   // Créer la session
   const { data: session, error: sessionError } = await supabase
     .from('correction_sessions')
@@ -47,8 +65,11 @@ export async function POST(request: NextRequest) {
       titre: body.titre,
       matiere: body.matiere,
       niveau: body.niveau,
-      bareme: body.bareme,
-      nb_copies: body.eleves.length,
+      bareme: body.bareme ?? { questions: [] },
+      corrige_reference: body.corrige_reference ?? null,
+      corrige_files: body.corrige_files ?? [],
+      corrige_type: corrigeType,
+      nb_copies: body.copies.length,
       status: 'processing',
     })
     .select()
@@ -59,13 +80,14 @@ export async function POST(request: NextRequest) {
   }
 
   // Créer les jobs (une copie par élève)
-  const jobs = body.eleves.map((e) => ({
+  const jobs = body.copies.map((c) => ({
     session_id: session.id,
-    eleve_nom: e.nom,
-    eleve_prenom: e.prenom,
-    eleve_phone: e.phone ?? null,
-    parent_phone: e.parent_phone ?? null,
-    input_files: e.files,
+    class_student_id: c.class_student_id ?? null,
+    eleve_nom: c.nom,
+    eleve_prenom: c.prenom,
+    eleve_phone: c.phone ?? null,
+    parent_phone: c.parent_phone ?? null,
+    input_files: c.files,
     status: 'pending' as const,
   }))
 

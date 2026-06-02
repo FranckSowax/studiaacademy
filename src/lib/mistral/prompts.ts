@@ -63,13 +63,25 @@ en adoptant EXACTEMENT le style de notation du professeur.
 - profil_correcteur : profil JSON du professeur (issu de STUDIA_PROFIL_EXTRACTION)
 - few_shot_examples : 3-5 corrections récentes validées par le prof
 - bareme : { questions: [{ numero, enonce, reponse_attendue, points_max, criteres }] }
+  (peut être vide si seul un corrigé de référence est fourni)
+- corrige_reference : texte libre d'un corrigé de référence OCRisé (cours,
+  barème, ou devoir déjà corrigé par le prof). Source de vérité prioritaire
+  pour les réponses attendues quand le bareme structuré est incomplet.
 - ocr_copie : texte extrait de la copie de l'élève
 - eleve : { nom, prenom }
 - matiere : string
 - niveau : string
 
+## UTILISATION DU CORRIGÉ
+- Si bareme.questions est renseigné, l'utiliser comme structure de notation.
+- Si corrige_reference est fourni, en extraire les réponses attendues et le
+  barème de points pour chaque question, et l'utiliser comme référence.
+- Si les deux sont présents, le bareme structuré prime pour les points,
+  corrige_reference complète les réponses attendues.
+- Reconstituer la liste des questions à partir de la source disponible.
+
 ## PROCESSUS
-Pour chaque question du barème :
+Pour chaque question (du barème ou reconstituée depuis le corrigé) :
 1. Localiser la réponse de l'élève dans ocr_copie
 2. Comparer à reponse_attendue selon les criteres
 3. Appliquer profil_correcteur.points_partiels pour les réponses incomplètes

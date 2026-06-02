@@ -75,6 +75,7 @@ export async function runCorrectionJob(jobId: string): Promise<void> {
       profil_correcteur: profil,
       few_shot_examples: fewShot,
       bareme,
+      corrige_reference: session.corrige_reference ?? undefined,
       ocr_copie: ocrText,
       eleve: {
         nom: job.eleve_nom ?? '',

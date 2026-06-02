@@ -26,6 +26,24 @@ export async function ocrCopie(imageUrls: string[]): Promise<string> {
   return mistralOCR(imageUrls, STUDIA_OCR_INSTRUCTION)
 }
 
+// ── OCR d'un corrigé de référence (cours ou devoir déjà corrigé) ──
+export async function ocrCorrige(imageUrls: string[]): Promise<string> {
+  return mistralOCR(
+    imageUrls,
+    `Tu es un système OCR. Extrais FIDÈLEMENT tout le texte de ce document
+qui sert de CORRIGÉ DE RÉFÉRENCE (cours, barème ou devoir déjà corrigé par le professeur).
+
+Règles :
+- Transcris les énoncés, les réponses attendues, les annotations et les points
+- Conserve la structure (numéros de questions, barème, points par question)
+- Préserve les corrections/annotations manuscrites du professeur si présentes
+- Pour les formules, utilise une notation texte claire
+- Marque [ILLISIBLE] si nécessaire
+
+Retourne uniquement le texte extrait, structuré par question.`
+  )
+}
+
 // ── Extraction du profil de correction ──────
 interface ProfilExtractionInput {
   copies_annotees: Array<{
@@ -54,6 +72,7 @@ interface CorrectionInput {
   profil_correcteur: LearnedPatterns
   few_shot_examples: FewShotExample[]
   bareme: Bareme
+  corrige_reference?: string
   ocr_copie: string
   eleve: { nom: string; prenom: string }
   matiere: string

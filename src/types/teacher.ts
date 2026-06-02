@@ -71,6 +71,17 @@ export interface Classe {
   created_at: string
 }
 
+// ── Élève d'une classe (registre nominatif) ─
+export interface ClassStudent {
+  id: string
+  class_id: string
+  prenom: string
+  nom: string
+  eleve_phone: string | null
+  parent_phone: string | null
+  created_at: string
+}
+
 // ── Barème de correction ────────────────────
 export interface BaremeQuestion {
   numero: number
@@ -93,6 +104,9 @@ export interface CorrectionSession {
   matiere: string | null
   niveau: string | null
   bareme: Bareme
+  corrige_reference: string | null
+  corrige_files: string[]
+  corrige_type: 'manuel' | 'upload' | 'mixte'
   nb_copies: number
   is_bootstrap: boolean
   status: DevoirStatus
@@ -129,6 +143,7 @@ export interface CorrectionResult {
 export interface CorrectionJob {
   id: string
   session_id: string
+  class_student_id: string | null
   eleve_nom: string | null
   eleve_prenom: string | null
   eleve_phone: string | null

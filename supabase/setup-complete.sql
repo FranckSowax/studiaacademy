@@ -248,6 +248,18 @@ CREATE TABLE IF NOT EXISTS public.classes (
 );
 CREATE INDEX IF NOT EXISTS idx_classes_teacher_id ON public.classes(teacher_id);
 
+-- Registre nominatif d'élèves par classe
+CREATE TABLE IF NOT EXISTS public.class_students (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    class_id UUID REFERENCES public.classes(id) ON DELETE CASCADE,
+    prenom TEXT NOT NULL,
+    nom TEXT NOT NULL,
+    eleve_phone TEXT,
+    parent_phone TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_class_students_class_id ON public.class_students(class_id);
+
 CREATE TABLE IF NOT EXISTS public.correction_sessions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     teacher_id UUID REFERENCES public.teacher_profiles(id) ON DELETE CASCADE,
@@ -256,6 +268,9 @@ CREATE TABLE IF NOT EXISTS public.correction_sessions (
     matiere TEXT,
     niveau TEXT,
     bareme JSONB DEFAULT '{"questions": []}',
+    corrige_reference TEXT,
+    corrige_files TEXT[] DEFAULT '{}',
+    corrige_type TEXT DEFAULT 'manuel',
     nb_copies INTEGER DEFAULT 0,
     is_bootstrap BOOLEAN DEFAULT FALSE,
     status devoir_status DEFAULT 'draft',
@@ -265,6 +280,7 @@ CREATE INDEX IF NOT EXISTS idx_correction_sessions_teacher_id ON public.correcti
 
 CREATE TABLE IF NOT EXISTS public.correction_jobs (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    class_student_id UUID REFERENCES public.class_students(id) ON DELETE SET NULL,
     session_id UUID REFERENCES public.correction_sessions(id) ON DELETE CASCADE,
     eleve_nom TEXT,
     eleve_prenom TEXT,
@@ -401,6 +417,7 @@ ALTER TABLE public.credit_packs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.teacher_profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.correction_profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.classes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.class_students ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.correction_sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.correction_jobs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.qcm_devoirs ENABLE ROW LEVEL SECURITY;
@@ -442,6 +459,14 @@ DROP POLICY IF EXISTS "Teachers own correction profile" ON public.correction_pro
 CREATE POLICY "Teachers own correction profile" ON public.correction_profiles FOR ALL USING (teacher_id IN (SELECT id FROM public.teacher_profiles WHERE user_id = auth.uid()));
 DROP POLICY IF EXISTS "Teachers own classes" ON public.classes;
 CREATE POLICY "Teachers own classes" ON public.classes FOR ALL USING (teacher_id IN (SELECT id FROM public.teacher_profiles WHERE user_id = auth.uid()));
+DROP POLICY IF EXISTS "Teachers manage own class students" ON public.class_students;
+CREATE POLICY "Teachers manage own class students" ON public.class_students FOR ALL USING (
+    class_id IN (
+        SELECT c.id FROM public.classes c
+        JOIN public.teacher_profiles tp ON c.teacher_id = tp.id
+        WHERE tp.user_id = auth.uid()
+    )
+);
 DROP POLICY IF EXISTS "Teachers own correction sessions" ON public.correction_sessions;
 CREATE POLICY "Teachers own correction sessions" ON public.correction_sessions FOR ALL USING (teacher_id IN (SELECT id FROM public.teacher_profiles WHERE user_id = auth.uid()));
 DROP POLICY IF EXISTS "Teachers own correction jobs" ON public.correction_jobs;
