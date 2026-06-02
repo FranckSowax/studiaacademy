@@ -42,8 +42,17 @@ export async function runQcmGeneration(devoirId: string): Promise<void> {
 
     if (!devoir) throw new Error('Devoir introuvable')
 
+    // Garde-fou : borner le contenu source pour ne pas saturer le contexte
+    // (un PDF volumineux peut produire beaucoup de texte). 60k caractères
+    // couvrent largement un cours tout en restant économes en tokens.
+    const MAX_SOURCE_CHARS = 60000
+    let source = devoir.source_content ?? ''
+    if (source.length > MAX_SOURCE_CHARS) {
+      source = source.slice(0, MAX_SOURCE_CHARS) + '\n\n[…contenu tronqué pour la génération…]'
+    }
+
     const result = await genererQCM({
-      source_content: devoir.source_content ?? '',
+      source_content: source,
       matiere: devoir.matiere ?? '',
       niveau: devoir.niveau ?? '',
       nb_qcm: devoir.nb_questions_qcm,

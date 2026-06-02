@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { compressImages } from '@/lib/image-compress'
 import {
   ArrowLeft, ArrowRight, Loader2, FileText, Link2, Type, Upload, X,
 } from 'lucide-react'
@@ -64,26 +65,31 @@ export function NouveauQcmForm() {
         data: { user },
       } = await supabase.auth.getUser()
       if (user) {
-        const urls: string[] = []
-        for (const file of files) {
+        // Compresser les images (PDF inchangés) avant upload
+        const optimized = await compressImages(files)
+        const ocrFiles: { url: string; mime: string; name: string }[] = []
+        for (const file of optimized) {
           const ext = file.name.split('.').pop()
           const path = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
           const { error } = await supabase.storage.from('cours-sources').upload(path, file)
           if (!error) {
-            const { data } = await supabase.storage.from('cours-sources').createSignedUrl(path, 600)
-            if (data?.signedUrl) urls.push(data.signedUrl)
+            // Signature longue : les gros PDF peuvent prendre du temps à OCRiser
+            const { data } = await supabase.storage.from('cours-sources').createSignedUrl(path, 1800)
+            if (data?.signedUrl) {
+              ocrFiles.push({ url: data.signedUrl, mime: file.type || 'application/octet-stream', name: file.name })
+            }
           }
         }
-        // OCR côté serveur via la route de création
-        if (urls.length > 0) {
+        // OCR dédié (PDF multi-pages + manuscrit) côté serveur
+        if (ocrFiles.length > 0) {
           const res = await fetch('/api/qcm/ocr-source', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ urls }),
+            body: JSON.stringify({ files: ocrFiles }),
           })
           if (res.ok) {
             const data = await res.json()
-            parts.push(data.content ?? '')
+            if (data.content) parts.push(data.content)
           }
         }
       }

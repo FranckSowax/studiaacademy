@@ -3,6 +3,7 @@
 // ============================================
 
 const MISTRAL_API_URL = 'https://api.mistral.ai/v1/chat/completions'
+const MISTRAL_OCR_URL = 'https://api.mistral.ai/v1/ocr'
 
 export type MistralModel =
   | 'mistral-large-latest'
@@ -125,4 +126,55 @@ export async function mistralOCR(
     temperature: 0.1,
     maxTokens: 4096,
   })
+}
+
+// ── API OCR dédiée Mistral (mistral-ocr-latest) ──
+interface OcrPage {
+  index: number
+  markdown: string
+}
+interface OcrResponse {
+  pages: OcrPage[]
+  usage_info?: { pages_processed?: number; doc_size_bytes?: number }
+}
+
+type OcrDocument =
+  | { type: 'document_url'; document_url: string }
+  | { type: 'image_url'; image_url: string }
+
+/**
+ * OCR via l'endpoint dédié Mistral (mistral-ocr-latest).
+ * Gère nativement les PDF multi-pages et le manuscrit, retourne du markdown
+ * concaténé page par page. `document` peut être une URL signée ou une data URI base64.
+ */
+export async function mistralDocumentOCR(
+  document: OcrDocument,
+  pages?: number[]
+): Promise<string> {
+  const body: Record<string, unknown> = {
+    model: 'mistral-ocr-latest',
+    document,
+  }
+  if (pages && pages.length > 0) body.pages = pages
+
+  const response = await fetch(MISTRAL_OCR_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${getApiKey()}`,
+    },
+    body: JSON.stringify(body),
+  })
+
+  if (!response.ok) {
+    const errorText = await response.text()
+    throw new Error(`Mistral OCR erreur ${response.status}: ${errorText}`)
+  }
+
+  const data = (await response.json()) as OcrResponse
+  return (data.pages ?? [])
+    .sort((a, b) => a.index - b.index)
+    .map((p) => p.markdown)
+    .join('\n\n')
+    .trim()
 }
