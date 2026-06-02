@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { formatNumber } from '@/lib/utils'
 import { Service } from '@/types/service'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
@@ -56,7 +57,7 @@ export function ServiceGate({ service, children }: ServiceGateProps) {
             </ul>
           </div>
           <div className="text-3xl font-bold py-4">
-            {service.price.toLocaleString()} XAF
+            {formatNumber(service.price)} XAF
           </div>
         </CardContent>
         <CardFooter className="justify-center pb-8">

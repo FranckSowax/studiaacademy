@@ -1,6 +1,7 @@
 'use client'
 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { formatNumber } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -37,12 +38,12 @@ export function TopUpModal({ isOpen, onClose, onSelectPack }: TopUpModalProps) {
               <CardHeader>
                 <CardTitle className="text-xl text-center">{pack.name}</CardTitle>
                 <CardDescription className="text-center font-bold text-2xl text-foreground">
-                  {pack.price.toLocaleString()} XAF
+                  {formatNumber(pack.price)} XAF
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex-1 text-center space-y-4">
                 <div className="text-3xl font-bold text-primary">
-                  {pack.credits.toLocaleString()}
+                  {formatNumber(pack.credits)}
                   <span className="text-sm font-normal text-muted-foreground ml-1">crédits</span>
                 </div>
                 <p className="text-sm text-muted-foreground">{pack.description}</p>

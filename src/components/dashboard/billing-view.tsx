@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { formatNumber } from '@/lib/utils'
 import { BillingData } from '@/types/billing'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -36,7 +37,7 @@ export function BillingView({ data }: BillingViewProps) {
             <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{data.wallet.balance.toLocaleString()} {data.wallet.currency}</div>
+            <div className="text-2xl font-bold">{formatNumber(data.wallet.balance)} {data.wallet.currency}</div>
             <p className="text-xs text-muted-foreground">
               Disponible pour vos achats
             </p>
@@ -97,7 +98,7 @@ export function BillingView({ data }: BillingViewProps) {
                     </Badge>
                   </TableCell>
                   <TableCell className={`text-right font-medium ${tx.amount > 0 ? 'text-green-600' : ''}`}>
-                    {tx.amount > 0 ? '+' : ''}{tx.amount.toLocaleString()} XAF
+                    {tx.amount > 0 ? '+' : ''}{formatNumber(tx.amount)} XAF
                   </TableCell>
                   <TableCell className="text-right">
                     {tx.invoiceUrl && (

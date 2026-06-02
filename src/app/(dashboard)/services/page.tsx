@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { formatNumber } from '@/lib/utils'
 import Link from 'next/link'
 import {
   Search,
@@ -255,7 +256,7 @@ export default function ServicesPage() {
 
                 {/* Stats */}
                 <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-                  <span>{service.users.toLocaleString()} utilisateurs</span>
+                  <span>{formatNumber(service.users)} utilisateurs</span>
                   {service.freeLimit > 0 && (
                     <span className="text-green-600 font-medium">
                       {service.freeLimit} essai{service.freeLimit > 1 ? 's' : ''} gratuit{service.freeLimit > 1 ? 's' : ''}
@@ -271,7 +272,7 @@ export default function ServicesPage() {
                     <span className="text-lg font-bold text-green-600">Gratuit</span>
                   ) : (
                     <span className="text-lg font-bold text-gray-800">
-                      {service.price.toLocaleString()} <span className="text-sm font-normal text-gray-500">XAF</span>
+                      {formatNumber(service.price)} <span className="text-sm font-normal text-gray-500">XAF</span>
                     </span>
                   )}
                 </div>

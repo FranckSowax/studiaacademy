@@ -1,6 +1,7 @@
 'use client'
 
 import { mockServices } from '@/lib/data/mock-services'
+import { formatNumber } from '@/lib/utils'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -95,7 +96,7 @@ export default function AdminServicesPage() {
                     {service.price === 0 ? (
                         <Badge variant="secondary" className="bg-green-100 text-green-800 hover:bg-green-100">Gratuit</Badge>
                     ) : (
-                        <span>{service.price.toLocaleString()} XAF</span>
+                        <span>{formatNumber(service.price)} XAF</span>
                     )}
                   </TableCell>
                   <TableCell>{service.free_limit}</TableCell>

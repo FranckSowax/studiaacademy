@@ -127,7 +127,7 @@ export function RecommendedCourses({ courses, isLoading }: RecommendedCoursesPro
         {displayCourses.map((course) => (
           <Link
             key={course.id}
-            href={`/services/micro-courses/${course.slug}`}
+            href={`/services`}
             className="bg-[#fbf8f3] rounded-3xl overflow-hidden border border-[#f0ebe3] hover:shadow-lg hover:shadow-[#e97e42]/10 transition-all group"
           >
             {/* Video Thumbnail */}

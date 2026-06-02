@@ -162,7 +162,7 @@ export default function CoursesPage() {
                         />
                       </div>
                     </div>
-                    <Link href={`/services/micro-courses/${course.slug}`}>
+                    <Link href={`/services`}>
                       <Button className="bg-gradient-to-r from-[#e97e42] to-[#d56a2e] hover:from-[#d56a2e] hover:to-[#c45a20] text-white">
                         <Play className="w-4 h-4 mr-2" />
                         Continuer
@@ -237,7 +237,7 @@ export default function CoursesPage() {
           {recommendedCourses.map((course) => (
             <Link
               key={course.id}
-              href={`/services/micro-courses/${course.slug}`}
+              href={`/services`}
               className="bg-[#fbf8f3] rounded-2xl border border-[#f0ebe3] p-4 flex items-center gap-4 hover:shadow-lg hover:shadow-[#e97e42]/10 transition-all group"
             >
               <div className="w-16 h-16 bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl flex items-center justify-center text-2xl">

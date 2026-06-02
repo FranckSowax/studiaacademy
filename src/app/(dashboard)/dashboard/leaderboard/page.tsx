@@ -1,6 +1,7 @@
 'use client'
 
 import { Trophy, Medal, Crown, TrendingUp, Flame, Star, ChevronUp, ChevronDown } from 'lucide-react'
+import { formatNumber } from '@/lib/utils'
 
 const leaderboard = [
   { id: 1, rank: 1, name: 'Marie Nguema', points: 12450, streak: 45, change: 0, avatar: '👩‍🎓' },
@@ -106,7 +107,7 @@ export default function LeaderboardPage() {
             </div>
             <div className="text-right">
               <p className="text-white/80 text-sm">Points totaux</p>
-              <p className="text-3xl font-bold">{currentUser.points.toLocaleString()}</p>
+              <p className="text-3xl font-bold">{formatNumber(currentUser.points)}</p>
             </div>
             <div className="text-right">
               <p className="text-white/80 text-sm flex items-center gap-1 justify-end">
@@ -154,7 +155,7 @@ export default function LeaderboardPage() {
                 </div>
               </div>
               <div className="text-right">
-                <p className="font-bold text-gray-800">{user.points.toLocaleString()}</p>
+                <p className="font-bold text-gray-800">{formatNumber(user.points)}</p>
                 <p className="text-xs text-gray-400">points</p>
               </div>
               <div className="w-12 flex justify-center">{getChangeIndicator(user.change)}</div>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { formatNumber } from '@/lib/utils'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -31,7 +32,7 @@ export function PaymentModal({ isOpen, onClose, amount, description, onSuccess }
     // Simulate payment processing
     setTimeout(() => {
       setIsLoading(false)
-      toast.success(`Paiement de ${amount.toLocaleString()} XAF effectué avec succès !`)
+      toast.success(`Paiement de ${formatNumber(amount)} XAF effectué avec succès !`)
       onSuccess()
       onClose()
     }, 2000)
@@ -46,7 +47,7 @@ export function PaymentModal({ isOpen, onClose, amount, description, onSuccess }
             {description}
             <br />
             <span className="font-bold text-foreground mt-2 block text-lg">
-              Total: {amount.toLocaleString()} XAF
+              Total: {formatNumber(amount)} XAF
             </span>
           </DialogDescription>
         </DialogHeader>
@@ -113,7 +114,7 @@ export function PaymentModal({ isOpen, onClose, amount, description, onSuccess }
           </Button>
           <Button onClick={handlePayment} disabled={isLoading || ((method === 'airtel' || method === 'moov') && !phoneNumber)}>
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Payer {amount.toLocaleString()} XAF
+            Payer {formatNumber(amount)} XAF
           </Button>
         </DialogFooter>
       </DialogContent>

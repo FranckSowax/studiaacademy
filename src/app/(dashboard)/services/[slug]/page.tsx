@@ -1,6 +1,7 @@
 'use client'
 
 import { useParams } from 'next/navigation'
+import { formatNumber } from '@/lib/utils'
 import Link from 'next/link'
 import {
   ArrowLeft,
@@ -245,11 +246,11 @@ export default function ServiceDetailPage() {
               <div className="flex items-center gap-2">
                 <Star className="w-5 h-5 text-yellow-400" fill="#FACC15" />
                 <span className="font-semibold">{service.rating}</span>
-                <span className="text-white/70">({service.users.toLocaleString()} avis)</span>
+                <span className="text-white/70">({formatNumber(service.users)} avis)</span>
               </div>
               <div className="flex items-center gap-2">
                 <Users className="w-5 h-5" />
-                <span>{service.users.toLocaleString()} utilisateurs</span>
+                <span>{formatNumber(service.users)} utilisateurs</span>
               </div>
               <div className="flex items-center gap-2">
                 <Clock className="w-5 h-5" />
@@ -265,7 +266,7 @@ export default function ServiceDetailPage() {
               </Link>
               {service.price > 0 ? (
                 <div className="flex items-center gap-2 bg-white/20 px-4 py-2 rounded-xl">
-                  <span className="text-2xl font-bold">{service.price.toLocaleString()}</span>
+                  <span className="text-2xl font-bold">{formatNumber(service.price)}</span>
                   <span className="text-white/80">XAF</span>
                 </div>
               ) : (

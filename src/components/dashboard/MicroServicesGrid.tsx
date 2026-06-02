@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { formatNumber } from '@/lib/utils'
 import {
   ChevronRight,
   TestTube,
@@ -129,7 +130,7 @@ export function MicroServicesGrid({ services, isLoading }: MicroServicesGridProp
                   <h4 className="font-semibold text-gray-800 text-sm group-hover:text-[#e97e42] transition-colors">
                     {service.name}
                   </h4>
-                  <p className="text-xs text-gray-400">{service.users.toLocaleString()} utilisations</p>
+                  <p className="text-xs text-gray-400">{formatNumber(service.users)} utilisations</p>
                 </div>
               </div>
               <div className="flex items-center justify-between">

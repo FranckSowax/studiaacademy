@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { formatNumber } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuthContext } from '@/contexts/AuthContext'
@@ -368,7 +369,7 @@ export default function DashboardPage() {
             <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-[#e97e42]" />
           </div>
           <div className="min-w-0">
-            <p className="text-lg sm:text-2xl font-bold text-gray-800 group-hover:text-[#e97e42] truncate">{userStats.points.toLocaleString()}</p>
+            <p className="text-lg sm:text-2xl font-bold text-gray-800 group-hover:text-[#e97e42] truncate">{formatNumber(userStats.points)}</p>
             <p className="text-xs sm:text-sm text-gray-500">Points totaux</p>
           </div>
         </Link>
