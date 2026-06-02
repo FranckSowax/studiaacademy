@@ -76,13 +76,13 @@ export function StudiaSidebar({ className, defaultOpen = true, onNavigate }: Stu
   return (
     <aside
       className={cn(
-        'bg-[#fbf8f3] min-h-screen p-6 transition-all duration-300 flex flex-col border-r border-[#f0ebe3] sticky top-0 h-screen',
+        'bg-[#fbf8f3] p-6 transition-all duration-300 flex flex-col border-r border-[#f0ebe3] sticky top-0 h-screen overflow-hidden',
         sidebarOpen ? 'w-64' : 'w-20',
         className
       )}
     >
       {/* Logo Studia Academy */}
-      <div className="flex items-center gap-3 mb-10">
+      <div className="flex items-center gap-3 mb-10 flex-shrink-0">
         <Image
           src="/logo.png"
           alt="Studia Academy"
@@ -98,8 +98,8 @@ export function StudiaSidebar({ className, defaultOpen = true, onNavigate }: Stu
         )}
       </div>
 
-      {/* Menu Navigation */}
-      <nav className="flex-1">
+      {/* Menu Navigation (scrollable) */}
+      <nav className="flex-1 min-h-0 overflow-y-auto scrollbar-hide">
         <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
           {sidebarOpen ? 'Menu' : ''}
         </p>
@@ -148,6 +148,8 @@ export function StudiaSidebar({ className, defaultOpen = true, onNavigate }: Stu
         </ul>
       </nav>
 
+      {/* Bas de sidebar — épinglé */}
+      <div className="flex-shrink-0 flex flex-col">
       {/* Accès espace professeur */}
       {sidebarOpen && (
         <Link
@@ -198,6 +200,7 @@ export function StudiaSidebar({ className, defaultOpen = true, onNavigate }: Stu
       >
         <Menu className="w-5 h-5" />
       </button>
+      </div>
     </aside>
   )
 }
