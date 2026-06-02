@@ -489,7 +489,14 @@ CREATE POLICY "Auth upload avatars" ON storage.objects FOR INSERT WITH CHECK (bu
 -- Bucket avatars public : pas de policy SELECT (URLs publiques accessibles sans listing)
 
 -- ============================================
--- 14. DONNÉES INITIALES (packs de crédits)
+-- 14. REALTIME (suivi en direct côté UI prof)
+-- ============================================
+ALTER PUBLICATION supabase_realtime ADD TABLE public.qcm_devoirs;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.qcm_sessions;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.correction_jobs;
+
+-- ============================================
+-- 15. DONNÉES INITIALES (packs de crédits)
 -- ============================================
 INSERT INTO public.credit_packs (name, credits, price_xof, bonus_credits, is_popular) VALUES
 ('Starter', 100, 2000, 0, FALSE),
