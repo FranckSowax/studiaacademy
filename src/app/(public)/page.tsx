@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
+import { ModuleFlipCard } from '@/components/sections/ModuleFlipCard'
 import {
   ArrowRight,
   CheckCircle,
@@ -287,67 +288,9 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {modules.map((module) => {
-              const Icon = iconMap[module.iconName] ?? Sparkles
-              return (
-                <Link
-                  key={module.slug}
-                  href={`/modules/${module.slug}`}
-                  className="group relative bg-white rounded-2xl border border-[#f0ebe3] p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden"
-                >
-                  {/* Barre couleur top */}
-                  <div
-                    className="absolute top-0 left-0 right-0 h-1 rounded-t-2xl"
-                    style={{ backgroundColor: module.couleur }}
-                  />
-
-                  {/* Badge optionnel */}
-                  {module.badge && (
-                    <span
-                      className="absolute top-4 right-4 text-xs font-semibold px-2 py-0.5 rounded-full text-white"
-                      style={{ backgroundColor: module.couleur }}
-                    >
-                      {module.badge}
-                    </span>
-                  )}
-
-                  {/* Icône */}
-                  <div
-                    className="w-12 h-12 rounded-xl flex items-center justify-center mb-4 mt-3"
-                    style={{ backgroundColor: `${module.couleur}18` }}
-                  >
-                    <Icon className="w-6 h-6" style={{ color: module.couleur }} />
-                  </div>
-
-                  <h3 className="text-lg font-bold font-heading text-gray-900 mb-1 group-hover:text-[#e97e42] transition-colors">
-                    {module.titre}
-                  </h3>
-                  <p className="text-xs font-medium mb-2" style={{ color: module.couleur }}>
-                    {module.sousTitre}
-                  </p>
-                  <p className="text-sm text-gray-500 mb-4 leading-relaxed line-clamp-2">
-                    {module.description}
-                  </p>
-
-                  <ul className="space-y-1.5 mb-5">
-                    {module.features.map((feat) => (
-                      <li key={feat} className="flex items-start gap-2 text-xs text-gray-600">
-                        <CheckCircle
-                          className="w-3.5 h-3.5 flex-shrink-0 mt-0.5"
-                          style={{ color: module.couleur }}
-                        />
-                        {feat}
-                      </li>
-                    ))}
-                  </ul>
-
-                  <div className="flex items-center text-sm font-semibold" style={{ color: module.couleur }}>
-                    {module.cta}
-                    <ArrowRight className="ml-1.5 w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </Link>
-              )
-            })}
+            {modules.map((module) => (
+              <ModuleFlipCard key={module.slug} module={module} />
+            ))}
           </div>
         </div>
       </section>
