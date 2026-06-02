@@ -4,13 +4,15 @@ import { useState, useEffect } from 'react'
 import { formatNumber } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useAuthContext } from '@/contexts/AuthContext'
+import { modules } from '@/lib/modules'
 import {
   Clock,
   Calendar,
   CheckCircle,
   ChevronRight,
-  ChevronLeft,
+  ArrowRight,
   TrendingUp,
   Flame,
   Bot,
@@ -20,9 +22,20 @@ import {
   BarChart3,
   Award,
   Zap,
+  GraduationCap,
+  Mic,
+  Building2,
+  Users,
+  Laptop,
+  Heart,
+  Sparkles,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+
+const moduleIconMap: Record<string, React.ComponentType<{ className?: string; style?: React.CSSProperties }>> = {
+  GraduationCap, BarChart2: BarChart3, Mic, BookOpen, Building2, Users, Laptop, Heart, Sparkles,
+}
 
 // Données de démonstration
 const userStats = {
@@ -37,39 +50,6 @@ const userStats = {
   points: 7890,
 }
 
-const userCourses = [
-  {
-    id: 1,
-    title: 'Design thinking',
-    level: 'Avancé',
-    progress: 46,
-    totalClasses: 12,
-    completedClasses: 4,
-    mentor: 'Tomas Luis',
-    mentorAvatar: '👨‍🏫',
-  },
-  {
-    id: 2,
-    title: 'Leadership',
-    level: 'Débutant',
-    progress: 72,
-    totalClasses: 14,
-    completedClasses: 8,
-    mentor: 'Nelly Roven',
-    mentorAvatar: '👩‍💼',
-  },
-  {
-    id: 3,
-    title: 'IT English',
-    level: 'Avancé',
-    progress: 56,
-    totalClasses: 10,
-    completedClasses: 6,
-    mentor: 'Stefan Colman',
-    mentorAvatar: '👨‍💻',
-  },
-]
-
 const studyProgress = [
   { name: 'Engage', value: 66, color: '#9CA3AF' },
   { name: 'Grow', value: 40, color: '#9CA3AF' },
@@ -78,17 +58,17 @@ const studyProgress = [
 ]
 
 const quickLinks = [
-  { id: 'courses', label: 'Mes Formations', icon: BookOpen, href: '/dashboard/courses', color: '#e97e42' },
+  { id: 'modules', label: 'Nos modules', icon: Zap, href: '/#modules', color: '#e97e42' },
+  { id: 'services', label: 'Micro-Services', icon: Sparkles, href: '/services', color: '#EC4899' },
+  { id: 'courses', label: 'Mes Formations', icon: BookOpen, href: '/dashboard/courses', color: '#3B82F6' },
   { id: 'leaderboard', label: 'Classement', icon: Trophy, href: '/dashboard/leaderboard', color: '#8B5CF6' },
   { id: 'skills', label: 'Compétences', icon: BarChart3, href: '/dashboard/skills', color: '#10B981' },
   { id: 'certificates', label: 'Certificats', icon: Award, href: '/dashboard/certificates', color: '#F59E0B' },
-  { id: 'services', label: 'Micro-Services', icon: Zap, href: '/services', color: '#EC4899' },
 ]
 
 export default function DashboardPage() {
   const router = useRouter()
   const { user, profile, isLoading: authLoading, isAuthenticated } = useAuthContext()
-  const [courseSlide, setCourseSlide] = useState(0)
   const [aiQuestion, setAiQuestion] = useState('')
 
   // Redirect si non authentifié
@@ -113,14 +93,6 @@ export default function DashboardPage() {
   }
 
   const userName = profile?.full_name || user?.email?.split('@')[0] || userStats.name
-
-  const nextSlide = () => {
-    setCourseSlide((prev) => (prev + 1) % Math.max(1, userCourses.length - 2))
-  }
-
-  const prevSlide = () => {
-    setCourseSlide((prev) => (prev - 1 + Math.max(1, userCourses.length - 2)) % Math.max(1, userCourses.length - 2))
-  }
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -223,68 +195,74 @@ export default function DashboardPage() {
 
         {/* Center Column - Courses & Study Progress */}
         <div className="lg:col-span-2 space-y-4 sm:space-y-6 order-1 lg:order-2">
-          {/* Your Courses */}
-          <div className="bg-gradient-to-br from-[#e97e42] to-[#d56a2e] rounded-2xl sm:rounded-3xl p-4 sm:p-6 text-white">
+          {/* Nos formations / modules — synchronisés avec la home */}
+          <div className="bg-white rounded-2xl sm:rounded-3xl border border-[#f0ebe3] p-4 sm:p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg sm:text-xl font-bold">Vos formations</h2>
-              <div className="flex items-center gap-1 sm:gap-2">
-                <button
-                  onClick={prevSlide}
-                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors"
-                >
-                  <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                </button>
-                <button
-                  onClick={nextSlide}
-                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors"
-                >
-                  <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                </button>
-                <Link
-                  href="/dashboard/courses"
-                  className="ml-1 sm:ml-2 px-2 sm:px-3 py-1 bg-white text-[#e97e42] rounded-full text-xs sm:text-sm font-medium hover:bg-[#fbf8f3] transition-colors"
-                >
-                  Voir tout
-                </Link>
+              <div>
+                <h2 className="text-lg sm:text-xl font-bold text-gray-800">Nos formations</h2>
+                <p className="text-xs sm:text-sm text-gray-500">Les 9 modules de Studia Academy</p>
               </div>
+              <Link
+                href="/#modules"
+                className="px-2 sm:px-3 py-1 bg-[#fff7ed] text-[#a84d16] rounded-full text-xs sm:text-sm font-medium hover:bg-[#ffeedd] transition-colors flex items-center gap-1"
+              >
+                Tout voir <ChevronRight className="w-3.5 h-3.5" />
+              </Link>
             </div>
 
-            {/* Course Cards - Horizontal scroll on mobile, grid on larger screens */}
-            <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-2 md:grid-cols-3 sm:overflow-visible scrollbar-hide">
-              {userCourses.slice(courseSlide, courseSlide + 3).map((course) => (
-                <Link
-                  key={course.id}
-                  href="/dashboard/courses"
-                  className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-md hover:shadow-xl transition-all text-gray-800 flex-shrink-0 w-[260px] sm:w-auto"
-                >
-                  <h3 className="font-bold mb-2 text-sm sm:text-base">{course.title}</h3>
-                  <div className="flex gap-1 sm:gap-2 mb-2 sm:mb-3 flex-wrap">
-                    <span className="text-[10px] sm:text-xs bg-gray-100 text-gray-600 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full">{course.level}</span>
-                    <span className="text-[10px] sm:text-xs bg-gray-100 text-gray-600 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full">
-                      {course.completedClasses}/{course.totalClasses} classes
-                    </span>
-                  </div>
-                  <div className="mb-2 sm:mb-3">
-                    <div className="flex items-center justify-between text-sm mb-1">
-                      <span className="font-bold text-xl sm:text-2xl text-gray-800">{course.progress}%</span>
-                      <span className="text-gray-500 text-xs sm:text-sm">complété</span>
-                    </div>
-                    <div className="h-1 sm:h-1.5 bg-gray-200 rounded-full overflow-hidden">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {modules.map((module) => {
+                const Icon = moduleIconMap[module.iconName] ?? Sparkles
+                return (
+                  <Link
+                    key={module.slug}
+                    href={`/modules/${module.slug}`}
+                    className="group relative rounded-2xl overflow-hidden border border-[#f0ebe3] hover:shadow-lg hover:-translate-y-0.5 transition-all"
+                  >
+                    {/* Image de couverture */}
+                    <div className="relative h-20 sm:h-24 w-full">
+                      {module.coverImage ? (
+                        <Image
+                          src={module.coverImage}
+                          alt={module.titre}
+                          fill
+                          sizes="(max-width: 768px) 50vw, 200px"
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full" style={{ backgroundColor: `${module.couleur}20` }} />
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
                       <div
-                        className="h-full bg-[#e97e42] rounded-full"
-                        style={{ width: `${course.progress}%` }}
-                      />
+                        className="absolute top-2 left-2 w-7 h-7 rounded-lg flex items-center justify-center backdrop-blur-sm"
+                        style={{ backgroundColor: `${module.couleur}55` }}
+                      >
+                        <Icon className="w-4 h-4 text-white" />
+                      </div>
+                      {module.badge && (
+                        <span
+                          className="absolute top-2 right-2 text-[9px] font-bold px-1.5 py-0.5 rounded-full text-white"
+                          style={{ backgroundColor: module.couleur }}
+                        >
+                          {module.badge}
+                        </span>
+                      )}
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg sm:text-xl">{course.mentorAvatar}</span>
-                    <div>
-                      <p className="text-[10px] sm:text-xs text-gray-500">Formateur</p>
-                      <p className="text-xs sm:text-sm font-medium text-gray-700">{course.mentor}</p>
+                    {/* Texte */}
+                    <div className="p-2.5 sm:p-3">
+                      <h3 className="font-bold text-xs sm:text-sm text-gray-800 leading-tight group-hover:text-[#e97e42] transition-colors line-clamp-2">
+                        {module.titre}
+                      </h3>
+                      <p className="text-[10px] sm:text-xs text-gray-400 mt-0.5 line-clamp-1">
+                        {module.slogan}
+                      </p>
+                      <div className="flex items-center gap-1 mt-2 text-[10px] sm:text-xs font-semibold" style={{ color: module.couleur }}>
+                        Découvrir <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                      </div>
                     </div>
-                  </div>
-                </Link>
-              ))}
+                  </Link>
+                )
+              })}
             </div>
           </div>
 
@@ -342,17 +320,28 @@ export default function DashboardPage() {
                   <p className="text-xs sm:text-sm text-gray-500">Posez vos questions sur vos formations</p>
                 </div>
 
-                <div className="flex gap-2">
+                <form
+                  className="flex gap-2"
+                  onSubmit={(e) => {
+                    e.preventDefault()
+                    const q = aiQuestion.trim()
+                    router.push(
+                      q
+                        ? `/dashboard/assistants?q=${encodeURIComponent(q)}`
+                        : '/dashboard/assistants'
+                    )
+                  }}
+                >
                   <Input
                     placeholder="Demandez quelque chose..."
                     value={aiQuestion}
                     onChange={(e) => setAiQuestion(e.target.value)}
                     className="flex-1 bg-white border-0 shadow-sm text-sm"
                   />
-                  <Button className="bg-[#e97e42] hover:bg-[#d56a2e] text-white rounded-xl px-3 sm:px-4">
+                  <Button type="submit" className="bg-[#e97e42] hover:bg-[#d56a2e] text-white rounded-xl px-3 sm:px-4">
                     <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </Button>
-                </div>
+                </form>
               </div>
             </div>
           </div>

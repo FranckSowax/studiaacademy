@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import {
   Home,
   Zap,
@@ -17,8 +17,11 @@ import {
   Settings,
   ChevronRight,
   Menu,
+  LogOut,
+  Loader2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { createClient } from '@/lib/supabase/client'
 
 interface MenuItem {
   id: string
@@ -49,7 +52,17 @@ interface StudiaSidebarProps {
 
 export function StudiaSidebar({ className, defaultOpen = true, onNavigate }: StudiaSidebarProps) {
   const [sidebarOpen, setSidebarOpen] = useState(defaultOpen)
+  const [loggingOut, setLoggingOut] = useState(false)
   const pathname = usePathname()
+  const router = useRouter()
+
+  const handleLogout = async () => {
+    setLoggingOut(true)
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    router.push('/login')
+    router.refresh()
+  }
 
   const handleNavClick = () => {
     if (onNavigate) onNavigate()
@@ -161,10 +174,27 @@ export function StudiaSidebar({ className, defaultOpen = true, onNavigate }: Stu
         </Link>
       )}
 
+      {/* Déconnexion */}
+      <button
+        onClick={handleLogout}
+        disabled={loggingOut}
+        className={cn(
+          'mt-4 w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-gray-600 hover:bg-red-50 hover:text-red-600',
+          !sidebarOpen && 'justify-center'
+        )}
+      >
+        {loggingOut ? (
+          <Loader2 className="w-5 h-5 flex-shrink-0 animate-spin" />
+        ) : (
+          <LogOut className="w-5 h-5 flex-shrink-0" />
+        )}
+        {sidebarOpen && <span className="font-medium">Déconnexion</span>}
+      </button>
+
       {/* Toggle Sidebar */}
       <button
         onClick={() => setSidebarOpen(!sidebarOpen)}
-        className="mt-4 p-2 rounded-xl hover:bg-[#fff7ed] text-gray-400 hover:text-[#e97e42] transition-colors self-center"
+        className="mt-2 p-2 rounded-xl hover:bg-[#fff7ed] text-gray-400 hover:text-[#e97e42] transition-colors self-center"
       >
         <Menu className="w-5 h-5" />
       </button>
