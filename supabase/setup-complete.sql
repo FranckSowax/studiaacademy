@@ -37,7 +37,7 @@ BEGIN
     NEW.updated_at = NOW();
     RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql SET search_path = '';
 
 -- ============================================
 -- 4. PROFILES (+ champs professeur)
@@ -379,6 +379,9 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+ALTER FUNCTION public.handle_new_user() SET search_path = '';
+REVOKE EXECUTE ON FUNCTION public.handle_new_user() FROM anon, authenticated, public;
+
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created AFTER INSERT ON auth.users FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
@@ -450,15 +453,25 @@ CREATE POLICY "Teachers own qcm devoirs" ON public.qcm_devoirs FOR ALL USING (te
 DROP POLICY IF EXISTS "Public read active qcm" ON public.qcm_devoirs;
 CREATE POLICY "Public read active qcm" ON public.qcm_devoirs FOR SELECT USING (status = 'active');
 
--- Sessions/réponses QCM accessibles aux élèves sans compte
-DROP POLICY IF EXISTS "Public create qcm session" ON public.qcm_sessions;
-CREATE POLICY "Public create qcm session" ON public.qcm_sessions FOR INSERT WITH CHECK (true);
-DROP POLICY IF EXISTS "Public read qcm session" ON public.qcm_sessions;
-CREATE POLICY "Public read qcm session" ON public.qcm_sessions FOR SELECT USING (true);
-DROP POLICY IF EXISTS "Public update qcm session" ON public.qcm_sessions;
-CREATE POLICY "Public update qcm session" ON public.qcm_sessions FOR UPDATE USING (true);
-DROP POLICY IF EXISTS "Public manage qcm reponses" ON public.qcm_reponses;
-CREATE POLICY "Public manage qcm reponses" ON public.qcm_reponses FOR ALL USING (true) WITH CHECK (true);
+-- Sessions/réponses QCM : les écritures élèves passent par le client admin
+-- (service role => RLS bypassée). On expose uniquement la lecture au prof propriétaire.
+DROP POLICY IF EXISTS "Teachers read own devoir sessions" ON public.qcm_sessions;
+CREATE POLICY "Teachers read own devoir sessions" ON public.qcm_sessions FOR SELECT USING (
+    devoir_id IN (
+        SELECT d.id FROM public.qcm_devoirs d
+        JOIN public.teacher_profiles tp ON d.teacher_id = tp.id
+        WHERE tp.user_id = auth.uid()
+    )
+);
+DROP POLICY IF EXISTS "Teachers read own devoir reponses" ON public.qcm_reponses;
+CREATE POLICY "Teachers read own devoir reponses" ON public.qcm_reponses FOR SELECT USING (
+    session_id IN (
+        SELECT s.id FROM public.qcm_sessions s
+        JOIN public.qcm_devoirs d ON s.devoir_id = d.id
+        JOIN public.teacher_profiles tp ON d.teacher_id = tp.id
+        WHERE tp.user_id = auth.uid()
+    )
+);
 
 -- ============================================
 -- 13. STORAGE BUCKETS
@@ -471,6 +484,9 @@ DROP POLICY IF EXISTS "Auth upload teacher files" ON storage.objects;
 CREATE POLICY "Auth upload teacher files" ON storage.objects FOR INSERT WITH CHECK (bucket_id IN ('copies', 'cours-sources') AND auth.role() = 'authenticated');
 DROP POLICY IF EXISTS "Auth read teacher files" ON storage.objects;
 CREATE POLICY "Auth read teacher files" ON storage.objects FOR SELECT USING (bucket_id IN ('copies', 'cours-sources') AND auth.role() = 'authenticated');
+DROP POLICY IF EXISTS "Auth upload avatars" ON storage.objects;
+CREATE POLICY "Auth upload avatars" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'avatars' AND auth.role() = 'authenticated');
+-- Bucket avatars public : pas de policy SELECT (URLs publiques accessibles sans listing)
 
 -- ============================================
 -- 14. DONNÉES INITIALES (packs de crédits)
