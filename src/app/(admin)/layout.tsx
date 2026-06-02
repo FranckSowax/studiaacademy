@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { AdminHeader } from '@/components/layout/admin-header'
 import { AdminSidebar } from '@/components/layout/admin-sidebar'
 

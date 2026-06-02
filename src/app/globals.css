@@ -6,7 +6,8 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-inter);
+  --font-heading: var(--font-poppins);
   --font-mono: var(--font-geist-mono);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -45,33 +46,45 @@
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
 
-  /* Studia Academy Custom Colors */
+  /* Studia Academy — Couleurs primaires */
   --color-studia-orange: #e97e42;
   --color-studia-orange-light: #f5a67a;
   --color-studia-orange-dark: #d56a2e;
+  --color-studia-orange-text: #a84d16; /* AA-compliant sur fond blanc */
   --color-studia-bg: #fbf8f3;
   --color-studia-white: #ffffff;
+
+  /* 9 couleurs modules */
+  --color-module-violet: #7C3AED;
+  --color-module-orange: #e97e42;
+  --color-module-blue: #3B82F6;
+  --color-module-emerald: #10B981;
+  --color-module-amber: #F59E0B;
+  --color-module-rose: #F43F5E;
+  --color-module-cyan: #06B6D4;
+  --color-module-indigo: #6366F1;
+  --color-module-fuchsia: #D946EF;
 }
 
 :root {
   --radius: 0.625rem;
   --background: #ffffff;
-  --foreground: #1a1a1a;
+  --foreground: #0f172a;
   --card: #fbf8f3;
-  --card-foreground: #1a1a1a;
+  --card-foreground: #0f172a;
   --popover: #ffffff;
-  --popover-foreground: #1a1a1a;
+  --popover-foreground: #0f172a;
   --primary: #e97e42;
   --primary-foreground: #ffffff;
   --secondary: #fbf8f3;
-  --secondary-foreground: #1a1a1a;
+  --secondary-foreground: #0f172a;
   --muted: #fbf8f3;
-  --muted-foreground: #737373;
+  --muted-foreground: #64748b;
   --accent: #fff7ed;
   --accent-foreground: #e97e42;
   --destructive: #ef4444;
-  --border: #f0ebe3;
-  --input: #e5e5e5;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
   --ring: #e97e42;
   --chart-1: #e97e42;
   --chart-2: #f5a67a;
@@ -79,53 +92,54 @@
   --chart-4: #ffb088;
   --chart-5: #c45a20;
   --sidebar: #fbf8f3;
-  --sidebar-foreground: #1a1a1a;
+  --sidebar-foreground: #0f172a;
   --sidebar-primary: #e97e42;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #fff7ed;
   --sidebar-accent-foreground: #e97e42;
-  --sidebar-border: #f0ebe3;
+  --sidebar-border: #e2e8f0;
   --sidebar-ring: #e97e42;
 
   /* Studia specific */
   --studia-orange: #e97e42;
   --studia-orange-light: #f5a67a;
   --studia-orange-dark: #d56a2e;
+  --studia-orange-text: #a84d16;
   --studia-bg: #ffffff;
   --studia-card: #fbf8f3;
 }
 
 .dark {
-  --background: #1a1a1a;
-  --foreground: #fafafa;
-  --card: #262626;
-  --card-foreground: #fafafa;
-  --popover: #262626;
-  --popover-foreground: #fafafa;
+  --background: #0f172a;
+  --foreground: #f8fafc;
+  --card: #1e293b;
+  --card-foreground: #f8fafc;
+  --popover: #1e293b;
+  --popover-foreground: #f8fafc;
   --primary: #e97e42;
   --primary-foreground: #ffffff;
-  --secondary: #333333;
-  --secondary-foreground: #fafafa;
-  --muted: #333333;
-  --muted-foreground: #a3a3a3;
+  --secondary: #1e293b;
+  --secondary-foreground: #f8fafc;
+  --muted: #1e293b;
+  --muted-foreground: #94a3b8;
   --accent: #3d2a1a;
   --accent-foreground: #f5a67a;
   --destructive: #ef4444;
-  --border: #404040;
-  --input: #404040;
+  --border: #334155;
+  --input: #334155;
   --ring: #e97e42;
   --chart-1: #e97e42;
   --chart-2: #f5a67a;
   --chart-3: #d56a2e;
   --chart-4: #ffb088;
   --chart-5: #c45a20;
-  --sidebar: #262626;
-  --sidebar-foreground: #fafafa;
+  --sidebar: #1e293b;
+  --sidebar-foreground: #f8fafc;
   --sidebar-primary: #e97e42;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #3d2a1a;
   --sidebar-accent-foreground: #f5a67a;
-  --sidebar-border: #404040;
+  --sidebar-border: #334155;
   --sidebar-ring: #e97e42;
 }
 
@@ -135,51 +149,69 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-inter), system-ui, sans-serif;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-poppins), var(--font-inter), system-ui, sans-serif;
   }
 }
 
-/* Studia Academy Gradient Buttons */
+/* Animations d'entrée — désactivées si prefers-reduced-motion */
+@media (prefers-reduced-motion: no-preference) {
+  .animate-fade-up {
+    animation: fadeUp 0.6s ease-out both;
+  }
+  .animate-fade-up-delay-1 { animation-delay: 100ms; }
+  .animate-fade-up-delay-2 { animation-delay: 200ms; }
+  .animate-fade-up-delay-3 { animation-delay: 300ms; }
+  .animate-fade-up-delay-4 { animation-delay: 400ms; }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Header scroll-aware */
+#main-header {
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+#main-header[data-scrolled="true"] {
+  background-color: rgba(255, 255, 255, 0.97);
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.07);
+}
+#main-header[data-scrolled="false"] {
+  background-color: transparent;
+}
+
+/* Gradient buttons */
 .btn-studia {
   background: linear-gradient(135deg, #e97e42 0%, #d56a2e 100%);
   color: white;
   transition: all 0.3s ease;
 }
-
 .btn-studia:hover {
   background: linear-gradient(135deg, #f5a67a 0%, #e97e42 100%);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(233, 126, 66, 0.4);
+  box-shadow: 0 4px 12px rgba(233, 126, 66, 0.35);
 }
 
-/* Studia Icon Gradient */
-.icon-studia {
-  color: #e97e42;
+/* Texte orange accessible (AA sur fond blanc) */
+.text-studia-accessible {
+  color: var(--studia-orange-text);
 }
 
-.icon-studia-gradient {
-  background: linear-gradient(135deg, #e97e42 0%, #d56a2e 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* Hide scrollbar for horizontal scroll containers */
+/* Scrollbar hide */
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
-
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
 
-/* Mobile touch improvements */
+/* Touch targets mobiles */
 @media (max-width: 640px) {
-  .touch-pan-x {
-    touch-action: pan-x;
-  }
-
-  /* Better touch targets */
   button, a {
     min-height: 44px;
   }
