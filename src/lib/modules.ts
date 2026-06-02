@@ -36,8 +36,8 @@ export const modules: Module[] = [
     ],
     iconName: 'GraduationCap',
     cta: 'Découvrir les universités',
-    coverImage: 'https://images.unsplash.com/photo-1547981609-4b6bfe67ca0b?w=600&h=800&fit=crop&q=80',
-    backImage: 'https://images.unsplash.com/photo-1580137189272-c9379f8864fd?w=600&h=800&fit=crop&q=80',
+    coverImage: '/universites-chinoises.png',
+    backImage: '/universites-chinoises.png',
   },
   {
     slug: 'tests-competences',
@@ -58,8 +58,8 @@ export const modules: Module[] = [
     iconName: 'BarChart2',
     cta: 'Passer un test',
     serviceSlug: 'assess',
-    coverImage: 'https://images.unsplash.com/photo-1606326608606-aa0b62935f2b?w=600&h=800&fit=crop&q=80',
-    backImage: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=600&h=800&fit=crop&q=80',
+    coverImage: '/tests-competences.png',
+    backImage: '/tests-competences.png',
   },
   {
     slug: 'preparation-soutenance',
@@ -80,8 +80,8 @@ export const modules: Module[] = [
     iconName: 'Mic',
     cta: 'Préparer ma soutenance',
     serviceSlug: 'interview',
-    coverImage: 'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?w=600&h=800&fit=crop&q=80',
-    backImage: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=600&h=800&fit=crop&q=80',
+    coverImage: '/preparation-soutenance.png',
+    backImage: '/preparation-soutenance.png',
   },
   {
     slug: 'training-sessions',
@@ -102,8 +102,8 @@ export const modules: Module[] = [
     iconName: 'BookOpen',
     cta: 'Voir les sessions',
     serviceSlug: 'learn',
-    coverImage: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=600&h=800&fit=crop&q=80',
-    backImage: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=600&h=800&fit=crop&q=80',
+    coverImage: '/training-sessions.png',
+    backImage: '/training-sessions.png',
   },
   {
     slug: 'audit-ia-entreprises',
@@ -125,8 +125,8 @@ export const modules: Module[] = [
     iconName: 'Building2',
     cta: 'Demander un audit',
     serviceSlug: 'business',
-    coverImage: 'https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=600&h=800&fit=crop&q=80',
-    backImage: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&h=800&fit=crop&q=80',
+    coverImage: '/audit-ia-entreprises.png',
+    backImage: '/audit-ia-entreprises.png',
   },
   {
     slug: 'formations-presentiel',
@@ -146,8 +146,8 @@ export const modules: Module[] = [
     ],
     iconName: 'Users',
     cta: 'Voir le calendrier',
-    coverImage: 'https://images.unsplash.com/photo-1529390079861-591de354faf5?w=600&h=800&fit=crop&q=80',
-    backImage: 'https://images.unsplash.com/photo-1528605248644-14dd04022da1?w=600&h=800&fit=crop&q=80',
+    coverImage: '/formations-presentiel.png',
+    backImage: '/formations-presentiel.png',
   },
   {
     slug: 'digitalisation',
@@ -167,8 +167,8 @@ export const modules: Module[] = [
     ],
     iconName: 'Laptop',
     cta: 'Digitaliser mon organisation',
-    coverImage: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600&h=800&fit=crop&q=80',
-    backImage: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=600&h=800&fit=crop&q=80',
+    coverImage: '/digitalisation.png',
+    backImage: '/digitalisation.png',
   },
   {
     slug: 'accompagnement-pedagogique',
@@ -189,8 +189,8 @@ export const modules: Module[] = [
     iconName: 'Heart',
     cta: 'Trouver mon coach',
     serviceSlug: 'assistant',
-    coverImage: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&h=800&fit=crop&q=80',
-    backImage: 'https://images.unsplash.com/photo-1491308056676-205b7c9a7dc1?w=600&h=800&fit=crop&q=80',
+    coverImage: '/accompagnement-pedagogique.png',
+    backImage: '/accompagnement-pedagogique.png',
   },
   {
     slug: 'experience-interactive',
@@ -211,8 +211,8 @@ export const modules: Module[] = [
     iconName: 'Sparkles',
     cta: 'Rejoindre la communauté',
     serviceSlug: 'community',
-    coverImage: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=600&h=800&fit=crop&q=80',
-    backImage: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=600&h=800&fit=crop&q=80',
+    coverImage: '/experience-interactive.png',
+    backImage: '/experience-interactive.png',
   },
 ]
 
