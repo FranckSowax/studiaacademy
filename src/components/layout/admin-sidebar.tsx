@@ -13,6 +13,7 @@ import {
   GraduationCap,
   MapPin,
   Inbox,
+  FlaskConical,
 } from 'lucide-react'
 
 interface AdminSidebarProps extends React.HTMLAttributes<HTMLDivElement> {}
@@ -50,6 +51,11 @@ export function AdminSidebar({ className }: AdminSidebarProps) {
       title: 'Présentiel',
       href: '/admin/presentiel',
       icon: MapPin,
+    },
+    {
+      title: 'Studia Labs',
+      href: '/admin/labs',
+      icon: FlaskConical,
     },
     {
       title: 'Signalements',
