@@ -10,6 +10,9 @@ import {
   Briefcase,
   AlertTriangle,
   Settings,
+  GraduationCap,
+  MapPin,
+  Inbox,
 } from 'lucide-react'
 
 interface AdminSidebarProps extends React.HTMLAttributes<HTMLDivElement> {}
@@ -32,6 +35,21 @@ export function AdminSidebar({ className }: AdminSidebarProps) {
       title: 'Services',
       href: '/admin/services',
       icon: Briefcase,
+    },
+    {
+      title: 'Formations en ligne',
+      href: '/admin/formations',
+      icon: GraduationCap,
+    },
+    {
+      title: 'Inscriptions',
+      href: '/admin/formations/inscriptions',
+      icon: Inbox,
+    },
+    {
+      title: 'Présentiel',
+      href: '/admin/presentiel',
+      icon: MapPin,
     },
     {
       title: 'Signalements',

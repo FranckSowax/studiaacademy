@@ -10,6 +10,7 @@ import { useScrolled } from '@/hooks/useScroll'
 
 const navLinks = [
   { label: 'Modules', href: '/#modules' },
+  { label: 'Formations', href: '/formations' },
   { label: 'Pourquoi nous', href: '/#pourquoi' },
   { label: 'Tarifs', href: '/pricing' },
   { label: 'Contact', href: '/contact' },

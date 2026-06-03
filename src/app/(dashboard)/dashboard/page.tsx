@@ -4,15 +4,12 @@ import { useState, useEffect } from 'react'
 import { formatNumber } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import Image from 'next/image'
 import { useAuthContext } from '@/contexts/AuthContext'
-import { modules } from '@/lib/modules'
+import { DashboardFormations } from '@/components/dashboard/DashboardFormations'
 import {
   Clock,
   Calendar,
   CheckCircle,
-  ChevronRight,
-  ArrowRight,
   TrendingUp,
   Flame,
   Bot,
@@ -22,20 +19,10 @@ import {
   BarChart3,
   Award,
   Zap,
-  GraduationCap,
-  Mic,
-  Building2,
-  Users,
-  Laptop,
-  Heart,
   Sparkles,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-
-const moduleIconMap: Record<string, React.ComponentType<{ className?: string; style?: React.CSSProperties }>> = {
-  GraduationCap, BarChart2: BarChart3, Mic, BookOpen, Building2, Users, Laptop, Heart, Sparkles,
-}
 
 // Données de démonstration
 const userStats = {
@@ -195,78 +182,8 @@ export default function DashboardPage() {
 
         {/* Center Column - Courses & Study Progress */}
         <div className="lg:col-span-2 space-y-4 sm:space-y-6 order-1 lg:order-2">
-          {/* Nos formations — module orange, slider horizontal de vignettes */}
-          <div className="bg-gradient-to-br from-[#e97e42] to-[#d56a2e] rounded-2xl sm:rounded-3xl p-4 sm:p-6 text-white">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h2 className="text-lg sm:text-xl font-bold">Nos formations</h2>
-                <p className="text-xs sm:text-sm text-white/80">Les 9 modules de Studia Academy</p>
-              </div>
-              <Link
-                href="/#modules"
-                className="px-2 sm:px-3 py-1 bg-white text-[#e97e42] rounded-full text-xs sm:text-sm font-medium hover:bg-[#fbf8f3] transition-colors flex items-center gap-1"
-              >
-                Tout voir <ChevronRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
-
-            {/* Slider horizontal */}
-            <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide snap-x snap-mandatory">
-              {modules.map((module) => {
-                const Icon = moduleIconMap[module.iconName] ?? Sparkles
-                return (
-                  <Link
-                    key={module.slug}
-                    href={`/modules/${module.slug}`}
-                    className="group bg-white rounded-xl sm:rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all text-gray-800 flex-shrink-0 w-[180px] sm:w-[200px] snap-start"
-                  >
-                    {/* Vignette cover */}
-                    <div className="relative h-24 sm:h-28 w-full">
-                      {module.coverImage ? (
-                        <Image
-                          src={module.coverImage}
-                          alt={module.titre}
-                          fill
-                          sizes="200px"
-                          className="object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full" style={{ backgroundColor: `${module.couleur}20` }} />
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                      <div
-                        className="absolute top-2 left-2 w-7 h-7 rounded-lg flex items-center justify-center backdrop-blur-sm"
-                        style={{ backgroundColor: `${module.couleur}66` }}
-                      >
-                        <Icon className="w-4 h-4 text-white" />
-                      </div>
-                      {module.badge && (
-                        <span
-                          className="absolute top-2 right-2 text-[9px] font-bold px-1.5 py-0.5 rounded-full text-white"
-                          style={{ backgroundColor: module.couleur }}
-                        >
-                          {module.badge}
-                        </span>
-                      )}
-                    </div>
-                    {/* Texte */}
-                    <div className="p-3">
-                      <h3 className="font-bold text-sm leading-tight group-hover:text-[#e97e42] transition-colors line-clamp-2">
-                        {module.titre}
-                      </h3>
-                      <p className="text-[11px] text-gray-400 mt-0.5 line-clamp-1">{module.slogan}</p>
-                      <div
-                        className="flex items-center gap-1 mt-2 text-[11px] font-semibold"
-                        style={{ color: module.couleur }}
-                      >
-                        Découvrir <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
-                      </div>
-                    </div>
-                  </Link>
-                )
-              })}
-            </div>
-          </div>
+          {/* Mes formations — covers en cours ou suggestions */}
+          <DashboardFormations />
 
           {/* Bottom Row - Study Progress & AI Assistant */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">

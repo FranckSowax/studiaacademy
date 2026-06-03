@@ -1,264 +1,201 @@
-'use client'
+export const dynamic = 'force-dynamic'
 
-import { useState } from 'react'
 import Link from 'next/link'
-import { BookOpen, Play, Clock, Trophy, ChevronRight, Search, Filter } from 'lucide-react'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
+import Image from 'next/image'
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
+import { formatNumber } from '@/lib/utils'
+import {
+  BookOpen, PlayCircle, CheckCircle, TrendingUp, Clock, ArrowRight,
+  GraduationCap, Sparkles,
+} from 'lucide-react'
+import type { Formation } from '@/types/formation'
 
-const enrolledCourses = [
-  {
-    id: 1,
-    slug: 'canva-design',
-    title: 'Canva Pro : Design Graphique pour Tous',
-    instructor: 'Marie Nguema',
-    progress: 85,
-    totalLessons: 24,
-    completedLessons: 20,
-    duration: '9h 32min',
-    image: '🎨',
-    lastAccessed: 'Aujourd\'hui',
-    nextLesson: 'Créer des animations avec Canva',
-  },
-  {
-    id: 2,
-    slug: 'wordpress-web',
-    title: 'WordPress & Création de Sites Web',
-    instructor: 'Patrick Mba',
-    progress: 45,
-    totalLessons: 32,
-    completedLessons: 14,
-    duration: '12h 45min',
-    image: '🌐',
-    lastAccessed: 'Hier',
-    nextLesson: 'Configurer les plugins essentiels',
-  },
-  {
-    id: 3,
-    slug: 'automatisation-make',
-    title: 'Automatisation avec Make & Zapier',
-    instructor: 'Franck Obame',
-    progress: 25,
-    totalLessons: 18,
-    completedLessons: 4,
-    duration: '8h 20min',
-    image: '⚡',
-    lastAccessed: 'Il y a 3 jours',
-    nextLesson: 'Créer votre premier scénario',
-  },
-]
+interface EnrolledFormation {
+  enrollment_id: string
+  status: string
+  progress: string[]
+  formation: Formation
+  totalLessons: number
+}
 
-const recommendedCourses = [
-  {
-    id: 4,
-    slug: 'photoshop-expert',
-    title: 'Photoshop : De Zéro à Expert',
-    instructor: 'Claire Ndong',
-    price: '30 000 FCFA',
-    rating: 4.6,
-    students: 312,
-    image: '📸',
-  },
-  {
-    id: 5,
-    slug: 'excel-avance',
-    title: 'Excel Avancé : Tableaux Croisés',
-    instructor: 'Jean Obiang',
-    price: '25 000 FCFA',
-    rating: 4.8,
-    students: 456,
-    image: '📊',
-  },
-]
+export default async function MesFormationsPage() {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
 
-export default function CoursesPage() {
-  const [searchQuery, setSearchQuery] = useState('')
+  // Inscriptions actives/terminées
+  const { data: enrollments } = await supabase
+    .from('formation_enrollments')
+    .select('id, status, progress, formations(*)')
+    .eq('user_id', user.id)
+    .in('status', ['active', 'completed'])
+    .order('granted_at', { ascending: false })
 
-  const filteredCourses = enrolledCourses.filter((course) =>
-    course.title.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  const enrolled: EnrolledFormation[] = []
+  for (const e of enrollments ?? []) {
+    const formation = e.formations as unknown as Formation
+    if (!formation) continue
+    const { count } = await supabase
+      .from('formation_lessons')
+      .select('*', { count: 'exact', head: true })
+      .eq('formation_id', formation.id)
+    enrolled.push({
+      enrollment_id: e.id as string,
+      status: e.status as string,
+      progress: (e.progress as string[]) ?? [],
+      formation,
+      totalLessons: count ?? 0,
+    })
+  }
+
+  // KPIs
+  const total = enrolled.length
+  const enCours = enrolled.filter((e) => {
+    const pct = e.totalLessons ? e.progress.length / e.totalLessons : 0
+    return pct > 0 && pct < 1
+  }).length
+  const terminees = enrolled.filter((e) => e.totalLessons > 0 && e.progress.length >= e.totalLessons).length
+  const progMoyenne = total
+    ? Math.round(
+        (enrolled.reduce((s, e) => s + (e.totalLessons ? e.progress.length / e.totalLessons : 0), 0) / total) * 100
+      )
+    : 0
+
+  // Si 0 formation → suggestions
+  let suggestions: Formation[] = []
+  if (total === 0) {
+    const { data } = await supabase
+      .from('formations')
+      .select('*')
+      .eq('is_published', true)
+      .order('ordre', { ascending: true })
+      .limit(6)
+    suggestions = (data ?? []) as Formation[]
+  }
+
+  const kpis = [
+    { label: 'Formations', value: total, icon: BookOpen, color: '#e97e42' },
+    { label: 'En cours', value: enCours, icon: PlayCircle, color: '#3B82F6' },
+    { label: 'Terminées', value: terminees, icon: CheckCircle, color: '#10B981' },
+    { label: 'Progression', value: `${progMoyenne}%`, icon: TrendingUp, color: '#8B5CF6' },
+  ]
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">Mes Formations</h1>
-          <p className="text-gray-500">Continuez votre apprentissage</p>
-        </div>
-        <Link href="/services">
-          <Button className="bg-gradient-to-r from-[#e97e42] to-[#d56a2e] hover:from-[#d56a2e] hover:to-[#c45a20] text-white">
-            <BookOpen className="w-4 h-4 mr-2" />
-            Explorer le catalogue
-          </Button>
-        </Link>
-      </div>
-
-      {/* Barre de recherche */}
-      <div className="flex gap-4 mb-6">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <Input
-            placeholder="Rechercher une formation..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 border-[#e5e5e5] focus:border-[#e97e42] focus:ring-[#e97e42]"
-          />
-        </div>
-        <Button variant="outline" className="border-[#e97e42] text-[#e97e42] hover:bg-[#fff7ed]">
-          <Filter className="w-4 h-4 mr-2" />
-          Filtrer
-        </Button>
-      </div>
-
-      {/* Cours en cours */}
-      <div className="mb-8">
-        <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-          <Play className="w-5 h-5 text-[#e97e42]" />
-          En cours ({filteredCourses.length})
-        </h2>
-        <div className="space-y-4">
-          {filteredCourses.map((course) => (
-            <div
-              key={course.id}
-              className="bg-[#fbf8f3] rounded-2xl border border-[#f0ebe3] p-5 hover:shadow-lg hover:shadow-[#e97e42]/10 transition-all"
-            >
-              <div className="flex gap-5">
-                {/* Thumbnail */}
-                <div className="w-32 h-24 bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl flex items-center justify-center text-4xl flex-shrink-0">
-                  {course.image}
-                </div>
-
-                {/* Info */}
-                <div className="flex-1">
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <h3 className="font-bold text-gray-800 mb-1">{course.title}</h3>
-                      <p className="text-sm text-gray-500">{course.instructor}</p>
-                    </div>
-                    <span className="text-xs text-gray-400">{course.lastAccessed}</span>
-                  </div>
-
-                  <div className="flex items-center gap-4 mb-3 text-sm text-gray-500">
-                    <span className="flex items-center gap-1">
-                      <BookOpen className="w-4 h-4" />
-                      {course.completedLessons}/{course.totalLessons} leçons
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Clock className="w-4 h-4" />
-                      {course.duration}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between text-sm mb-1">
-                        <span className="text-gray-500">Progression</span>
-                        <span className="font-semibold text-[#e97e42]">{course.progress}%</span>
-                      </div>
-                      <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-gradient-to-r from-[#e97e42] to-[#d56a2e] rounded-full"
-                          style={{ width: `${course.progress}%` }}
-                        />
-                      </div>
-                    </div>
-                    <Link href={`/services`}>
-                      <Button className="bg-gradient-to-r from-[#e97e42] to-[#d56a2e] hover:from-[#d56a2e] hover:to-[#c45a20] text-white">
-                        <Play className="w-4 h-4 mr-2" />
-                        Continuer
-                      </Button>
-                    </Link>
-                  </div>
-
-                  {course.nextLesson && (
-                    <p className="text-sm text-gray-500 mt-2">
-                      Prochaine leçon : <span className="text-[#e97e42]">{course.nextLesson}</span>
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Cours terminés */}
-      <div className="mb-8">
-        <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-          <Trophy className="w-5 h-5 text-[#e97e42]" />
-          Terminés (2)
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-[#fbf8f3] rounded-2xl border border-[#f0ebe3] p-4 flex items-center gap-4">
-            <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center text-2xl">
-              ✅
-            </div>
-            <div className="flex-1">
-              <h4 className="font-semibold text-gray-800">Introduction au Marketing Digital</h4>
-              <p className="text-sm text-gray-500">Complété le 10 Nov 2024</p>
-            </div>
-            <Link
-              href="/dashboard/certificates"
-              className="text-[#e97e42] hover:text-[#d56a2e] text-sm font-medium"
-            >
-              Voir certificat
-            </Link>
-          </div>
-          <div className="bg-[#fbf8f3] rounded-2xl border border-[#f0ebe3] p-4 flex items-center gap-4">
-            <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center text-2xl">
-              ✅
-            </div>
-            <div className="flex-1">
-              <h4 className="font-semibold text-gray-800">Bases de la Comptabilité</h4>
-              <p className="text-sm text-gray-500">Complété le 25 Oct 2024</p>
-            </div>
-            <Link
-              href="/dashboard/certificates"
-              className="text-[#e97e42] hover:text-[#d56a2e] text-sm font-medium"
-            >
-              Voir certificat
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      {/* Recommandations */}
+    <div className="space-y-6">
       <div>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold text-gray-800">Recommandés pour vous</h2>
-          <Link
-            href="/services"
-            className="text-[#e97e42] font-medium flex items-center gap-1 hover:gap-2 transition-all"
-          >
-            Voir tout <ChevronRight className="w-4 h-4" />
-          </Link>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {recommendedCourses.map((course) => (
-            <Link
-              key={course.id}
-              href={`/services`}
-              className="bg-[#fbf8f3] rounded-2xl border border-[#f0ebe3] p-4 flex items-center gap-4 hover:shadow-lg hover:shadow-[#e97e42]/10 transition-all group"
-            >
-              <div className="w-16 h-16 bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl flex items-center justify-center text-2xl">
-                {course.image}
-              </div>
-              <div className="flex-1">
-                <h4 className="font-semibold text-gray-800 group-hover:text-[#e97e42] transition-colors">
-                  {course.title}
-                </h4>
-                <p className="text-sm text-gray-500">{course.instructor}</p>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="text-[#e97e42] font-bold">{course.price}</span>
-                  <span className="text-gray-400">•</span>
-                  <span className="text-sm text-gray-500">{course.students} étudiants</span>
-                </div>
-              </div>
-              <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-[#e97e42] transition-colors" />
-            </Link>
-          ))}
-        </div>
+        <h1 className="text-2xl sm:text-3xl font-bold font-heading text-gray-900">Mes formations</h1>
+        <p className="text-gray-500 mt-1">Reprenez là où vous vous êtes arrêté·e.</p>
       </div>
+
+      {total > 0 ? (
+        <>
+          {/* KPIs */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+            {kpis.map((k) => {
+              const Icon = k.icon
+              return (
+                <div key={k.label} className="bg-[#fbf8f3] rounded-2xl border border-[#f0ebe3] p-4">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-2" style={{ backgroundColor: `${k.color}15` }}>
+                    <Icon className="w-5 h-5" style={{ color: k.color }} />
+                  </div>
+                  <p className="text-2xl font-bold font-heading text-gray-900">{k.value}</p>
+                  <p className="text-xs text-gray-500">{k.label}</p>
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Formations inscrites */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {enrolled.map((e) => {
+              const pct = e.totalLessons ? Math.round((e.progress.length / e.totalLessons) * 100) : 0
+              const done = pct >= 100
+              return (
+                <Link
+                  key={e.enrollment_id}
+                  href={`/apprendre/${e.formation.slug}`}
+                  className="group bg-white rounded-2xl border border-[#f0ebe3] overflow-hidden hover:shadow-xl hover:-translate-y-0.5 transition-all flex"
+                >
+                  <div className="relative w-28 sm:w-36 flex-shrink-0 bg-[#fbf8f3]">
+                    {e.formation.cover_image ? (
+                      <Image src={e.formation.cover_image} alt={e.formation.titre} fill sizes="144px" className="object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-[#e97e42]/20 to-[#fff7ed] flex items-center justify-center">
+                        <GraduationCap className="w-8 h-8 text-[#e97e42]" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 p-4 min-w-0">
+                    <h3 className="font-bold font-heading text-gray-900 text-sm group-hover:text-[#e97e42] transition-colors line-clamp-2">
+                      {e.formation.titre}
+                    </h3>
+                    <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
+                      <Clock className="w-3 h-3" />{e.progress.length}/{e.totalLessons} leçons
+                    </p>
+                    <div className="mt-3">
+                      <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="h-full bg-gradient-to-r from-[#e97e42] to-[#d56a2e] rounded-full" style={{ width: `${pct}%` }} />
+                      </div>
+                      <div className="flex items-center justify-between mt-2">
+                        <span className="text-xs font-semibold text-[#e97e42]">{pct}%</span>
+                        <span className="inline-flex items-center gap-1 text-xs font-semibold text-gray-700 group-hover:text-[#e97e42]">
+                          {done ? 'Revoir' : pct > 0 ? 'Reprendre' : 'Démarrer'}
+                          <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              )
+            })}
+          </div>
+        </>
+      ) : (
+        /* 0 formation → suggestions de souscription */
+        <div>
+          <div className="bg-gradient-to-br from-[#e97e42] to-[#d56a2e] rounded-3xl p-6 sm:p-8 text-white text-center mb-8">
+            <Sparkles className="w-10 h-10 mx-auto mb-3" />
+            <h2 className="text-xl sm:text-2xl font-bold font-heading mb-2">Commencez votre première formation</h2>
+            <p className="text-white/90 mb-5 max-w-md mx-auto">
+              Vous n'êtes inscrit·e à aucune formation pour le moment. Découvrez notre catalogue et lancez-vous !
+            </p>
+            <Link href="/formations/en-ligne" className="inline-flex items-center gap-2 bg-white text-[#e97e42] px-6 py-3 rounded-xl font-semibold hover:bg-[#fbf8f3] transition-colors">
+              Explorer les formations <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+
+          {suggestions.length > 0 && (
+            <>
+              <h3 className="font-bold font-heading text-gray-900 mb-4">Suggestions pour vous</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                {suggestions.map((f) => (
+                  <Link key={f.id} href={`/formations/en-ligne/${f.slug}`}
+                    className="group bg-white rounded-2xl border border-[#f0ebe3] overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all">
+                    <div className="relative h-32 w-full bg-[#fbf8f3]">
+                      {f.cover_image ? (
+                        <Image src={f.cover_image} alt={f.titre} fill sizes="(max-width:768px) 100vw, 33vw" className="object-cover" />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-[#e97e42]/20 to-[#fff7ed] flex items-center justify-center">
+                          <GraduationCap className="w-8 h-8 text-[#e97e42]" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-4">
+                      <h4 className="font-bold text-sm text-gray-900 group-hover:text-[#e97e42] transition-colors line-clamp-2">{f.titre}</h4>
+                      <p className="text-xs font-semibold text-[#e97e42] mt-2">
+                        {f.prix_fcfa > 0 ? `${formatNumber(f.prix_fcfa)} FCFA` : 'Gratuit'}
+                      </p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      )}
     </div>
   )
 }
