@@ -74,6 +74,7 @@ export async function saveSolution(input: {
     .single()
   if (error) return { success: false, error: error.message }
   revalidatePath('/admin/labs')
+  revalidatePath('/studia-labs')
   return { success: true, id: data.id }
 }
 
