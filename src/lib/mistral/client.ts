@@ -4,6 +4,7 @@
 
 const MISTRAL_API_URL = 'https://api.mistral.ai/v1/chat/completions'
 const MISTRAL_OCR_URL = 'https://api.mistral.ai/v1/ocr'
+const MISTRAL_TRANSCRIPTION_URL = 'https://api.mistral.ai/v1/audio/transcriptions'
 
 export type MistralModel =
   | 'mistral-large-latest'
@@ -177,4 +178,32 @@ export async function mistralDocumentOCR(
     .map((p) => p.markdown)
     .join('\n\n')
     .trim()
+}
+
+/**
+ * Transcription audio via Mistral (Voxtral).
+ * Accepte les bytes d'un fichier audio.
+ */
+export async function mistralTranscribe(
+  fileBytes: Uint8Array,
+  fileName: string
+): Promise<string> {
+  const form = new FormData()
+  const blob = new Blob([fileBytes as unknown as BlobPart])
+  form.append('file', blob, fileName)
+  form.append('model', 'voxtral-mini-latest')
+
+  const response = await fetch(MISTRAL_TRANSCRIPTION_URL, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${getApiKey()}` },
+    body: form,
+  })
+
+  if (!response.ok) {
+    const errorText = await response.text()
+    throw new Error(`Mistral transcription erreur ${response.status}: ${errorText}`)
+  }
+
+  const data = (await response.json()) as { text?: string }
+  return data.text ?? ''
 }

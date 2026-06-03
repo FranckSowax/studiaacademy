@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
-  Plus, GraduationCap, Eye, EyeOff, Trash2, Pencil, Loader2, X,
+  Plus, GraduationCap, Eye, EyeOff, Trash2, Pencil, Loader2, X, Sparkles,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -45,10 +45,18 @@ export function AdminFormationsManager({ initial }: { initial: Formation[] }) {
           <h2 className="text-3xl font-bold tracking-tight">Formations en ligne</h2>
           <p className="text-muted-foreground text-sm mt-1">Créez et gérez vos formations (style Teachable).</p>
         </div>
-        <Button onClick={() => setShowForm(true)} className="bg-[#e97e42] hover:bg-[#d56a2e] text-white">
-          <Plus className="w-4 h-4 mr-1" />
-          Nouvelle formation
-        </Button>
+        <div className="flex gap-2">
+          <Button asChild variant="outline" className="border-[#e97e42] text-[#e97e42] hover:bg-[#fff7ed]">
+            <Link href="/admin/formations/generer">
+              <Sparkles className="w-4 h-4 mr-1" />
+              Générer par IA
+            </Link>
+          </Button>
+          <Button onClick={() => setShowForm(true)} className="bg-[#e97e42] hover:bg-[#d56a2e] text-white">
+            <Plus className="w-4 h-4 mr-1" />
+            Nouvelle formation
+          </Button>
+        </div>
       </div>
 
       {showForm && (

@@ -28,6 +28,13 @@ export interface Formation {
   updated_at: string
 }
 
+export interface LessonQuizQuestion {
+  question: string
+  options: string[]
+  reponse_correcte: number
+  explication: string
+}
+
 export interface FormationLesson {
   id: string
   formation_id: string
@@ -37,6 +44,7 @@ export interface FormationLesson {
   video_url: string | null
   contenu: string | null
   document_url: string | null
+  quiz: LessonQuizQuestion[]
   duree_minutes: number
   is_preview: boolean
   created_at: string

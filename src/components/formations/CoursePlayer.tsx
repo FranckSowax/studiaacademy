@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toggleLessonComplete } from '@/lib/formations/actions'
+import { QuizBlock } from './QuizBlock'
 import type { Formation, FormationLesson } from '@/types/formation'
 
 function embedUrl(url: string): string {
@@ -186,6 +187,13 @@ export function CoursePlayer({
                 {completed.has(current.id) ? 'Terminée' : 'Marquer terminée'}
               </button>
             </div>
+
+            {/* Test d'évaluation après le paragraphe */}
+            {current.quiz && current.quiz.length > 0 && (
+              <div className="mb-8">
+                <QuizBlock questions={current.quiz} />
+              </div>
+            )}
 
             {/* Navigation */}
             <div className="flex items-center justify-between gap-3 border-t border-[#f0ebe3] pt-6">

@@ -9,7 +9,10 @@ import {
   STUDIA_GENERATEUR,
   STUDIA_ANALYSE_REPONSE,
   STUDIA_OCR_INSTRUCTION,
+  STUDIA_FORMATION_OUTLINE,
+  STUDIA_FORMATION_SECTION,
 } from './prompts'
+import type { OutlineSection, QuizQuestion } from '@/types/generation'
 import type {
   CorrectionResult,
   LearnedPatterns,
@@ -152,6 +155,58 @@ export async function analyserReponseTexte(
     messages: [
       { role: 'system', content: STUDIA_ANALYSE_REPONSE },
       { role: 'user', content: JSON.stringify(input) },
+    ],
+  })
+}
+
+// ── Génération du sommaire de formation ─────
+interface OutlineInput {
+  titre: string
+  niveau: string
+  objectif?: string
+  source_content: string
+}
+export interface OutlineResult {
+  titre: string
+  niveau: string
+  sections: OutlineSection[]
+}
+export async function genererSommaire(input: OutlineInput): Promise<OutlineResult> {
+  // Borner la source pour le contexte
+  const source = input.source_content.slice(0, 80000)
+  return mistralChatJSON({
+    model: 'mistral-large-latest',
+    temperature: 0.3,
+    maxTokens: 4096,
+    messages: [
+      { role: 'system', content: STUDIA_FORMATION_OUTLINE },
+      { role: 'user', content: JSON.stringify({ ...input, source_content: source }) },
+    ],
+  })
+}
+
+// ── Génération d'une section (paragraphe + quiz) ─
+interface SectionInput {
+  formation_titre: string
+  niveau: string
+  sommaire: { titre: string }[]
+  section: OutlineSection
+  source_content: string
+}
+export interface SectionResult {
+  content: string
+  duree_minutes: number
+  quiz: QuizQuestion[]
+}
+export async function genererSection(input: SectionInput): Promise<SectionResult> {
+  const source = input.source_content.slice(0, 60000)
+  return mistralChatJSON({
+    model: 'mistral-large-latest',
+    temperature: 0.4,
+    maxTokens: 6144,
+    messages: [
+      { role: 'system', content: STUDIA_FORMATION_SECTION },
+      { role: 'user', content: JSON.stringify({ ...input, source_content: source }) },
     ],
   })
 }
