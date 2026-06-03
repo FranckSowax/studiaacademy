@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import {
   ArrowRight,
   CheckCircle,
@@ -129,14 +130,31 @@ export default async function ModulePage({ params }: Props) {
               </div>
             </div>
 
-            {/* Visuel icône */}
+            {/* Visuel — image de couverture (fallback icône) */}
             <div className="flex-shrink-0 flex justify-center">
-              <div
-                className="w-48 h-48 md:w-64 md:h-64 rounded-3xl flex items-center justify-center shadow-2xl"
-                style={{ background: `linear-gradient(135deg, ${mod.couleur}25, ${mod.couleur}10)` }}
-              >
-                <Icon className="w-24 h-24 md:w-32 md:h-32" style={{ color: mod.couleur }} />
-              </div>
+              {mod.coverImage ? (
+                <div className="relative w-56 h-56 md:w-72 md:h-72 rounded-3xl overflow-hidden shadow-2xl">
+                  <Image
+                    src={mod.coverImage}
+                    alt={mod.titre}
+                    fill
+                    sizes="(max-width: 768px) 224px, 288px"
+                    className="object-cover"
+                    priority
+                  />
+                  <div
+                    className="absolute inset-0"
+                    style={{ background: `linear-gradient(135deg, transparent 60%, ${mod.couleur}22)` }}
+                  />
+                </div>
+              ) : (
+                <div
+                  className="w-48 h-48 md:w-64 md:h-64 rounded-3xl flex items-center justify-center shadow-2xl"
+                  style={{ background: `linear-gradient(135deg, ${mod.couleur}25, ${mod.couleur}10)` }}
+                >
+                  <Icon className="w-24 h-24 md:w-32 md:h-32" style={{ color: mod.couleur }} />
+                </div>
+              )}
             </div>
           </div>
         </div>

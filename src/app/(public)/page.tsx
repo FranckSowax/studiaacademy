@@ -347,26 +347,32 @@ export default function HomePage() {
               <div
                 className={`flex flex-col ${isEven ? 'lg:flex-row' : 'lg:flex-row-reverse'} items-center gap-12`}
               >
-                {/* Visuel */}
+                {/* Visuel — image de couverture (fallback icône) */}
                 <div className="flex-1 flex justify-center">
-                  <div
-                    className={`w-full max-w-md aspect-square rounded-3xl flex items-center justify-center bg-gradient-to-br ${mod.gradientBg} border border-white shadow-xl relative overflow-hidden`}
-                  >
-                    <div
-                      className="absolute inset-0 opacity-5"
-                      style={{
-                        background: `radial-gradient(circle at 30% 30%, ${mod.couleur}, transparent 60%)`,
-                      }}
-                    />
-                    <div
-                      className="w-28 h-28 rounded-3xl flex items-center justify-center"
-                      style={{ backgroundColor: `${mod.couleur}20` }}
-                    >
-                      <Icon className="w-14 h-14" style={{ color: mod.couleur }} />
-                    </div>
+                  <div className="w-full max-w-md aspect-square rounded-3xl border border-white shadow-xl relative overflow-hidden">
+                    {mod.coverImage ? (
+                      <Image
+                        src={mod.coverImage}
+                        alt={mod.titre}
+                        fill
+                        sizes="(max-width: 1024px) 100vw, 28rem"
+                        className="object-cover"
+                      />
+                    ) : (
+                      <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br ${mod.gradientBg}`}>
+                        <div
+                          className="w-28 h-28 rounded-3xl flex items-center justify-center"
+                          style={{ backgroundColor: `${mod.couleur}20` }}
+                        >
+                          <Icon className="w-14 h-14" style={{ color: mod.couleur }} />
+                        </div>
+                      </div>
+                    )}
+                    {/* Voile dégradé pour lisibilité du badge */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent" />
                     {mod.badge && (
                       <span
-                        className="absolute top-6 left-6 text-sm font-bold px-3 py-1 rounded-full text-white"
+                        className="absolute top-6 left-6 text-sm font-bold px-3 py-1 rounded-full text-white shadow-lg"
                         style={{ backgroundColor: mod.couleur }}
                       >
                         {mod.badge}
