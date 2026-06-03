@@ -18,20 +18,48 @@ export interface SourceInput {
 
 /**
  * Extrait le texte d'une URL (HTML → texte brut).
+ * En-têtes navigateur réalistes pour maximiser la compatibilité.
  */
 async function extractUrl(url: string): Promise<string> {
-  const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0 (StudiaBot)' } })
-  if (!res.ok) throw new Error('Page inaccessible')
+  let res: Response
+  try {
+    res = await fetch(url, {
+      redirect: 'follow',
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'fr-FR,fr;q=0.9,en;q=0.8',
+      },
+    })
+  } catch {
+    throw new Error("Impossible de joindre la page. Vérifiez l'URL.")
+  }
+
+  if (!res.ok) {
+    throw new Error(
+      `Ce site bloque l'accès automatique (code ${res.status}). Copiez le texte de l'article et utilisez l'option « Texte collé ».`
+    )
+  }
+
   const html = await res.text()
-  return html
+  const text = html
     .replace(/<script[\s\S]*?<\/script>/gi, '')
     .replace(/<style[\s\S]*?<\/style>/gi, '')
+    .replace(/<noscript[\s\S]*?<\/noscript>/gi, '')
     .replace(/<[^>]+>/g, ' ')
     .replace(/&nbsp;/g, ' ')
-    .replace(/&[a-z]+;/g, ' ')
+    .replace(/&#?[a-z0-9]+;/gi, ' ')
     .replace(/\s+/g, ' ')
     .trim()
     .slice(0, 100000)
+
+  if (text.length < 200) {
+    throw new Error(
+      "Contenu trop court ou page protégée. Copiez le texte et utilisez l'option « Texte collé »."
+    )
+  }
+  return text
 }
 
 /**
