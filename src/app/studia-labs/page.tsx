@@ -31,7 +31,19 @@ export default async function StudiaLabsPage() {
       <Header />
       <main className="flex-1">
         {/* Hero */}
-        <section className="relative pt-28 pb-16 bg-gradient-to-b from-[#0f172a] to-[#1e293b] text-white overflow-hidden">
+        <section className="relative pt-28 pb-16 bg-[#0f172a] text-white overflow-hidden">
+          {/* Image de fond */}
+          <Image
+            src="/studia-labs-hero.jpg"
+            alt="Studia Labs — IA et innovation"
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover object-center opacity-60"
+          />
+          {/* Voiles pour la lisibilité */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-[#0f172a]/70 to-[#0f172a]/40" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0f172a]/80 to-transparent" />
           <div className="absolute top-10 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-[#7C3AED]/30 to-transparent rounded-full blur-3xl pointer-events-none" />
           <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-tr from-[#e97e42]/20 to-transparent rounded-full blur-3xl pointer-events-none" />
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
