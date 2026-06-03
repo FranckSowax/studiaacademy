@@ -56,14 +56,21 @@ export function AdminLabsManager({ initial }: { initial: LabsSolution[] }) {
   const upload = async (kind: 'logo' | 'cover', file: File) => {
     if (!form) return
     setUploading(kind)
-    const ext = file.name.split('.').pop()
-    const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
-    const { error } = await supabase.storage.from('labs').upload(path, file)
-    if (!error) {
+    try {
+      const ext = file.name.split('.').pop()
+      const path = `${kind}-${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+      const { error } = await supabase.storage.from('labs').upload(path, file, {
+        upsert: true,
+        contentType: file.type || undefined,
+      })
+      if (error) throw error
       const { data } = supabase.storage.from('labs').getPublicUrl(path)
-      setForm({ ...form, [kind === 'logo' ? 'logo_url' : 'cover_image']: data.publicUrl })
-    } else alert(error.message)
-    setUploading(null)
+      setForm((prev) => (prev ? { ...prev, [kind === 'logo' ? 'logo_url' : 'cover_image']: data.publicUrl } : prev))
+    } catch (e) {
+      alert(`Upload échoué : ${e instanceof Error ? e.message : 'erreur inconnue'}`)
+    } finally {
+      setUploading(null)
+    }
   }
 
   const save = async () => {
@@ -156,23 +163,33 @@ export function AdminLabsManager({ initial }: { initial: LabsSolution[] }) {
                 <Field label="URL de l'application"><Input placeholder="https://…" value={form.app_url} onChange={(e) => setForm({ ...form, app_url: e.target.value })} className="rounded-xl" /></Field>
               </div>
 
-              {/* Uploads logo + cover */}
+              {/* Uploads logo + cover (avec aperçu) */}
               <div className="grid grid-cols-2 gap-3">
                 <Field label="Logo">
                   <div className="flex items-center gap-2">
+                    {form.logo_url && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={form.logo_url} alt="logo" className="w-11 h-11 rounded-lg object-contain border flex-shrink-0" />
+                    )}
                     <label className="flex-1 flex items-center justify-center gap-2 border-2 border-dashed border-[#e2e8f0] rounded-xl py-2.5 cursor-pointer hover:border-[#e97e42] text-xs text-gray-500">
                       {uploading === 'logo' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-                      {form.logo_url ? 'Logo ✓' : 'Logo'}
+                      {uploading === 'logo' ? 'Envoi…' : form.logo_url ? 'Changer' : 'Téléverser'}
                       <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) upload('logo', f) }} />
                     </label>
                   </div>
                 </Field>
                 <Field label="Cover">
-                  <label className="flex items-center justify-center gap-2 border-2 border-dashed border-[#e2e8f0] rounded-xl py-2.5 cursor-pointer hover:border-[#e97e42] text-xs text-gray-500">
-                    {uploading === 'cover' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-                    {form.cover_image ? 'Cover ✓' : 'Cover'}
-                    <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) upload('cover', f) }} />
-                  </label>
+                  <div className="flex items-center gap-2">
+                    {form.cover_image && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={form.cover_image} alt="cover" className="w-16 h-11 rounded-lg object-cover border flex-shrink-0" />
+                    )}
+                    <label className="flex-1 flex items-center justify-center gap-2 border-2 border-dashed border-[#e2e8f0] rounded-xl py-2.5 cursor-pointer hover:border-[#e97e42] text-xs text-gray-500">
+                      {uploading === 'cover' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                      {uploading === 'cover' ? 'Envoi…' : form.cover_image ? 'Changer' : 'Téléverser'}
+                      <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) upload('cover', f) }} />
+                    </label>
+                  </div>
                 </Field>
               </div>
 
