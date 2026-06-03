@@ -1,6 +1,9 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { ModuleFlipCard } from '@/components/sections/ModuleFlipCard'
+import { MicroServiceCard } from '@/components/sections/MicroServiceCard'
+import { HorizontalGallery } from '@/components/sections/HorizontalGallery'
+import { microServices } from '@/lib/micro-services'
 import {
   ArrowRight,
   CheckCircle,
@@ -287,10 +290,51 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <HorizontalGallery>
             {modules.map((module) => (
-              <ModuleFlipCard key={module.slug} module={module} />
+              <div key={module.slug} className="w-[280px] sm:w-[300px] flex-shrink-0 snap-start">
+                <ModuleFlipCard module={module} />
+              </div>
             ))}
+          </HorizontalGallery>
+        </div>
+      </section>
+
+      {/* ─── MICRO-SERVICES ────────────────────────────────────────── */}
+      <section id="services" className="w-full py-20 md:py-28 bg-[#fbf8f3] scroll-mt-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-14">
+            <div className="inline-flex items-center gap-2 bg-white border border-[#f0ebe3] text-[#a84d16] px-4 py-1.5 rounded-full text-sm font-medium mb-4">
+              <Sparkles className="w-3.5 h-3.5" />
+              Nos micro-services IA
+            </div>
+            <h2 className="text-3xl md:text-5xl font-bold font-heading text-gray-900 mb-4">
+              Des outils IA pour{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#e97e42] to-[#d56a2e]">
+                votre carrière
+              </span>
+            </h2>
+            <p className="text-gray-500 text-lg max-w-2xl mx-auto">
+              CV, entretiens, tests de compétences, assistant 24/7 — des services intelligents
+              accessibles en quelques clics.
+            </p>
+          </div>
+
+          <HorizontalGallery>
+            {microServices.map((service) => (
+              <div key={service.slug} className="w-[280px] sm:w-[300px] flex-shrink-0 snap-start flex">
+                <MicroServiceCard service={service} />
+              </div>
+            ))}
+          </HorizontalGallery>
+
+          <div className="text-center mt-10">
+            <Link
+              href="/services"
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-[#e97e42] to-[#d56a2e] text-white px-8 py-3.5 rounded-xl font-semibold hover:shadow-lg transition-all"
+            >
+              Voir tous les services <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
         </div>
       </section>
