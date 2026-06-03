@@ -33,7 +33,7 @@ export async function POST(
 
   const result = job.result_json as CorrectionResult
   const session = job.correction_sessions
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://studiaacademy.up.railway.app'
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://studiaacademy-production.up.railway.app'
   const lienRapport = `${baseUrl}/rapport/${job.report_token}`
 
   const { data: profile } = await supabase

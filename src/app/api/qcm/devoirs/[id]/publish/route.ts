@@ -40,7 +40,7 @@ export async function POST(
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://studiaacademy.up.railway.app'
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://studiaacademy-production.up.railway.app'
   return NextResponse.json({
     success: true,
     lien: `${baseUrl}/devoir/${devoir.link_token}`,

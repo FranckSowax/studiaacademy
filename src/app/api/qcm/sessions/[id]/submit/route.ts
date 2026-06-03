@@ -66,7 +66,7 @@ export async function POST(
     .single()
 
   // Envoi WhatsApp
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://studiaacademy.up.railway.app'
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://studiaacademy-production.up.railway.app'
   const lienRapport = `${baseUrl}/devoir/${session.devoir_id}/resultats/${session.report_token}`
   const devoir = session.qcm_devoirs
 
