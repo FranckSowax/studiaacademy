@@ -1,14 +1,48 @@
 export const dynamic = 'force-dynamic'
 
 import { createClient } from '@/lib/supabase/server'
-import { AdminFormationsManager } from '@/components/formations/AdminFormationsManager'
+import { AdminFormationsManager, type GenerationRow } from '@/components/formations/AdminFormationsManager'
 import type { Formation } from '@/types/formation'
+import type { GenerationStatus } from '@/types/generation'
 
 export default async function AdminFormationsPage() {
   const supabase = await createClient()
-  const { data } = await supabase
+
+  const { data: formations } = await supabase
     .from('formations')
     .select('*')
     .order('created_at', { ascending: false })
-  return <AdminFormationsManager initial={(data ?? []) as Formation[]} />
+
+  // Générations IA (sommaires générés / validés / en cours)
+  const { data: gens } = await supabase
+    .from('formation_generations')
+    .select('id, titre, niveau, status, formation_id, updated_at')
+    .order('updated_at', { ascending: false })
+
+  const generations: GenerationRow[] = []
+  for (const g of gens ?? []) {
+    const { data: secs } = await supabase
+      .from('formation_generation_sections')
+      .select('content')
+      .eq('generation_id', g.id)
+    const total = secs?.length ?? 0
+    const generated = (secs ?? []).filter((s) => s.content).length
+    generations.push({
+      id: g.id as string,
+      titre: g.titre as string,
+      niveau: g.niveau as string,
+      status: g.status as GenerationStatus,
+      sections_total: total,
+      sections_generated: generated,
+      formation_id: g.formation_id as string | null,
+      updated_at: g.updated_at as string,
+    })
+  }
+
+  return (
+    <AdminFormationsManager
+      initial={(formations ?? []) as Formation[]}
+      generations={generations}
+    />
+  )
 }

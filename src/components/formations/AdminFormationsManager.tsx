@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
   Plus, GraduationCap, Eye, EyeOff, Trash2, Pencil, Loader2, X, Sparkles,
+  Wand2, ArrowRight,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -12,9 +13,37 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { formatNumber } from '@/lib/utils'
 import { saveFormation, togglePublishFormation, deleteFormation } from '@/lib/formations/admin-actions'
+import { deleteGeneration } from '@/lib/formations/generation-actions'
 import type { Formation } from '@/types/formation'
+import type { GenerationStatus } from '@/types/generation'
 
-export function AdminFormationsManager({ initial }: { initial: Formation[] }) {
+export interface GenerationRow {
+  id: string
+  titre: string
+  niveau: string
+  status: GenerationStatus
+  sections_total: number
+  sections_generated: number
+  formation_id: string | null
+  updated_at: string
+}
+
+const GEN_STATUS: Record<GenerationStatus, { label: string; cls: string }> = {
+  extracting: { label: 'Extraction…', cls: 'bg-blue-50 text-blue-600' },
+  outline_ready: { label: 'Sommaire à valider', cls: 'bg-amber-50 text-amber-600' },
+  outline_validated: { label: 'Sommaire validé', cls: 'bg-violet-50 text-violet-600' },
+  generating: { label: 'Génération en cours', cls: 'bg-blue-50 text-blue-600' },
+  done: { label: 'Prêt à publier', cls: 'bg-green-50 text-green-600' },
+  published: { label: 'Publiée', cls: 'bg-gray-100 text-gray-500' },
+}
+
+export function AdminFormationsManager({
+  initial,
+  generations = [],
+}: {
+  initial: Formation[]
+  generations?: GenerationRow[]
+}) {
   const router = useRouter()
   const [showForm, setShowForm] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -87,6 +116,59 @@ export function AdminFormationsManager({ initial }: { initial: Formation[] }) {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Générations IA (sommaires validés / en cours) */}
+      {generations.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <Wand2 className="w-4 h-4 text-[#e97e42]" />
+            <h3 className="font-semibold text-gray-800">Générations IA</h3>
+            <span className="text-xs text-muted-foreground">({generations.length})</span>
+          </div>
+          {generations.map((g) => {
+            const st = GEN_STATUS[g.status]
+            const resumeHref =
+              g.status === 'published' && g.formation_id
+                ? `/admin/formations/${g.formation_id}`
+                : `/admin/formations/generer/${g.id}`
+            return (
+              <div key={g.id} className="flex items-center justify-between bg-white border rounded-xl p-4">
+                <Link href={resumeHref} className="flex items-center gap-3 min-w-0 flex-1 group">
+                  <div className="w-9 h-9 rounded-lg bg-[#fff7ed] flex items-center justify-center flex-shrink-0">
+                    <Sparkles className="w-4 h-4 text-[#e97e42]" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-medium truncate group-hover:text-[#e97e42] transition-colors">{g.titre}</h4>
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${st.cls}`}>{st.label}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {g.niveau}
+                      {g.sections_total > 0 && ` · ${g.sections_generated}/${g.sections_total} sections générées`}
+                    </p>
+                  </div>
+                </Link>
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  {g.status !== 'published' && (
+                    <Button asChild variant="ghost" size="sm">
+                      <Link href={resumeHref}>
+                        Reprendre <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                      </Link>
+                    </Button>
+                  )}
+                  <Button variant="ghost" size="sm" onClick={async () => { if (confirm('Supprimer ce brouillon de génération ?')) { await deleteGeneration(g.id); router.refresh() } }}>
+                    <Trash2 className="w-4 h-4 text-red-500" />
+                  </Button>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {initial.length > 0 && (
+        <h3 className="font-semibold text-gray-800 pt-2">Formations publiées & brouillons</h3>
       )}
 
       {initial.length === 0 ? (
