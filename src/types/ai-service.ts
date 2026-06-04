@@ -23,6 +23,7 @@ export interface AIServiceDef {
   description: string
   iconName: string
   couleur: string
+  coverImage?: string
   category: ServiceCategory
   badge?: string
   prixCredits: number

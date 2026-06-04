@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
 import { aiServices } from '@/lib/ai-services/definitions'
@@ -62,25 +63,39 @@ export default function OutilsPage() {
                         <Link
                           key={s.slug}
                           href={`/outils/${s.slug}`}
-                          className="group relative bg-white rounded-2xl border border-[#f0ebe3] p-6 hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden"
+                          className="group relative bg-white rounded-2xl border border-[#f0ebe3] hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden flex flex-col"
                         >
-                          <div className="absolute top-0 left-0 right-0 h-1 rounded-t-2xl" style={{ backgroundColor: s.couleur }} />
-                          {s.badge && (
-                            <span className="absolute top-4 right-4 text-xs font-semibold px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: s.couleur }}>
-                              {s.badge}
-                            </span>
-                          )}
-                          <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4 mt-2" style={{ backgroundColor: `${s.couleur}18` }}>
-                            <Icon className="w-6 h-6" style={{ color: s.couleur }} />
+                          {/* Cover */}
+                          <div className="relative h-36 w-full bg-[#fbf8f3]">
+                            <Image
+                              src={s.coverImage ?? `/${s.slug}.png`}
+                              alt={s.titre}
+                              fill
+                              sizes="(max-width: 768px) 100vw, 33vw"
+                              className="object-cover"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+                            <div className="absolute top-0 left-0 right-0 h-1" style={{ backgroundColor: s.couleur }} />
+                            {s.badge && (
+                              <span className="absolute top-3 right-3 text-xs font-semibold px-2 py-0.5 rounded-full text-white shadow" style={{ backgroundColor: s.couleur }}>
+                                {s.badge}
+                              </span>
+                            )}
+                            <div className="absolute -bottom-5 left-5 w-11 h-11 rounded-xl flex items-center justify-center shadow-lg border-2 border-white" style={{ backgroundColor: s.couleur }}>
+                              <Icon className="w-5 h-5 text-white" />
+                            </div>
                           </div>
-                          <h3 className="font-bold font-heading text-gray-900 group-hover:text-[#e97e42] transition-colors">{s.titre}</h3>
-                          <p className="text-xs font-medium mb-2" style={{ color: s.couleur }}>{s.sousTitre}</p>
-                          <p className="text-sm text-gray-500 leading-relaxed line-clamp-2 mb-4">{s.description}</p>
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs text-gray-400">{s.prixCredits} crédits</span>
-                            <span className="inline-flex items-center gap-1 text-sm font-semibold" style={{ color: s.couleur }}>
-                              Utiliser <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-                            </span>
+                          {/* Texte */}
+                          <div className="p-5 pt-7 flex-1 flex flex-col">
+                            <h3 className="font-bold font-heading text-gray-900 group-hover:text-[#e97e42] transition-colors">{s.titre}</h3>
+                            <p className="text-xs font-medium mb-2" style={{ color: s.couleur }}>{s.sousTitre}</p>
+                            <p className="text-sm text-gray-500 leading-relaxed line-clamp-2 mb-4 flex-1">{s.description}</p>
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-gray-400">{s.prixCredits} crédits</span>
+                              <span className="inline-flex items-center gap-1 text-sm font-semibold" style={{ color: s.couleur }}>
+                                Utiliser <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                              </span>
+                            </div>
                           </div>
                         </Link>
                       )

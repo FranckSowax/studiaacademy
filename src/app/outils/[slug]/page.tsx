@@ -38,6 +38,7 @@ export default async function OutilPage({ params }: Props) {
     sousTitre: service.sousTitre,
     description: service.description,
     couleur: service.couleur,
+    coverImage: service.coverImage ?? `/${service.slug}.png`,
     badge: service.badge,
     prixCredits: service.prixCredits,
     ctaLabel: service.ctaLabel,

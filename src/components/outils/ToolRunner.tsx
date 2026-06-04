@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -21,6 +22,7 @@ interface ClientDef {
   sousTitre: string
   description: string
   couleur: string
+  coverImage?: string
   badge?: string
   prixCredits: number
   ctaLabel: string
@@ -129,10 +131,27 @@ export function ToolRunner({
         Tous les outils
       </Link>
 
+      {/* Bannière cover */}
+      {def.coverImage && (
+        <div className="relative h-44 sm:h-56 w-full rounded-3xl overflow-hidden mb-6 shadow-sm">
+          <Image src={def.coverImage} alt={def.titre} fill sizes="(max-width:768px) 100vw, 768px" className="object-cover" priority />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+          {def.badge && (
+            <span className="absolute top-4 right-4 text-xs font-bold px-3 py-1 rounded-full text-white shadow-lg" style={{ backgroundColor: def.couleur }}>
+              {def.badge}
+            </span>
+          )}
+          <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-6">
+            <p className="text-xs font-semibold uppercase tracking-wider text-white/70 mb-1">{def.sousTitre}</p>
+            <h1 className="text-2xl sm:text-3xl font-bold font-heading text-white">{def.titre}</h1>
+          </div>
+        </div>
+      )}
+
       {/* En-tête */}
       <div className="flex items-start justify-between gap-4 mb-6 flex-wrap">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold font-heading text-gray-900">{def.titre}</h1>
+          {!def.coverImage && <h1 className="text-2xl sm:text-3xl font-bold font-heading text-gray-900">{def.titre}</h1>}
           <p className="text-gray-500 mt-1">{def.description}</p>
         </div>
         {isLoggedIn && solde !== null && (
