@@ -2,12 +2,14 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import {
   Trophy, Zap, Clock, Flame, ArrowRight, RotateCcw, CheckCircle, XCircle,
-  Triangle, Diamond, Circle, Square, Crown, Medal,
+  Triangle, Diamond, Circle, Square, Crown, Medal, Radio, Loader2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { saveFinalQuizResult } from '@/lib/formations/actions'
+import { createLiveGame } from '@/lib/live/actions'
 import type { LessonQuizQuestion } from '@/types/formation'
 
 const TIME_PER_Q = 20 // secondes
@@ -36,7 +38,10 @@ export function KahootQuiz({
   questions: LessonQuizQuestion[]
   leaderboard: LeaderEntry[]
 }) {
+  const router = useRouter()
   const [phase, setPhase] = useState<'intro' | 'play' | 'reveal' | 'done'>('intro')
+  const [launchingLive, setLaunchingLive] = useState(false)
+  const [liveError, setLiveError] = useState('')
   const [idx, setIdx] = useState(0)
   const [score, setScore] = useState(0)
   const [streak, setStreak] = useState(0)
@@ -48,6 +53,17 @@ export function KahootQuiz({
   const qStartRef = useRef(0)
 
   const q = questions[idx]
+
+  const launchLive = useCallback(async () => {
+    setLaunchingLive(true); setLiveError('')
+    const r = await createLiveGame(formationId)
+    if (r.success && r.code) {
+      router.push(`/live/${r.code}/host`)
+    } else {
+      setLiveError(r.error ?? 'Impossible de lancer la partie')
+      setLaunchingLive(false)
+    }
+  }, [formationId, router])
 
   // Timer par question
   useEffect(() => {
@@ -127,9 +143,16 @@ export function KahootQuiz({
         <p className="text-white/80 mb-8 max-w-md">
           {questions.length} questions · {TIME_PER_Q}s par question. Plus tu réponds vite et juste, plus tu marques de points. Enchaîne les bonnes réponses pour des bonus de série !
         </p>
-        <Button onClick={startGame} className="bg-white text-[#7C3AED] hover:bg-white/90 rounded-2xl px-10 py-7 text-lg font-bold">
-          <Zap className="w-5 h-5 mr-2" />C'est parti !
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <Button onClick={startGame} className="bg-white text-[#7C3AED] hover:bg-white/90 rounded-2xl px-10 py-7 text-lg font-bold">
+            <Zap className="w-5 h-5 mr-2" />Jouer en solo
+          </Button>
+          <Button onClick={launchLive} disabled={launchingLive} className="bg-[#e97e42] hover:bg-[#d56a2e] text-white rounded-2xl px-10 py-7 text-lg font-bold">
+            {launchingLive ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Radio className="w-5 h-5 mr-2" />Lancer en direct (présentiel)</>}
+          </Button>
+        </div>
+        {liveError && <p className="text-red-200 text-sm mt-3">{liveError}</p>}
+        <p className="text-white/50 text-xs mt-3 max-w-sm">Mode direct : projette un QR code, les participants rejoignent depuis leur téléphone sans compte.</p>
         <Link href={`/apprendre/${formationSlug}`} className="text-white/60 hover:text-white text-sm mt-6">
           ← Retour à la formation
         </Link>
