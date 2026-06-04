@@ -315,8 +315,8 @@ export default function HomePage() {
               </span>
             </h2>
             <p className="text-gray-500 text-lg max-w-2xl mx-auto">
-              CV, entretiens, tests de compétences, assistant 24/7 — des services intelligents
-              accessibles en quelques clics.
+              Candidatures, concours, business plans, courriers… Des résultats concrets en 2 minutes,
+              générés par IA.
             </p>
           </div>
 
@@ -330,10 +330,10 @@ export default function HomePage() {
 
           <div className="text-center mt-10">
             <Link
-              href="/services"
+              href="/outils"
               className="inline-flex items-center gap-2 bg-gradient-to-r from-[#e97e42] to-[#d56a2e] text-white px-8 py-3.5 rounded-xl font-semibold hover:shadow-lg transition-all"
             >
-              Voir tous les services <ArrowRight className="w-4 h-4" />
+              Voir tous les outils IA <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
         </div>

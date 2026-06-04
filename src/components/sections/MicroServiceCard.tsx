@@ -2,11 +2,12 @@ import Link from 'next/link'
 import Image from 'next/image'
 import {
   ArrowUpRight, FileText, ScanLine, Mic, BarChart2, Bot, Building2, Sparkles,
+  GraduationCap, Briefcase, Presentation, Mail,
 } from 'lucide-react'
 import type { MicroService } from '@/lib/micro-services'
 
 const iconMap: Record<string, React.ComponentType<{ className?: string; style?: React.CSSProperties }>> = {
-  FileText, ScanLine, Mic, BarChart2, Bot, Building2,
+  FileText, ScanLine, Mic, BarChart2, Bot, Building2, GraduationCap, Briefcase, Presentation, Mail,
 }
 
 export function MicroServiceCard({ service }: { service: MicroService }) {

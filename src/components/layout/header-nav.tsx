@@ -10,9 +10,9 @@ import { useScrolled } from '@/hooks/useScroll'
 
 const navLinks = [
   { label: 'Modules', href: '/#modules' },
+  { label: 'Outils IA', href: '/outils' },
   { label: 'Formations', href: '/formations' },
   { label: 'Studia Labs', href: '/studia-labs' },
-  { label: 'Tarifs', href: '/pricing' },
   { label: 'Contact', href: '/contact' },
 ]
 
