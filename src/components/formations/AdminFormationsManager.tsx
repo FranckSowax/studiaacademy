@@ -25,6 +25,8 @@ export interface GenerationRow {
   sections_total: number
   sections_generated: number
   formation_id: string | null
+  /** État réel de publication de la formation liée (null si pas encore créée). */
+  formation_published?: boolean | null
   updated_at: string
 }
 
@@ -34,7 +36,7 @@ const GEN_STATUS: Record<GenerationStatus, { label: string; cls: string }> = {
   outline_validated: { label: 'Sommaire validé', cls: 'bg-violet-50 text-violet-600' },
   generating: { label: 'Génération en cours', cls: 'bg-blue-50 text-blue-600' },
   done: { label: 'Prêt à publier', cls: 'bg-green-50 text-green-600' },
-  published: { label: 'Publiée', cls: 'bg-gray-100 text-gray-500' },
+  published: { label: 'Formation créée', cls: 'bg-gray-100 text-gray-500' },
 }
 
 export function AdminFormationsManager({
@@ -127,7 +129,13 @@ export function AdminFormationsManager({
             <span className="text-xs text-muted-foreground">({generations.length})</span>
           </div>
           {generations.map((g) => {
-            const st = GEN_STATUS[g.status]
+            // Pour une génération finalisée, afficher l'état RÉEL de publication de la formation.
+            const st =
+              g.status === 'published'
+                ? g.formation_published
+                  ? { label: 'Publiée', cls: 'bg-green-50 text-green-600' }
+                  : { label: 'Brouillon', cls: 'bg-gray-100 text-gray-500' }
+                : GEN_STATUS[g.status]
             const resumeHref =
               g.status === 'published' && g.formation_id
                 ? `/admin/formations/${g.formation_id}`

@@ -19,6 +19,11 @@ export default async function AdminFormationsPage() {
     .select('id, titre, niveau, status, formation_id, updated_at')
     .order('updated_at', { ascending: false })
 
+  // Index id formation → état de publication réel
+  const publishedById = new Map<string, boolean>(
+    (formations ?? []).map((f) => [f.id as string, f.is_published as boolean])
+  )
+
   const generations: GenerationRow[] = []
   for (const g of gens ?? []) {
     const { data: secs } = await supabase
@@ -27,6 +32,7 @@ export default async function AdminFormationsPage() {
       .eq('generation_id', g.id)
     const total = secs?.length ?? 0
     const generated = (secs ?? []).filter((s) => s.content).length
+    const formationId = g.formation_id as string | null
     generations.push({
       id: g.id as string,
       titre: g.titre as string,
@@ -34,7 +40,8 @@ export default async function AdminFormationsPage() {
       status: g.status as GenerationStatus,
       sections_total: total,
       sections_generated: generated,
-      formation_id: g.formation_id as string | null,
+      formation_id: formationId,
+      formation_published: formationId ? (publishedById.get(formationId) ?? null) : null,
       updated_at: g.updated_at as string,
     })
   }
