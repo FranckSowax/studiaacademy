@@ -83,47 +83,18 @@ export function ModuleFlipCard({ module }: ModuleFlipCardProps) {
             />
           )}
 
-          {/* Gradient overlay du bas */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-
           {/* Barre couleur top */}
           <div
             className="absolute top-0 left-0 right-0 h-1.5"
             style={{ backgroundColor: module.couleur }}
           />
 
-          {/* Badge */}
-          {module.badge && (
-            <span
-              className="absolute top-4 right-4 text-xs font-bold px-2.5 py-1 rounded-full text-white shadow-lg"
-              style={{ backgroundColor: module.couleur }}
-            >
-              {module.badge}
-            </span>
-          )}
-
-          {/* Icône module */}
+          {/* Icône module (repère visuel, pas de texte) */}
           <div
             className="absolute top-4 left-4 w-11 h-11 rounded-xl flex items-center justify-center backdrop-blur-sm"
             style={{ backgroundColor: `${module.couleur}40`, border: `1px solid ${module.couleur}60` }}
           >
             <Icon className="w-5 h-5 text-white" />
-          </div>
-
-          {/* Texte bas */}
-          <div className="absolute bottom-0 left-0 right-0 p-5">
-            <p className="text-xs font-semibold text-white/60 uppercase tracking-wider mb-1.5">
-              {module.sousTitre}
-            </p>
-            <h3 className="text-xl font-extrabold font-heading text-white leading-tight">
-              {module.titre}
-            </h3>
-
-            {/* Indicateur flip */}
-            <div className="flex items-center gap-1.5 mt-3 text-white/50 text-xs">
-              <span>Survolez pour découvrir</span>
-              <ArrowRight className="w-3 h-3" />
-            </div>
           </div>
         </div>
 
