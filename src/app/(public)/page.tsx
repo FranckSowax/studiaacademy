@@ -322,7 +322,7 @@ export default function HomePage() {
 
           <HorizontalGallery>
             {microServices.map((service) => (
-              <div key={service.slug} className="w-[280px] sm:w-[300px] flex-shrink-0 snap-start flex">
+              <div key={service.slug} className="w-[280px] sm:w-[300px] flex-shrink-0 snap-start">
                 <MicroServiceCard service={service} />
               </div>
             ))}

@@ -6,6 +6,7 @@ export interface MicroService {
   couleur: string
   iconName: string
   href: string
+  coverImage: string
   badge?: string
   features: string[]
 }
@@ -20,6 +21,7 @@ export const microServices: MicroService[] = [
     couleur: '#e97e42',
     iconName: 'FileText',
     href: '/services/create',
+    coverImage: 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=600&h=400&fit=crop&q=80',
     badge: 'Populaire',
     features: ['Modèles ATS-friendly', 'Suggestions IA', 'Export PDF illimité'],
   },
@@ -32,6 +34,7 @@ export const microServices: MicroService[] = [
     couleur: '#3B82F6',
     iconName: 'ScanLine',
     href: '/services/analyze',
+    coverImage: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&h=400&fit=crop&q=80',
     features: ['Score de qualité', 'Mots-clés manquants', 'Conseils de reformulation'],
   },
   {
@@ -43,6 +46,7 @@ export const microServices: MicroService[] = [
     couleur: '#8B5CF6',
     iconName: 'Mic',
     href: '/services/interview',
+    coverImage: 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=600&h=400&fit=crop&q=80',
     features: ['Questions adaptées', 'Feedback sur le ton', 'Réécoute des sessions'],
   },
   {
@@ -54,6 +58,7 @@ export const microServices: MicroService[] = [
     couleur: '#10B981',
     iconName: 'BarChart2',
     href: '/services/assess',
+    coverImage: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=600&h=400&fit=crop&q=80',
     features: ['Tests adaptatifs', 'Radar de compétences', 'Certificat vérifiable'],
   },
   {
@@ -65,6 +70,7 @@ export const microServices: MicroService[] = [
     couleur: '#D946EF',
     iconName: 'Bot',
     href: '/services/assistant',
+    coverImage: 'https://images.unsplash.com/photo-1531746790731-6c087fecd65a?w=600&h=400&fit=crop&q=80',
     badge: 'Gratuit',
     features: ['Réponses instantanées', 'Conseils personnalisés', 'Disponible 24/7'],
   },
@@ -77,6 +83,7 @@ export const microServices: MicroService[] = [
     couleur: '#F59E0B',
     iconName: 'Building2',
     href: '/services/business',
+    coverImage: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=600&h=400&fit=crop&q=80',
     features: ['Profils certifiés', 'Recherche ciblée', 'Tableau de bord RH'],
   },
 ]

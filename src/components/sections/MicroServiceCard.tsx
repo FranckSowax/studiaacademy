@@ -1,6 +1,7 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import {
-  ArrowRight, CheckCircle, FileText, ScanLine, Mic, BarChart2, Bot, Building2, Sparkles,
+  ArrowUpRight, FileText, ScanLine, Mic, BarChart2, Bot, Building2, Sparkles,
 } from 'lucide-react'
 import type { MicroService } from '@/lib/micro-services'
 
@@ -13,50 +14,60 @@ export function MicroServiceCard({ service }: { service: MicroService }) {
   return (
     <Link
       href={service.href}
-      className="group relative w-full h-full bg-white rounded-2xl border border-[#f0ebe3] p-6 hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden flex flex-col"
+      className="group relative w-full h-[400px] flex flex-col bg-white rounded-3xl border border-[#f0ebe3] overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-300"
     >
-      {/* Barre couleur top */}
-      <div className="absolute top-0 left-0 right-0 h-1 rounded-t-2xl" style={{ backgroundColor: service.couleur }} />
+      {/* Cover — s'agrandit au survol */}
+      <div className="relative w-full h-[280px] group-hover:h-[330px] overflow-hidden transition-all duration-300 ease-out">
+        <Image
+          src={service.coverImage}
+          alt={service.titre}
+          fill
+          sizes="(max-width: 640px) 100vw, 320px"
+          className="object-cover scale-105 group-hover:scale-100 transition-transform duration-500 ease-out"
+        />
+        {/* Voile dégradé bas */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
 
-      {service.badge && (
-        <span
-          className="absolute top-4 right-4 text-xs font-semibold px-2 py-0.5 rounded-full text-white"
-          style={{ backgroundColor: service.couleur }}
+        {/* Badge */}
+        {service.badge && (
+          <span
+            className="absolute top-3 right-3 text-xs font-bold px-2.5 py-1 rounded-full text-white shadow-lg"
+            style={{ backgroundColor: service.couleur }}
+          >
+            {service.badge}
+          </span>
+        )}
+
+        {/* Pastille icône */}
+        <div
+          className="absolute bottom-3 left-3 w-10 h-10 rounded-xl flex items-center justify-center backdrop-blur-md shadow-lg"
+          style={{ backgroundColor: `${service.couleur}cc` }}
         >
-          {service.badge}
-        </span>
-      )}
-
-      <div
-        className="w-12 h-12 rounded-xl flex items-center justify-center mb-4 mt-3"
-        style={{ backgroundColor: `${service.couleur}18` }}
-      >
-        <Icon className="w-6 h-6" style={{ color: service.couleur }} />
+          <Icon className="w-5 h-5 text-white" />
+        </div>
       </div>
 
-      <h3 className="text-lg font-bold font-heading text-gray-900 mb-1 group-hover:text-[#e97e42] transition-colors">
-        {service.titre}
-      </h3>
-      <p className="text-xs font-medium mb-2" style={{ color: service.couleur }}>
-        {service.sousTitre}
-      </p>
-      <p className="text-sm text-gray-500 mb-4 leading-relaxed line-clamp-3 flex-1">
-        {service.description}
-      </p>
+      {/* Zone info → glisse au survol pour révéler le CTA */}
+      <article className="relative flex-grow overflow-hidden">
+        <div className="absolute inset-0 p-4 transition-transform duration-300 ease-out group-hover:-translate-y-16">
+          <p className="text-[11px] font-semibold uppercase tracking-wider mb-0.5" style={{ color: service.couleur }}>
+            {service.sousTitre}
+          </p>
+          <h3 className="font-bold font-heading text-gray-900 leading-tight">{service.titre}</h3>
+          <p className="text-xs text-gray-400 mt-1 line-clamp-2">{service.description}</p>
+        </div>
 
-      <ul className="space-y-1.5 mb-5">
-        {service.features.map((feat) => (
-          <li key={feat} className="flex items-start gap-2 text-xs text-gray-600">
-            <CheckCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" style={{ color: service.couleur }} />
-            {feat}
-          </li>
-        ))}
-      </ul>
-
-      <div className="flex items-center text-sm font-semibold" style={{ color: service.couleur }}>
-        Essayer
-        <ArrowRight className="ml-1.5 w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-      </div>
+        {/* CTA révélé au survol */}
+        <div className="absolute left-4 right-4 -bottom-12 opacity-0 group-hover:bottom-3 group-hover:opacity-100 transition-all duration-300 ease-out">
+          <span
+            className="flex items-center justify-between w-full rounded-xl px-4 py-2.5 text-white text-sm font-semibold shadow-md"
+            style={{ background: `linear-gradient(135deg, ${service.couleur}, ${service.couleur}cc)` }}
+          >
+            Essayer le service
+            <ArrowUpRight className="w-4 h-4" />
+          </span>
+        </div>
+      </article>
     </Link>
   )
 }
