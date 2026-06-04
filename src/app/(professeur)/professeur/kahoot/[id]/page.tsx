@@ -25,5 +25,28 @@ export default async function KahootDetailPage({
 
   if (!data) redirect('/professeur/kahoot')
 
-  return <TeacherKahootManager kahoot={data as TeacherKahoot} />
+  const { data: soloResults } = await supabase
+    .from('kahoot_solo_results')
+    .select('pseudo, score, correct_count, total_questions, created_at')
+    .eq('kahoot_id', id)
+    .order('score', { ascending: false })
+    .limit(50)
+
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://studiaacademy-production.up.railway.app'
+
+  return (
+    <TeacherKahootManager
+      kahoot={data as TeacherKahoot}
+      soloUrl={`${baseUrl}/kahoot/${id}`}
+      soloResults={(soloResults ?? []) as SoloResult[]}
+    />
+  )
+}
+
+export interface SoloResult {
+  pseudo: string
+  score: number
+  correct_count: number
+  total_questions: number
+  created_at: string
 }

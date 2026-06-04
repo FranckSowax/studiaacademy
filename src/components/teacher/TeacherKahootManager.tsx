@@ -3,18 +3,30 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { QRCodeSVG } from 'qrcode.react'
 import {
   ArrowLeft, Trophy, Radio, Loader2, Trash2, CheckCircle, HelpCircle, Sparkles,
+  Link2, Copy, Check, Crown, Users,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { createLiveGameFromQuestions } from '@/lib/live/actions'
 import { deleteKahoot } from '@/app/(professeur)/actions'
 import type { TeacherKahoot } from '@/types/teacher'
+import type { SoloResult } from '@/app/(professeur)/professeur/kahoot/[id]/page'
 
-export function TeacherKahootManager({ kahoot }: { kahoot: TeacherKahoot }) {
+export function TeacherKahootManager({
+  kahoot,
+  soloUrl,
+  soloResults,
+}: {
+  kahoot: TeacherKahoot
+  soloUrl: string
+  soloResults: SoloResult[]
+}) {
   const router = useRouter()
   const [launching, setLaunching] = useState(false)
   const [error, setError] = useState('')
+  const [copied, setCopied] = useState(false)
 
   const launch = async () => {
     setLaunching(true); setError('')
@@ -31,6 +43,11 @@ export function TeacherKahootManager({ kahoot }: { kahoot: TeacherKahoot }) {
     if (!confirm('Supprimer ce Kahoot ?')) return
     await deleteKahoot(kahoot.id)
     router.push('/professeur/kahoot')
+  }
+
+  const copyLink = () => {
+    navigator.clipboard.writeText(soloUrl)
+    setCopied(true); setTimeout(() => setCopied(false), 2000)
   }
 
   return (
@@ -78,6 +95,60 @@ export function TeacherKahootManager({ kahoot }: { kahoot: TeacherKahoot }) {
           </div>
         </div>
       </div>
+
+      {/* Mode asynchrone : lien solo + QR */}
+      <div className="bg-white rounded-2xl border border-[#f0ebe3] p-6 mb-6">
+        <div className="flex items-start gap-4">
+          <div className="w-11 h-11 bg-amber-50 rounded-xl flex items-center justify-center flex-shrink-0">
+            <Link2 className="w-5 h-5 text-amber-500" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h2 className="font-bold font-heading text-gray-900">Partager en autonomie (à distance)</h2>
+            <p className="text-sm text-gray-500 mt-1 mb-4">
+              Envoyez ce <strong>lien</strong> (ou le QR code) : chaque élève joue <strong>seul, à son rythme</strong>, quand il veut. Vous n&apos;avez pas besoin d&apos;être présent — les scores remontent automatiquement ci-dessous.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 items-start">
+              <div className="flex-1 w-full">
+                <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5">
+                  <span className="flex-1 text-sm text-gray-600 truncate">{soloUrl}</span>
+                  <button onClick={copyLink} className="text-[#7C3AED] hover:text-[#6d28d9] flex-shrink-0" title="Copier le lien">
+                    {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                  </button>
+                </div>
+                <Link href={soloUrl} target="_blank" className="inline-flex items-center gap-1.5 text-sm text-[#7C3AED] hover:underline mt-2">
+                  Ouvrir l&apos;aperçu élève <ArrowLeft className="w-3.5 h-3.5 rotate-[135deg]" />
+                </Link>
+              </div>
+              <div className="bg-white p-2 rounded-xl border border-gray-100">
+                <QRCodeSVG value={soloUrl} size={104} />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Classement solo */}
+      {soloResults.length > 0 && (
+        <div className="bg-white rounded-2xl border border-[#f0ebe3] p-6 mb-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Crown className="w-4 h-4 text-amber-500" />
+            <h2 className="font-bold font-heading text-gray-900">Classement</h2>
+            <span className="inline-flex items-center gap-1 text-xs text-gray-400"><Users className="w-3.5 h-3.5" />{soloResults.length}</span>
+          </div>
+          <div className="divide-y divide-[#f0ebe3]">
+            {soloResults.map((r, i) => (
+              <div key={i} className="flex items-center justify-between py-2.5">
+                <span className="flex items-center gap-3 text-sm">
+                  <span className={`w-6 text-center font-bold ${i === 0 ? 'text-amber-500' : i < 3 ? 'text-gray-500' : 'text-gray-300'}`}>{i + 1}</span>
+                  <span className="text-gray-800 font-medium">{r.pseudo}</span>
+                  <span className="text-xs text-gray-400">{r.correct_count}/{r.total_questions}</span>
+                </span>
+                <span className="font-bold text-[#7C3AED]">{r.score}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Aperçu des questions */}
       <div className="flex items-center gap-2 mb-3">
