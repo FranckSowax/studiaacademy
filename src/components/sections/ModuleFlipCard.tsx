@@ -39,7 +39,7 @@ export function ModuleFlipCard({ module }: ModuleFlipCardProps) {
 
   return (
     <div
-      className="relative h-[420px] w-full cursor-pointer select-none"
+      className="relative aspect-square w-full cursor-pointer select-none"
       style={{ perspective: '1200px' }}
       onMouseEnter={() => setFlipped(true)}
       onMouseLeave={() => setFlipped(false)}
@@ -175,18 +175,18 @@ export function ModuleFlipCard({ module }: ModuleFlipCardProps) {
             </div>
 
             {/* Milieu : slogan en grand */}
-            <div className="flex-1 flex items-center justify-center px-2 py-6">
+            <div className="flex-1 flex items-center justify-center px-2 py-2 min-h-0">
               <blockquote className="text-center">
-                <span className="text-5xl text-white/30 font-serif leading-none">"</span>
-                <p className="text-2xl font-extrabold font-heading leading-tight text-white -mt-3">
+                <span className="text-4xl text-white/30 font-serif leading-none">"</span>
+                <p className="text-xl font-extrabold font-heading leading-tight text-white -mt-2">
                   {module.slogan}
                 </p>
-                <span className="text-5xl text-white/30 font-serif leading-none block -mt-2">"</span>
+                <span className="text-4xl text-white/30 font-serif leading-none block -mt-2">"</span>
               </blockquote>
             </div>
 
             {/* Bas : description courte + CTA */}
-            <div className="space-y-4">
+            <div className="space-y-3">
               <p className="text-sm text-white/80 leading-relaxed line-clamp-2">
                 {module.description.slice(0, 90)}…
               </p>
