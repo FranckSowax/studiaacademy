@@ -35,6 +35,7 @@ export function HostScreen({
   const [timeLeft, setTimeLeft] = useState(TIME_PER_Q)
   const [busy, setBusy] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [presencePlayers, setPresencePlayers] = useState<{ key: string; pseudo: string }[]>([])
   const revealedRef = useRef(false)
 
   const questions = game.questions ?? []
@@ -61,6 +62,23 @@ export function HostScreen({
     const poll = setInterval(refresh, 2000)
     return () => { supabase.removeChannel(ch); clearInterval(poll) }
   }, [game.id, supabase, refresh])
+
+  // Presence : joueurs connectés en direct (rejoint/quitté instantané)
+  useEffect(() => {
+    const ch = supabase.channel(`presence-${game.id}`)
+    ch.on('presence', { event: 'sync' }, () => {
+      const state = ch.presenceState<{ pseudo: string }>()
+      setPresencePlayers(Object.entries(state).map(([key, metas]) => ({ key, pseudo: metas[0]?.pseudo ?? '?' })))
+    }).subscribe()
+    return () => { supabase.removeChannel(ch) }
+  }, [game.id, supabase])
+
+  // En lobby : on s'appuie sur la présence (connectés en direct) ;
+  // en jeu : sur la base (scores). Le plus grand des deux pour ne rien masquer.
+  const connectedCount = Math.max(presencePlayers.length, players.length)
+  const lobbyList = presencePlayers.length > 0
+    ? presencePlayers
+    : players.map((p) => ({ key: p.id, pseudo: p.pseudo }))
 
   // Timer pendant la phase question → révèle automatiquement à 0
   useEffect(() => {
@@ -123,22 +141,22 @@ export function HostScreen({
               </button>
             </div>
           </div>
-          {/* Joueurs */}
+          {/* Joueurs connectés (présence en direct) */}
           <div className="kahoot-glass rounded-3xl p-6 w-full max-w-sm">
             <p className="font-semibold mb-4 flex items-center gap-2">
               <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-white/20"><Users className="w-4 h-4" /></span>
-              <span className="text-2xl font-extrabold tabular-nums">{players.length}</span> joueur{players.length > 1 ? 's' : ''}
+              <span className="text-2xl font-extrabold tabular-nums">{connectedCount}</span> connecté{connectedCount > 1 ? 's' : ''}
             </p>
             <div className="flex flex-wrap gap-2 max-h-64 overflow-y-auto">
-              {players.map((p) => (
-                <span key={p.id} className="bg-white/20 px-3 py-1.5 rounded-full text-sm font-semibold kahoot-pop">{p.pseudo}</span>
+              {lobbyList.map((p) => (
+                <span key={p.key} className="bg-white/20 px-3 py-1.5 rounded-full text-sm font-semibold kahoot-pop">{p.pseudo}</span>
               ))}
-              {players.length === 0 && <p className="text-white/60 text-sm">En attente de joueurs…</p>}
+              {lobbyList.length === 0 && <p className="text-white/60 text-sm">En attente de joueurs…</p>}
             </div>
           </div>
         </div>
         <div className="text-center mt-6">
-          <Button onClick={start} disabled={busy || players.length === 0} className="bg-white text-[#7C3AED] hover:bg-white/90 rounded-2xl px-12 py-7 text-lg font-bold">
+          <Button onClick={start} disabled={busy || connectedCount === 0} className="bg-white text-[#7C3AED] hover:bg-white/90 rounded-2xl px-12 py-7 text-lg font-bold">
             {busy ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Play className="w-5 h-5 mr-2" />Démarrer la partie</>}
           </Button>
         </div>

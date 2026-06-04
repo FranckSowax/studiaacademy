@@ -32,6 +32,7 @@ export function PlayerScreen({ game: initialGame }: { game: LiveGame }) {
   const [answered, setAnswered] = useState<number | null>(null)
   const [lastResult, setLastResult] = useState<{ correct: boolean; points: number } | null>(null)
   const [timeLeft, setTimeLeft] = useState(TIME_PER_Q)
+  const [connectedCount, setConnectedCount] = useState(0)
   const lastIndexRef = useRef(-1)
 
   const questions = game.questions ?? []
@@ -73,6 +74,18 @@ export function PlayerScreen({ game: initialGame }: { game: LiveGame }) {
     const poll = setInterval(refresh, 2000)
     return () => { supabase.removeChannel(ch); clearInterval(poll) }
   }, [game.id, playerId, supabase, refresh])
+
+  // Presence : se signaler connecté + compter les connectés en direct
+  useEffect(() => {
+    if (!playerId) return
+    const ch = supabase.channel(`presence-${game.id}`, { config: { presence: { key: playerId } } })
+    ch.on('presence', { event: 'sync' }, () => {
+      setConnectedCount(Object.keys(ch.presenceState()).length)
+    }).subscribe(async (status) => {
+      if (status === 'SUBSCRIBED') await ch.track({ pseudo: pseudo || 'Élève' })
+    })
+    return () => { supabase.removeChannel(ch) }
+  }, [game.id, playerId, pseudo, supabase])
 
   // Reset à chaque nouvelle question
   useEffect(() => {
@@ -160,7 +173,7 @@ export function PlayerScreen({ game: initialGame }: { game: LiveGame }) {
         <h1 className="text-2xl font-bold font-heading">Tu es dans la partie{pseudo ? `, ${pseudo}` : ''} !</h1>
         <p className="text-white/70 mt-2 inline-flex items-center gap-1.5"><Loader2 className="w-4 h-4 animate-spin" />En attente du lancement par l&apos;hôte…</p>
         <div className="mt-6 bg-white/10 rounded-full px-4 py-2 text-sm inline-flex items-center gap-2">
-          <Wifi className="w-4 h-4 text-green-300" />{players.length} joueur{players.length > 1 ? 's' : ''} connecté{players.length > 1 ? 's' : ''}
+          <Wifi className="w-4 h-4 text-green-300" />{(() => { const n = Math.max(connectedCount, players.length); return `${n} joueur${n > 1 ? 's' : ''} connecté${n > 1 ? 's' : ''}` })()}
         </div>
       </div>
     )
