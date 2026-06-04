@@ -73,7 +73,7 @@ export default async function EntreprisePage() {
                 Micro-services RH à l&apos;IA, formations sur mesure et un diagnostic gratuit du niveau de vos effectifs. Localement, en FCFA, à coût maîtrisé.
               </p>
               <div className="flex flex-col sm:flex-row gap-3">
-                <Link href="/contact?sujet=diagnostic" className="inline-flex items-center justify-center gap-2 bg-[#e97e42] hover:bg-[#d56a2e] text-white rounded-2xl px-7 py-4 text-base font-bold transition-colors">
+                <Link href="/entreprise/diagnostic" className="inline-flex items-center justify-center gap-2 bg-[#e97e42] hover:bg-[#d56a2e] text-white rounded-2xl px-7 py-4 text-base font-bold transition-colors">
                   <BarChart3 className="w-5 h-5" />Évaluer mes effectifs — gratuit
                 </Link>
                 <Link href="#contact" className="inline-flex items-center justify-center gap-2 border-2 border-white/30 hover:bg-white/10 text-white rounded-2xl px-7 py-4 text-base font-semibold transition-colors">
@@ -136,7 +136,7 @@ export default async function EntreprisePage() {
                 <span className="inline-block bg-[#e97e42] text-white text-xs font-bold px-3 py-1 rounded-full mb-4">GRATUIT · SANS ENGAGEMENT</span>
                 <h2 className="text-3xl font-extrabold font-heading mb-4">Évaluez le niveau digital de vos équipes</h2>
                 <p className="text-white/80 mb-6">Envoyez un test de compétences à vos collaborateurs. En 48 h, recevez un rapport clair du niveau de vos effectifs par domaine — et une proposition de formation sur mesure.</p>
-                <Link href="/contact?sujet=diagnostic" className="inline-flex items-center gap-2 bg-white text-[#4c1d95] rounded-2xl px-7 py-4 font-bold hover:bg-white/90 transition-colors">
+                <Link href="/entreprise/diagnostic" className="inline-flex items-center gap-2 bg-white text-[#4c1d95] rounded-2xl px-7 py-4 font-bold hover:bg-white/90 transition-colors">
                   Lancer mon diagnostic gratuit <ArrowRight className="w-5 h-5" />
                 </Link>
               </div>
@@ -263,7 +263,7 @@ export default async function EntreprisePage() {
             <h2 className="text-3xl font-extrabold font-heading mb-3">Prêt à faire monter vos équipes en compétences ?</h2>
             <p className="text-white/70 max-w-xl mx-auto mb-8">Réservez un diagnostic gratuit ou demandez un devis pour un pack adapté à votre entreprise.</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link href="/contact?sujet=diagnostic" className="inline-flex items-center justify-center gap-2 bg-[#e97e42] hover:bg-[#d56a2e] text-white rounded-2xl px-7 py-4 font-bold transition-colors">
+              <Link href="/entreprise/diagnostic" className="inline-flex items-center justify-center gap-2 bg-[#e97e42] hover:bg-[#d56a2e] text-white rounded-2xl px-7 py-4 font-bold transition-colors">
                 <BarChart3 className="w-5 h-5" />Diagnostic gratuit
               </Link>
               <Link href="/contact?sujet=devis" className="inline-flex items-center justify-center gap-2 border-2 border-white/30 hover:bg-white/10 text-white rounded-2xl px-7 py-4 font-semibold transition-colors">
