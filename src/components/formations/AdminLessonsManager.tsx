@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import {
   ArrowLeft, Plus, Trash2, Loader2, X, Video, FileText, Target, Upload,
-  GripVertical, Eye, EyeOff, Save,
+  GripVertical, Eye, EyeOff, Save, Trophy,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -35,6 +35,19 @@ export function AdminLessonsManager({
   const [editing, setEditing] = useState<Partial<FormationLesson> | null>(null)
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [genQuiz, setGenQuiz] = useState(false)
+
+  const genererQuizFinal = async () => {
+    setGenQuiz(true)
+    const res = await fetch(`/api/admin/formations/${formation.id}/final-quiz`, { method: 'POST' })
+    const data = await res.json()
+    setGenQuiz(false)
+    if (data.error) alert(data.error)
+    else {
+      alert(`Quiz final généré : ${data.count} questions.`)
+      router.refresh()
+    }
+  }
 
   const openNew = () =>
     setEditing({ type: 'video', titre: '', ordre: lessons.length + 1, is_preview: false, duree_minutes: 0 })
@@ -85,7 +98,16 @@ export function AdminLessonsManager({
           <h2 className="text-2xl font-bold tracking-tight">{formation.titre}</h2>
           <p className="text-sm text-muted-foreground">{lessons.length} leçons · {formation.is_published ? 'Publié' : 'Brouillon'}</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          <Button
+            variant="outline"
+            onClick={genererQuizFinal}
+            disabled={genQuiz || lessons.length === 0}
+            className="border-[#7C3AED] text-[#7C3AED] hover:bg-violet-50"
+          >
+            {genQuiz ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Trophy className="w-4 h-4 mr-1" />}
+            {formation.final_quiz?.length > 0 ? 'Régénérer le quiz final' : 'Générer le quiz final'}
+          </Button>
           <Button
             variant="outline"
             onClick={async () => { await togglePublishFormation(formation.id, !formation.is_published); router.refresh() }}
@@ -96,6 +118,16 @@ export function AdminLessonsManager({
             <Plus className="w-4 h-4 mr-1" />Leçon
           </Button>
         </div>
+      </div>
+
+      {/* Statut quiz final */}
+      <div className="flex items-center gap-2 bg-violet-50 border border-violet-100 rounded-xl px-4 py-2.5 text-sm">
+        <Trophy className="w-4 h-4 text-[#7C3AED] flex-shrink-0" />
+        {formation.final_quiz?.length > 0 ? (
+          <span className="text-violet-800">Quiz final (Kahoot) prêt — <strong>{formation.final_quiz.length} questions</strong>. Les élèves pourront le lancer en fin de formation.</span>
+        ) : (
+          <span className="text-violet-700">Aucun quiz final. Générez-en un pour offrir un défi ludique en fin de formation.</span>
+        )}
       </div>
 
       {/* Liste leçons */}

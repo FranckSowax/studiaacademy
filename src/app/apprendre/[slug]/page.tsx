@@ -52,6 +52,7 @@ export default async function ApprendrePage({
       lessons={lessons}
       enrollmentId={enr!.id}
       completedLessonIds={enr!.progress ?? []}
+      hasFinalQuiz={(f.final_quiz?.length ?? 0) > 0}
     />
   )
 }

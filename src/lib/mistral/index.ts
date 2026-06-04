@@ -11,6 +11,7 @@ import {
   STUDIA_OCR_INSTRUCTION,
   STUDIA_FORMATION_OUTLINE,
   STUDIA_FORMATION_SECTION,
+  STUDIA_FINAL_QUIZ,
 } from './prompts'
 import type { OutlineSection, QuizQuestion } from '@/types/generation'
 import type {
@@ -207,6 +208,25 @@ export async function genererSection(input: SectionInput): Promise<SectionResult
     messages: [
       { role: 'system', content: STUDIA_FORMATION_SECTION },
       { role: 'user', content: JSON.stringify({ ...input, source_content: source }) },
+    ],
+  })
+}
+
+// ── Génération du quiz final (Kahoot) ───────
+interface FinalQuizInput {
+  formation_titre: string
+  niveau: string
+  contenu: string
+}
+export async function genererQuizFinal(input: FinalQuizInput): Promise<{ questions: QuizQuestion[] }> {
+  const contenu = input.contenu.slice(0, 70000)
+  return mistralChatJSON({
+    model: 'mistral-large-latest',
+    temperature: 0.5,
+    maxTokens: 5000,
+    messages: [
+      { role: 'system', content: STUDIA_FINAL_QUIZ },
+      { role: 'user', content: JSON.stringify({ ...input, contenu }) },
     ],
   })
 }

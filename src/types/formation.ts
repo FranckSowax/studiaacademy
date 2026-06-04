@@ -24,6 +24,8 @@ export interface Formation {
   formateur_avatar: string | null
   is_published: boolean
   ordre: number
+  final_quiz: LessonQuizQuestion[]
+  final_quiz_generated_at: string | null
   created_at: string
   updated_at: string
 }

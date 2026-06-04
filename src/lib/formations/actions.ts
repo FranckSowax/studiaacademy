@@ -95,6 +95,35 @@ export async function toggleLessonComplete(
 }
 
 /**
+ * Enregistre le résultat du quiz final (Kahoot) d'une formation.
+ */
+export async function saveFinalQuizResult(input: {
+  formation_id: string
+  score: number
+  max_score: number
+  correct_count: number
+  total_questions: number
+  duree_secondes: number
+}): Promise<{ success: boolean }> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { success: false }
+
+  await supabase.from('formation_quiz_results').insert({
+    formation_id: input.formation_id,
+    user_id: user.id,
+    score: input.score,
+    max_score: input.max_score,
+    correct_count: input.correct_count,
+    total_questions: input.total_questions,
+    duree_secondes: input.duree_secondes,
+  })
+  return { success: true }
+}
+
+/**
  * Réservation d'une place pour une session présentiel.
  * Fonctionne avec ou sans compte (user_id facultatif).
  */

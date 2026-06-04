@@ -28,11 +28,13 @@ export function CoursePlayer({
   lessons,
   enrollmentId,
   completedLessonIds,
+  hasFinalQuiz = false,
 }: {
   formation: Formation
   lessons: FormationLesson[]
   enrollmentId: string
   completedLessonIds: string[]
+  hasFinalQuiz?: boolean
 }) {
   const [completed, setCompleted] = useState<Set<string>>(new Set(completedLessonIds))
   const [currentIdx, setCurrentIdx] = useState(() => {
@@ -97,6 +99,21 @@ export function CoursePlayer({
               </button>
             )
           })}
+
+          {/* Quiz final (Kahoot) */}
+          {hasFinalQuiz && (
+            <Link
+              href={`/apprendre/${formation.slug}/quiz-final`}
+              className="mt-3 flex items-center gap-3 px-3 py-3 rounded-xl bg-gradient-to-r from-[#7C3AED] to-[#6d28d9] text-white hover:shadow-lg transition-all"
+            >
+              <Trophy className="w-5 h-5 flex-shrink-0" />
+              <div className="flex-1">
+                <p className="text-sm font-bold leading-tight">Quiz final · Défi</p>
+                <p className="text-[11px] text-white/70">Teste tes connaissances en mode jeu</p>
+              </div>
+              <ChevronRight className="w-4 h-4" />
+            </Link>
+          )}
         </div>
         {progress === 100 && (
           <div className="p-4 border-t border-[#f0ebe3] bg-green-50">
@@ -108,7 +125,7 @@ export function CoursePlayer({
         )}
       </div>
     ),
-    [lessons, completed, currentIdx, progress, formation.titre]
+    [lessons, completed, currentIdx, progress, formation.titre, formation.slug, hasFinalQuiz]
   )
 
   return (
