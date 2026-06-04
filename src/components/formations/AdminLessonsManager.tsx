@@ -44,7 +44,10 @@ export function AdminLessonsManager({
     setGenQuiz(false)
     if (data.error) alert(data.error)
     else {
-      alert(`Quiz final généré : ${data.count} questions.`)
+      const detail = data.fromAI > 0
+        ? `${data.fromLessons} issues des leçons + ${data.fromAI} complétées par l'IA`
+        : `${data.fromLessons} issues des quiz de leçons`
+      alert(`Quiz final assemblé : ${data.count} questions (${detail}).`)
       router.refresh()
     }
   }
@@ -106,7 +109,7 @@ export function AdminLessonsManager({
             className="border-[#7C3AED] text-[#7C3AED] hover:bg-violet-50"
           >
             {genQuiz ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Trophy className="w-4 h-4 mr-1" />}
-            {formation.final_quiz?.length > 0 ? 'Régénérer le quiz final' : 'Générer le quiz final'}
+            {formation.final_quiz?.length > 0 ? 'Réassembler le quiz final' : 'Assembler le quiz final'}
           </Button>
           <Button
             variant="outline"
@@ -126,7 +129,7 @@ export function AdminLessonsManager({
         {formation.final_quiz?.length > 0 ? (
           <span className="text-violet-800">Quiz final (Kahoot) prêt — <strong>{formation.final_quiz.length} questions</strong>. Les élèves pourront le lancer en fin de formation.</span>
         ) : (
-          <span className="text-violet-700">Aucun quiz final. Générez-en un pour offrir un défi ludique en fin de formation.</span>
+          <span className="text-violet-700">Aucun quiz final. Assemblez-en un (à partir des quiz de leçons, complété par l&apos;IA si besoin) pour offrir un défi ludique en fin de formation.</span>
         )}
       </div>
 
