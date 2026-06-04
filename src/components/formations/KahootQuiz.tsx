@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import confetti from 'canvas-confetti'
 import {
   Trophy, Zap, Clock, Flame, ArrowRight, RotateCcw, CheckCircle, XCircle,
   Triangle, Diamond, Circle, Square, Crown, Medal, Radio, Loader2,
@@ -53,6 +54,13 @@ export function KahootQuiz({
   const qStartRef = useRef(0)
 
   const q = questions[idx]
+
+  // Confetti à l'écran de score
+  useEffect(() => {
+    if (phase === 'done' && correctCount / Math.max(1, questions.length) >= 0.5) {
+      confetti({ particleCount: 140, spread: 80, origin: { y: 0.6 } })
+    }
+  }, [phase, correctCount, questions.length])
 
   const launchLive = useCallback(async () => {
     setLaunchingLive(true); setLiveError('')

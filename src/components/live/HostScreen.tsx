@@ -1,14 +1,16 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { QRCodeSVG } from 'qrcode.react'
+import confetti from 'canvas-confetti'
 import { createClient } from '@/lib/supabase/client'
 import {
   Users, Play, Clock, Trophy, Crown, Triangle, Diamond, Circle, Square,
-  Copy, Check, ArrowRight, Loader2, Medal,
+  Copy, Check, ArrowRight, Loader2, Medal, RotateCcw, LogOut,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { hostNextQuestion, hostReveal, hostEndGame } from '@/lib/live/actions'
+import { hostNextQuestion, hostReveal, hostEndGame, createLiveGameFromQuestions } from '@/lib/live/actions'
 import type { LiveGame, LivePlayer } from '@/types/live'
 
 const TIME_PER_Q = 20
@@ -23,12 +25,15 @@ export function HostScreen({
   game: initialGame,
   initialPlayers,
   joinUrl,
+  homeUrl = '/',
 }: {
   game: LiveGame
   initialPlayers: LivePlayer[]
   joinUrl: string
+  homeUrl?: string
 }) {
   const supabase = createClient()
+  const router = useRouter()
   const [game, setGame] = useState(initialGame)
   const [players, setPlayers] = useState<LivePlayer[]>(initialPlayers)
   const [answerCount, setAnswerCount] = useState(0)
@@ -116,6 +121,27 @@ export function HostScreen({
     setCopied(true); setTimeout(() => setCopied(false), 2000)
   }
 
+  // Confetti de célébration à la fin de la partie
+  useEffect(() => {
+    if (game.status !== 'ended') return
+    const fire = (ratio: number, opts: confetti.Options) =>
+      confetti({ origin: { y: 0.6 }, ...opts, particleCount: Math.floor(200 * ratio) })
+    fire(0.25, { spread: 26, startVelocity: 55 })
+    fire(0.2, { spread: 60 })
+    fire(0.35, { spread: 100, decay: 0.91, scalar: 0.9 })
+    fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 })
+    fire(0.1, { spread: 120, startVelocity: 45 })
+    const t = setTimeout(() => confetti({ particleCount: 120, spread: 90, origin: { y: 0.5 } }), 600)
+    return () => clearTimeout(t)
+  }, [game.status])
+
+  const relaunch = useCallback(async () => {
+    setBusy(true)
+    const r = await createLiveGameFromQuestions({ titre: game.titre ?? 'Kahoot', questions })
+    if (r.success && r.code) router.push(`/live/${r.code}/host`)
+    else setBusy(false)
+  }, [game.titre, questions, router])
+
   const ranked = [...players].sort((a, b) => b.score - a.score)
 
   // ── LOBBY ──
@@ -167,33 +193,68 @@ export function HostScreen({
   // ── ENDED : podium ──
   if (game.status === 'ended') {
     const podium = ranked.slice(0, 3)
+    const winner = podium[0]
+    // ordre visuel : 2e, 1er, 3e
+    const order: { pos: number; height: string; ring: string; badge: string; medal: string }[] = [
+      { pos: 1, height: 'h-36', ring: 'ring-slate-300', badge: 'bg-slate-300 text-slate-800', medal: '🥈' },
+      { pos: 0, height: 'h-52', ring: 'ring-yellow-300', badge: 'bg-yellow-400 text-yellow-900', medal: '🥇' },
+      { pos: 2, height: 'h-28', ring: 'ring-amber-600', badge: 'bg-amber-600 text-amber-50', medal: '🥉' },
+    ]
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#e97e42] to-[#c45a20] text-white p-6 flex flex-col items-center justify-center">
-        <Trophy className="w-16 h-16 mb-4 kahoot-float" />
-        <h1 className="text-3xl font-extrabold font-heading mb-8">Classement final</h1>
-        <div className="flex items-end gap-4 mb-8">
-          {[1, 0, 2].map((pos) => {
+      <div className="relative min-h-dvh overflow-hidden bg-gradient-to-br from-[#1e1147] via-[#4c1d95] to-[#7C3AED] text-white flex flex-col items-center justify-center p-6">
+        {/* halo lumineux */}
+        <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-[60vw] h-[60vw] rounded-full bg-yellow-400/10 blur-3xl" />
+
+        <div className="relative text-center mb-2">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl kahoot-glass mb-3 kahoot-float"><Trophy className="w-9 h-9 text-yellow-300" /></div>
+          <p className="text-white/60 uppercase tracking-[0.3em] text-xs mb-1">Partie terminée</p>
+          <h1 className="text-4xl font-extrabold font-heading bg-gradient-to-r from-yellow-200 via-white to-yellow-200 bg-clip-text text-transparent">Classement final</h1>
+          {winner && <p className="mt-3 text-lg"><span className="font-bold">{winner.pseudo}</span> remporte la partie 🎉</p>}
+        </div>
+
+        {/* Podium */}
+        <div className="relative flex items-end justify-center gap-3 sm:gap-5 mt-8 mb-8">
+          {order.map(({ pos, height, ring, badge, medal }, i) => {
             const p = podium[pos]
-            if (!p) return <div key={pos} className="w-24" />
-            const heights = ['h-32', 'h-44', 'h-24']
-            const medals = ['🥈', '🥇', '🥉']
+            if (!p) return <div key={pos} className="w-20 sm:w-28" />
             return (
-              <div key={pos} className="flex flex-col items-center kahoot-pop" style={{ animationDelay: `${pos * 150}ms` }}>
-                <span className="text-3xl mb-1">{medals[pos]}</span>
-                <span className="font-bold mb-1 text-center">{p.pseudo}</span>
-                <span className="text-sm text-white/80 mb-2">{p.score} pts</span>
-                <div className={`w-24 ${heights[pos]} kahoot-glass rounded-t-2xl flex items-start justify-center pt-2 font-extrabold text-2xl`}>{pos === 1 ? 1 : pos === 0 ? 2 : 3}</div>
+              <div key={pos} className="flex flex-col items-center kahoot-pop" style={{ animationDelay: `${i * 180}ms` }}>
+                <span className="text-2xl mb-1">{medal}</span>
+                <div className={`relative w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white/15 ring-4 ${ring} flex items-center justify-center mb-2 ${pos === 0 ? 'kahoot-float' : ''}`}>
+                  <span className="text-xl font-extrabold">{p.pseudo.charAt(0).toUpperCase()}</span>
+                  {pos === 0 && <Crown className="absolute -top-5 left-1/2 -translate-x-1/2 w-6 h-6 text-yellow-300 drop-shadow" />}
+                </div>
+                <span className="font-bold text-center text-sm sm:text-base max-w-[6rem] truncate">{p.pseudo}</span>
+                <span className="text-xs text-white/70 mb-2">{p.score} pts</span>
+                <div className={`w-20 sm:w-28 ${height} rounded-t-2xl bg-gradient-to-b from-white/25 to-white/5 border-x border-t border-white/15 flex items-start justify-center pt-2`}>
+                  <span className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-sm font-extrabold ${badge}`}>{pos + 1}</span>
+                </div>
               </div>
             )
           })}
         </div>
+
+        {/* Reste du classement */}
         {ranked.length > 3 && (
-          <div className="bg-white/10 rounded-2xl p-4 w-full max-w-sm space-y-1">
+          <div className="relative kahoot-glass rounded-2xl p-3 w-full max-w-sm space-y-1 mb-6">
             {ranked.slice(3, 10).map((p, i) => (
-              <div key={p.id} className="flex justify-between text-sm"><span>{i + 4}. {p.pseudo}</span><span className="font-bold">{p.score}</span></div>
+              <div key={p.id} className="flex items-center justify-between text-sm px-2 py-1.5">
+                <span className="flex items-center gap-2"><span className="w-5 text-white/50 font-semibold">{i + 4}</span>{p.pseudo}</span>
+                <span className="font-bold">{p.score}</span>
+              </div>
             ))}
           </div>
         )}
+
+        {/* Actions */}
+        <div className="relative flex flex-col sm:flex-row gap-3 w-full max-w-sm">
+          <Button onClick={relaunch} disabled={busy} className="flex-1 bg-white text-[#4c1d95] hover:bg-white/90 rounded-2xl py-6 font-bold">
+            {busy ? <Loader2 className="w-5 h-5 animate-spin" /> : <><RotateCcw className="w-5 h-5 mr-2" />Relancer une partie</>}
+          </Button>
+          <Button onClick={() => router.push(homeUrl)} variant="outline" className="flex-1 border-2 border-white/40 text-white hover:bg-white/15 rounded-2xl py-6 font-bold">
+            <LogOut className="w-5 h-5 mr-2" />Quitter
+          </Button>
+        </div>
       </div>
     )
   }

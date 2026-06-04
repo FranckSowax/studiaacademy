@@ -25,12 +25,15 @@ export default async function HostPage({ params }: { params: Promise<{ code: str
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://studiaacademy-production.up.railway.app'
   const joinUrl = `${baseUrl}/live/${game.code}`
+  // Origine : Kahoot prof (sans formation) → espace prof ; sinon accueil
+  const homeUrl = game.formation_id ? '/' : '/professeur/kahoot'
 
   return (
     <HostScreen
       game={game as LiveGame}
       initialPlayers={(players ?? []) as LivePlayer[]}
       joinUrl={joinUrl}
+      homeUrl={homeUrl}
     />
   )
 }

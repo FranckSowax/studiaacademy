@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import confetti from 'canvas-confetti'
 import { createClient } from '@/lib/supabase/client'
 import {
   Triangle, Diamond, Circle, Square, Loader2, Check, X, Clock, Trophy, Crown, Zap, Wifi,
@@ -96,6 +97,13 @@ export function PlayerScreen({ game: initialGame }: { game: LiveGame }) {
     }
   }, [game.status, game.current_index])
 
+  // Confetti si bon classement à la fin
+  useEffect(() => {
+    if (game.status === 'ended' && myRank > 0 && myRank <= 3) {
+      confetti({ particleCount: 140, spread: 80, origin: { y: 0.6 } })
+    }
+  }, [game.status, myRank])
+
   // Timer joueur
   useEffect(() => {
     if (game.status !== 'question' || !game.question_started_at) return
@@ -190,6 +198,12 @@ export function PlayerScreen({ game: initialGame }: { game: LiveGame }) {
           <p className="text-4xl font-extrabold">{myScore}</p>
           <p className="text-white/80 text-sm">points{myRank > 0 ? ` · ${myRank}${myRank === 1 ? 'er' : 'e'} place` : ''}</p>
         </div>
+        <button
+          onClick={() => { try { localStorage.removeItem(storageKey) } catch { /* ignore */ } ; window.location.href = '/' }}
+          className="mt-6 inline-flex items-center gap-2 bg-white/15 hover:bg-white/25 rounded-xl px-6 py-3 text-sm font-semibold transition-colors"
+        >
+          Quitter
+        </button>
       </div>
     )
   }
