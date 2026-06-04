@@ -37,17 +37,39 @@ export function AdminLessonsManager({
   const [uploading, setUploading] = useState(false)
   const [genQuiz, setGenQuiz] = useState(false)
   const [genInteractif, setGenInteractif] = useState(false)
+  const [interProgress, setInterProgress] = useState<{ done: number; total: number } | null>(null)
 
   const rendreInteractif = async () => {
-    if (!confirm('Transformer les leçons en cours interactifs (accordéons, concepts cliquables, questions intégrées) ? Cela peut prendre 1 à 3 minutes.')) return
+    if (!confirm('Transformer les leçons en cours interactifs (accordéons, concepts cliquables, questions intégrées) ? Chaque leçon est traitée une à une.')) return
     setGenInteractif(true)
-    const res = await fetch(`/api/admin/formations/${formation.id}/interactive`, { method: 'POST' })
-    const data = await res.json()
-    setGenInteractif(false)
-    if (data.error) alert(data.error)
-    else {
-      alert(`Cours interactifs générés : ${data.count}/${data.total} leçons.`)
+    setInterProgress({ done: 0, total: 0 })
+    try {
+      // 1) Liste des leçons à convertir
+      const listRes = await fetch(`/api/admin/formations/${formation.id}/interactive`)
+      const list = await listRes.json()
+      const ids: string[] = list.lessonIds ?? []
+      if (ids.length === 0) { alert('Aucune leçon texte à rendre interactive.'); return }
+      setInterProgress({ done: 0, total: ids.length })
+
+      // 2) Conversion leçon par leçon (progression réelle)
+      let ok = 0
+      for (let i = 0; i < ids.length; i++) {
+        try {
+          const res = await fetch(`/api/admin/formations/${formation.id}/interactive`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ lessonId: ids[i] }),
+          })
+          const data = await res.json()
+          if (data.count > 0) ok++
+        } catch { /* on continue */ }
+        setInterProgress({ done: i + 1, total: ids.length })
+      }
+      alert(`Cours interactifs générés : ${ok}/${ids.length} leçons.`)
       router.refresh()
+    } finally {
+      setGenInteractif(false)
+      setInterProgress(null)
     }
   }
 
@@ -123,7 +145,9 @@ export function AdminLessonsManager({
             className="border-[#e97e42] text-[#e97e42] hover:bg-[#fff7ed]"
           >
             {genInteractif ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Sparkles className="w-4 h-4 mr-1" />}
-            Rendre les cours interactifs
+            {genInteractif && interProgress
+              ? `Conversion… ${interProgress.done}/${interProgress.total || '…'}`
+              : 'Rendre les cours interactifs'}
           </Button>
           <Button
             variant="outline"
@@ -145,6 +169,27 @@ export function AdminLessonsManager({
           </Button>
         </div>
       </div>
+
+      {/* Progression conversion interactive */}
+      {genInteractif && interProgress && (
+        <div className="bg-[#fff7ed] border border-[#e97e42]/20 rounded-xl px-4 py-3">
+          <div className="flex items-center justify-between text-sm mb-2">
+            <span className="text-[#a84d16] font-medium inline-flex items-center gap-1.5">
+              <Sparkles className="w-4 h-4" />Génération des cours interactifs…
+            </span>
+            <span className="text-[#a84d16] font-semibold tabular-nums">
+              {interProgress.done}/{interProgress.total || '…'}
+            </span>
+          </div>
+          <div className="h-2 bg-[#e97e42]/15 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-[#e97e42] to-[#d56a2e] rounded-full transition-all duration-300"
+              style={{ width: `${interProgress.total ? (interProgress.done / interProgress.total) * 100 : 8}%` }}
+            />
+          </div>
+          <p className="text-xs text-[#a84d16]/70 mt-1.5">Ne fermez pas la page — chaque leçon est enregistrée au fur et à mesure.</p>
+        </div>
+      )}
 
       {/* Statut quiz final */}
       <div className="flex items-center gap-2 bg-violet-50 border border-violet-100 rounded-xl px-4 py-2.5 text-sm">

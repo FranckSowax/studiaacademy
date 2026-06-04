@@ -144,6 +144,7 @@ function SectionsWorkspace({
   const [busy, setBusy] = useState<string | null>(null)
   const [expanded, setExpanded] = useState<string | null>(null)
   const [publishing, setPublishing] = useState(false)
+  const [batch, setBatch] = useState<{ done: number; total: number } | null>(null)
 
   const generated = sections.filter((s) => s.content).length
 
@@ -164,6 +165,32 @@ function SectionsWorkspace({
       // Optimiste : récupérer via refresh (le serveur renvoie les données)
       window.location.reload()
     }
+  }
+
+  // Génère toutes les sections restantes, une à une, avec progression.
+  const generateAll = async () => {
+    const todo = sections.filter((s) => !s.content)
+    if (todo.length === 0) return
+    if (!confirm(`Générer les ${todo.length} sections restantes ? Chaque section est créée et enregistrée l'une après l'autre.`)) return
+    setBatch({ done: 0, total: todo.length })
+    for (let i = 0; i < todo.length; i++) {
+      const s = todo[i]
+      setBusy(s.id)
+      setSections((prev) => prev.map((x) => (x.id === s.id ? { ...x, status: 'generating' } : x)))
+      try {
+        const res = await fetch(`/api/admin/generation/${generation.id}/section/${s.id}`, { method: 'POST' })
+        const data = await res.json()
+        setSections((prev) => prev.map((x) => (x.id === s.id ? { ...x, status: data.error ? 'error' : 'generated', content: data.error ? x.content : '…' } : x)))
+      } catch {
+        setSections((prev) => prev.map((x) => (x.id === s.id ? { ...x, status: 'error' } : x)))
+      }
+      setBatch({ done: i + 1, total: todo.length })
+    }
+    setBusy(null)
+    setBatch(null)
+    router.refresh()
+    onRefresh()
+    window.location.reload()
   }
 
   const publish = async () => {
@@ -189,11 +216,34 @@ function SectionsWorkspace({
           <h2 className="text-2xl font-bold tracking-tight">{generation.titre}</h2>
           <p className="text-sm text-muted-foreground">{generated}/{sections.length} sections générées</p>
         </div>
-        <Button onClick={publish} disabled={generated === 0 || publishing}
-          className="bg-green-600 hover:bg-green-700 text-white">
-          {publishing ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Rocket className="w-4 h-4 mr-1" />{generation.formation_id ? 'Mettre à jour la formation' : 'Publier la formation'}</>}
-        </Button>
+        <div className="flex gap-2 flex-wrap">
+          {generated < sections.length && (
+            <Button onClick={generateAll} disabled={!!batch || !!busy}
+              className="bg-[#e97e42] hover:bg-[#d56a2e] text-white">
+              {batch ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Wand2 className="w-4 h-4 mr-1" />}
+              {batch ? `Génération… ${batch.done}/${batch.total}` : 'Générer toutes les sections'}
+            </Button>
+          )}
+          <Button onClick={publish} disabled={generated === 0 || publishing || !!batch}
+            className="bg-green-600 hover:bg-green-700 text-white">
+            {publishing ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Rocket className="w-4 h-4 mr-1" />{generation.formation_id ? 'Mettre à jour la formation' : 'Publier la formation'}</>}
+          </Button>
+        </div>
       </div>
+
+      {/* Progression de la génération en lot */}
+      {batch && (
+        <div className="bg-[#fff7ed] border border-[#e97e42]/20 rounded-xl px-4 py-3">
+          <div className="flex items-center justify-between text-sm mb-2">
+            <span className="text-[#a84d16] font-medium inline-flex items-center gap-1.5"><Wand2 className="w-4 h-4" />Génération des cours…</span>
+            <span className="text-[#a84d16] font-semibold tabular-nums">{batch.done}/{batch.total}</span>
+          </div>
+          <div className="h-2 bg-[#e97e42]/15 rounded-full overflow-hidden">
+            <div className="h-full bg-gradient-to-r from-[#e97e42] to-[#d56a2e] rounded-full transition-all duration-300" style={{ width: `${batch.total ? (batch.done / batch.total) * 100 : 8}%` }} />
+          </div>
+          <p className="text-xs text-[#a84d16]/70 mt-1.5">Ne fermez pas la page — chaque section est enregistrée au fur et à mesure (cours interactif inclus).</p>
+        </div>
+      )}
 
       <div className="space-y-3">
         {sections.map((s) => {
