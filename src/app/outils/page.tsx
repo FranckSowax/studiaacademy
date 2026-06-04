@@ -7,10 +7,14 @@ import { aiServices } from '@/lib/ai-services/definitions'
 import { CATEGORY_LABELS, type ServiceCategory } from '@/types/ai-service'
 import {
   ArrowRight, Sparkles, GraduationCap, FileText, Briefcase, Presentation, Mail, Zap,
+  Globe, Palette, Receipt, Megaphone, FileSignature, TrendingUp, BookOpen, PenTool,
+  FileCheck, Lightbulb, Compass, AlignLeft,
 } from 'lucide-react'
 
 const iconMap: Record<string, React.ComponentType<{ className?: string; style?: React.CSSProperties }>> = {
   GraduationCap, FileText, Briefcase, Presentation, Mail,
+  Globe, Palette, Receipt, Megaphone, FileSignature, TrendingUp, BookOpen, PenTool,
+  FileCheck, Lightbulb, Compass, AlignLeft,
 }
 
 export default function OutilsPage() {
