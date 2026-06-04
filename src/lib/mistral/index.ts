@@ -212,6 +212,40 @@ export async function genererSection(input: SectionInput): Promise<SectionResult
   })
 }
 
+// ── Analyse des effectifs (diagnostic entreprise) ──
+const STUDIA_ANALYSE_RH = `Tu es consultant en formation & transformation digitale chez Studia Academy (Gabon).
+On te fournit l'agrégat ANONYME d'un diagnostic de compétences des salariés d'une entreprise
+(niveaux moyens par domaine, répartition, par département) et le catalogue de formations disponible.
+
+RÈGLES STRICTES :
+- Jamais de nom de salarié : tu raisonnes uniquement sur des agrégats.
+- N'invente aucun chiffre : appuie-toi sur les pourcentages fournis.
+- Ton orienté ROI et action, adapté au contexte gabonais.
+- Mappe CHAQUE recommandation à une formation du catalogue (par "ref") quand c'est pertinent.
+- Priorise les domaines à faible niveau ET concernant le plus de personnes/départements.
+
+Réponds en JSON STRICT :
+{
+  "synthese_executive": "2-3 phrases pour un dirigeant",
+  "niveaux_domaines": [{ "domaine": "slug", "niveau": "Débutant|Intermédiaire|Avancé|Expert", "pct": 0, "commentaire": "..." }],
+  "forces": ["..."],
+  "lacunes_prioritaires": [{ "domaine": "slug", "impact": "...", "priorite": "haute|moyenne" }],
+  "recommandations": [{ "ref": "F1", "titre": "...", "domaine": "slug", "justification": "...", "prix_fcfa": 0 }],
+  "pack_resume": "Description du pack recommandé",
+  "prix_total_estime_fcfa": 0
+}`
+export async function analyserEffectifsRH(aggregate: unknown): Promise<Record<string, unknown>> {
+  return mistralChatJSON({
+    model: 'mistral-large-latest',
+    temperature: 0.3,
+    maxTokens: 4000,
+    messages: [
+      { role: 'system', content: STUDIA_ANALYSE_RH },
+      { role: 'user', content: JSON.stringify(aggregate) },
+    ],
+  })
+}
+
 // ── Leçon interactive (cours « vivant ») ──
 interface LeconInteractiveInput {
   titre: string

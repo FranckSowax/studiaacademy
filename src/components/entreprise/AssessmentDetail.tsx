@@ -8,7 +8,7 @@ import {
   ArrowLeft, Copy, Check, Users, Radio, Link2, BarChart3, Lock, Unlock, Loader2, Sparkles,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { setAssessmentStatus } from '@/lib/entreprise/actions'
+import { setAssessmentStatus, analyzeAssessment } from '@/lib/entreprise/actions'
 import { DOMAINES } from '@/lib/entreprise/competences'
 import { niveauFromPct, NIVEAU_LABELS } from '@/lib/entreprise/scoring'
 import type { CompanyAssessment } from '@/types/entreprise'
@@ -27,13 +27,23 @@ export function AssessmentDetail({
   const router = useRouter()
   const [copied, setCopied] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [analyzing, setAnalyzing] = useState(false)
   const isOpen = assessment.status === 'open'
+  const isAnalyzed = assessment.status === 'analyzed'
 
   const copy = () => { navigator.clipboard.writeText(joinUrl); setCopied(true); setTimeout(() => setCopied(false), 2000) }
   const toggle = async () => {
     setBusy(true)
     await setAssessmentStatus(assessment.id, isOpen ? 'closed' : 'open')
     setBusy(false); router.refresh()
+  }
+  const analyze = async () => {
+    if (!confirm('Lancer l\'analyse IA des résultats et générer le rapport ? Le test sera clôturé.')) return
+    setAnalyzing(true)
+    const r = await analyzeAssessment(assessment.id)
+    setAnalyzing(false)
+    if (r.success) router.push(`/entreprise/diagnostic/${assessment.id}/rapport`)
+    else alert(r.error || 'Erreur')
   }
 
   const domAgg = Object.entries(aggregate)
@@ -101,12 +111,24 @@ export function AssessmentDetail({
             ))}
           </div>
         )}
-        <div className="mt-5 bg-[#fff7ed] rounded-xl p-4 flex items-start gap-3">
-          <Sparkles className="w-5 h-5 text-[#e97e42] flex-shrink-0 mt-0.5" />
-          <div className="text-sm text-[#a84d16]">
-            <p className="font-semibold">Rapport détaillé & pack de formation sur mesure</p>
-            <p className="text-[#a84d16]/80">Analyse IA des lacunes par département et proposition de formations ciblées — bientôt activable depuis ce diagnostic.</p>
+        <div className="mt-5 bg-[#fff7ed] rounded-xl p-4">
+          <div className="flex items-start gap-3 mb-3">
+            <Sparkles className="w-5 h-5 text-[#e97e42] flex-shrink-0 mt-0.5" />
+            <div className="text-sm text-[#a84d16]">
+              <p className="font-semibold">Rapport détaillé & pack de formation sur mesure</p>
+              <p className="text-[#a84d16]/80">Analyse IA des lacunes par département + recommandations de formations chiffrées.</p>
+            </div>
           </div>
+          {isAnalyzed ? (
+            <Link href={`/entreprise/diagnostic/${assessment.id}/rapport`} className="inline-flex items-center gap-2 bg-[#e97e42] hover:bg-[#d56a2e] text-white rounded-xl px-5 py-2.5 text-sm font-semibold transition-colors">
+              <BarChart3 className="w-4 h-4" />Voir le rapport & le pack
+            </Link>
+          ) : (
+            <Button onClick={analyze} disabled={analyzing || scoredCount === 0} className="bg-[#e97e42] hover:bg-[#d56a2e] text-white rounded-xl">
+              {analyzing ? <><Loader2 className="w-4 h-4 mr-1 animate-spin" />Analyse en cours…</> : <><Sparkles className="w-4 h-4 mr-1" />Analyser & générer le rapport</>}
+            </Button>
+          )}
+          {scoredCount === 0 && <p className="text-xs text-[#a84d16]/70 mt-2">En attente de réponses complétées.</p>}
         </div>
       </div>
     </div>
