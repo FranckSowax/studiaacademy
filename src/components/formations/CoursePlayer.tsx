@@ -9,6 +9,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { toggleLessonComplete } from '@/lib/formations/actions'
 import { QuizBlock } from './QuizBlock'
+import { InteractiveLessonView } from './InteractiveLessonView'
 import type { Formation, FormationLesson } from '@/types/formation'
 
 function embedUrl(url: string): string {
@@ -175,6 +176,10 @@ export function CoursePlayer({
                   <Download className="w-4 h-4" />Télécharger le document
                 </a>
               </div>
+            ) : current.blocks && current.blocks.length > 0 ? (
+              <div className="mb-6">
+                <InteractiveLessonView blocks={current.blocks} />
+              </div>
             ) : (
               <div className="bg-white rounded-2xl border border-[#f0ebe3] p-6 mb-6">
                 {current.type === 'quiz' && (
@@ -205,8 +210,9 @@ export function CoursePlayer({
               </button>
             </div>
 
-            {/* Test d'évaluation après le paragraphe */}
-            {current.quiz && current.quiz.length > 0 && (
+            {/* Test d'évaluation — uniquement si les questions ne sont pas déjà
+                tissées dans le cours interactif */}
+            {current.quiz && current.quiz.length > 0 && !(current.blocks && current.blocks.length > 0) && (
               <div className="mb-8">
                 <QuizBlock questions={current.quiz} />
               </div>

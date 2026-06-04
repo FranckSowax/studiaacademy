@@ -212,6 +212,59 @@ export async function genererSection(input: SectionInput): Promise<SectionResult
   })
 }
 
+// ── Leçon interactive (cours « vivant ») ──
+interface LeconInteractiveInput {
+  titre: string
+  niveau: string
+  contenu: string
+  /** Questions du quiz de la leçon à tisser subtilement dans le cours. */
+  quiz?: { question: string; options: string[]; reponse_correcte: number; explication: string }[]
+}
+const STUDIA_LECON_INTERACTIVE = `Tu es concepteur pédagogique chez Studia Academy (edtech, contexte africain/gabonais).
+On te donne le texte d'une leçon, son niveau, et une liste de questions de quiz.
+Transforme la leçon en un parcours INTERACTIF, vivant et progressif, sous forme de blocs.
+
+RÈGLES :
+- Reste fidèle au contenu fourni : n'invente pas de faits, reformule et structure.
+- Ne mentionne JAMAIS l'IA ni la génération automatique.
+- Français clair, ton pédagogique et motivant. Markdown léger autorisé dans les textes (gras, listes).
+- Découpe en 3 à 6 blocs "section" (titre + résumé court visible + détails dépliables).
+- Ajoute 1 bloc "concepts" (3 à 6 termes-clés avec définition courte).
+- Ajoute 1 bloc "a_retenir" (3 à 5 points essentiels).
+- Ajoute si pertinent 1 bloc "exemple" et/ou 1 bloc "le_saviez_vous" ancré dans le contexte africain.
+- TISSE les questions du quiz fournies sous forme de blocs "question_flash", RÉPARTIES naturellement
+  APRÈS les sections auxquelles elles se rapportent (pas toutes à la fin). Conserve EXACTEMENT
+  le libellé, les options, l'index de bonne réponse et l'explication fournis.
+- Ordonne les blocs dans une logique pédagogique : accroche → sections (entrecoupées de concepts,
+  exemples et questions flash) → à retenir.
+
+Réponds en JSON STRICT :
+{
+  "blocks": [
+    { "type": "accroche", "texte": "…" },
+    { "type": "section", "titre": "…", "resume": "…", "details": "…" },
+    { "type": "concepts", "items": [ { "terme": "…", "definition": "…" } ] },
+    { "type": "exemple", "titre": "…", "texte": "…" },
+    { "type": "le_saviez_vous", "texte": "…" },
+    { "type": "question_flash", "question": "…", "options": ["…"], "reponse_correcte": 0, "explication": "…" },
+    { "type": "a_retenir", "points": ["…"] }
+  ]
+}`
+export async function genererLeconInteractive(
+  input: LeconInteractiveInput
+): Promise<{ blocks: unknown[] }> {
+  const contenu = input.contenu.slice(0, 30000)
+  return mistralChatJSON({
+    model: 'mistral-large-latest',
+    temperature: 0.5,
+    maxTokens: 6144,
+    messages: [
+      { role: 'system', content: STUDIA_LECON_INTERACTIVE },
+      { role: 'user', content: JSON.stringify({ ...input, contenu }) },
+    ],
+  })
+}
+
 // ── Présentation marketing de la formation ──
 interface PresentationInput {
   titre: string

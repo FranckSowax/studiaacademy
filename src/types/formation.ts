@@ -37,6 +37,16 @@ export interface LessonQuizQuestion {
   explication: string
 }
 
+// ── Blocs interactifs d'une leçon (cours « vivant ») ──
+export type LessonBlock =
+  | { type: 'accroche'; texte: string }
+  | { type: 'section'; titre: string; resume: string; details: string }
+  | { type: 'concepts'; items: { terme: string; definition: string }[] }
+  | { type: 'a_retenir'; points: string[] }
+  | { type: 'exemple'; titre?: string; texte: string }
+  | { type: 'le_saviez_vous'; texte: string }
+  | { type: 'question_flash'; question: string; options: string[]; reponse_correcte: number; explication: string }
+
 export interface FormationLesson {
   id: string
   formation_id: string
@@ -47,6 +57,7 @@ export interface FormationLesson {
   contenu: string | null
   document_url: string | null
   quiz: LessonQuizQuestion[]
+  blocks: LessonBlock[]
   duree_minutes: number
   is_preview: boolean
   created_at: string

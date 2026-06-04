@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import {
   ArrowLeft, Plus, Trash2, Loader2, X, Video, FileText, Target, Upload,
-  GripVertical, Eye, EyeOff, Save, Trophy,
+  GripVertical, Eye, EyeOff, Save, Trophy, Sparkles,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -36,6 +36,20 @@ export function AdminLessonsManager({
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [genQuiz, setGenQuiz] = useState(false)
+  const [genInteractif, setGenInteractif] = useState(false)
+
+  const rendreInteractif = async () => {
+    if (!confirm('Transformer les leçons en cours interactifs (accordéons, concepts cliquables, questions intégrées) ? Cela peut prendre 1 à 3 minutes.')) return
+    setGenInteractif(true)
+    const res = await fetch(`/api/admin/formations/${formation.id}/interactive`, { method: 'POST' })
+    const data = await res.json()
+    setGenInteractif(false)
+    if (data.error) alert(data.error)
+    else {
+      alert(`Cours interactifs générés : ${data.count}/${data.total} leçons.`)
+      router.refresh()
+    }
+  }
 
   const genererQuizFinal = async () => {
     setGenQuiz(true)
@@ -102,6 +116,15 @@ export function AdminLessonsManager({
           <p className="text-sm text-muted-foreground">{lessons.length} leçons · {formation.is_published ? 'Publié' : 'Brouillon'}</p>
         </div>
         <div className="flex gap-2 flex-wrap">
+          <Button
+            variant="outline"
+            onClick={rendreInteractif}
+            disabled={genInteractif || lessons.length === 0}
+            className="border-[#e97e42] text-[#e97e42] hover:bg-[#fff7ed]"
+          >
+            {genInteractif ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Sparkles className="w-4 h-4 mr-1" />}
+            Rendre les cours interactifs
+          </Button>
           <Button
             variant="outline"
             onClick={genererQuizFinal}

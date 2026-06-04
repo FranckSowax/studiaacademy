@@ -41,6 +41,7 @@ export async function syncLessonsFromGeneration(
     type: 'texte' as const,
     contenu: s.content,
     quiz: s.quiz ?? [],
+    blocks: s.blocks ?? [],
     duree_minutes: s.duree_minutes ?? 10,
     is_preview: i === 0,
   }))

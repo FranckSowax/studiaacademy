@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { genererSection } from '@/lib/mistral'
+import { genererSection, genererLeconInteractive } from '@/lib/mistral'
 import { syncLessonsFromGeneration } from '@/lib/formations/generation-actions'
 
 export const dynamic = 'force-dynamic'
@@ -53,11 +53,26 @@ export async function POST(
       source_content: gen.source_content ?? '',
     })
 
+    // Cours interactif : transforme le texte en blocs et tisse les questions du quiz.
+    let blocks: unknown[] = []
+    try {
+      const inter = await genererLeconInteractive({
+        titre: section.titre,
+        niveau: gen.niveau,
+        contenu: result.content,
+        quiz: result.quiz ?? [],
+      })
+      blocks = Array.isArray(inter.blocks) ? inter.blocks : []
+    } catch {
+      // La leçon reste lisible en texte si l'interactif échoue.
+    }
+
     await supabase
       .from('formation_generation_sections')
       .update({
         content: result.content,
         quiz: result.quiz ?? [],
+        blocks,
         duree_minutes: result.duree_minutes ?? 10,
         status: 'generated',
       })
