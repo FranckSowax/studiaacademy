@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuthContext } from '@/contexts/AuthContext'
 import { DashboardFormations } from '@/components/dashboard/DashboardFormations'
+import { getUserStudiaStats, type UserStudiaStats } from '@/lib/dashboard/stats'
 import {
   Clock,
   Calendar,
@@ -57,6 +58,7 @@ export default function DashboardPage() {
   const router = useRouter()
   const { user, profile, isLoading: authLoading, isAuthenticated } = useAuthContext()
   const [aiQuestion, setAiQuestion] = useState('')
+  const [stats, setStats] = useState<UserStudiaStats | null>(null)
 
   // Redirect si non authentifié
   useEffect(() => {
@@ -64,6 +66,13 @@ export default function DashboardPage() {
       router.push('/login')
     }
   }, [authLoading, isAuthenticated, router])
+
+  // Stats réelles de l'élève
+  useEffect(() => {
+    if (isAuthenticated) {
+      getUserStudiaStats().then(setStats).catch(() => {})
+    }
+  }, [isAuthenticated])
 
   // Afficher un loader pendant la vérification d'authentification
   if (authLoading) {
@@ -160,21 +169,21 @@ export default function DashboardPage() {
               <div className="w-8 h-8 sm:w-10 sm:h-10 mx-auto mb-1 sm:mb-2 rounded-lg sm:rounded-xl bg-pink-50 flex items-center justify-center">
                 <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-pink-500" />
               </div>
-              <p className="text-xl sm:text-2xl font-bold text-gray-800 group-hover:text-[#e97e42]">{userStats.inProgress}</p>
+              <p className="text-xl sm:text-2xl font-bold text-gray-800 group-hover:text-[#e97e42]">{stats?.inProgress ?? 0}</p>
               <p className="text-[10px] sm:text-xs text-gray-500">En cours</p>
             </Link>
             <Link href="/dashboard/courses" className="bg-white rounded-xl sm:rounded-2xl p-2 sm:p-4 text-center hover:shadow-md transition-shadow group">
               <div className="w-8 h-8 sm:w-10 sm:h-10 mx-auto mb-1 sm:mb-2 rounded-lg sm:rounded-xl bg-yellow-50 flex items-center justify-center">
                 <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-500" />
               </div>
-              <p className="text-xl sm:text-2xl font-bold text-gray-800 group-hover:text-[#e97e42]">{userStats.upcoming}</p>
-              <p className="text-[10px] sm:text-xs text-gray-500">À venir</p>
+              <p className="text-xl sm:text-2xl font-bold text-gray-800 group-hover:text-[#e97e42]">{stats?.notStarted ?? 0}</p>
+              <p className="text-[10px] sm:text-xs text-gray-500">À démarrer</p>
             </Link>
             <Link href="/dashboard/certificates" className="bg-white rounded-xl sm:rounded-2xl p-2 sm:p-4 text-center hover:shadow-md transition-shadow group">
               <div className="w-8 h-8 sm:w-10 sm:h-10 mx-auto mb-1 sm:mb-2 rounded-lg sm:rounded-xl bg-[#fff7ed] flex items-center justify-center">
                 <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-[#e97e42]" />
               </div>
-              <p className="text-xl sm:text-2xl font-bold text-gray-800 group-hover:text-[#e97e42]">{userStats.completed}</p>
+              <p className="text-xl sm:text-2xl font-bold text-gray-800 group-hover:text-[#e97e42]">{stats?.completed ?? 0}</p>
               <p className="text-[10px] sm:text-xs text-gray-500">Terminés</p>
             </Link>
           </div>
@@ -277,7 +286,7 @@ export default function DashboardPage() {
             <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-[#e97e42]" />
           </div>
           <div className="min-w-0">
-            <p className="text-lg sm:text-2xl font-bold text-gray-800 group-hover:text-[#e97e42] truncate">{formatNumber(userStats.points)}</p>
+            <p className="text-lg sm:text-2xl font-bold text-gray-800 group-hover:text-[#e97e42] truncate">{formatNumber(stats?.totalPoints ?? 0)}</p>
             <p className="text-xs sm:text-sm text-gray-500">Points totaux</p>
           </div>
         </Link>
@@ -290,7 +299,7 @@ export default function DashboardPage() {
             <Flame className="w-5 h-5 sm:w-6 sm:h-6 text-orange-500" />
           </div>
           <div className="min-w-0">
-            <p className="text-lg sm:text-2xl font-bold text-gray-800 group-hover:text-[#e97e42]">{userStats.streak} <span className="text-sm sm:text-base font-normal">jours</span></p>
+            <p className="text-lg sm:text-2xl font-bold text-gray-800 group-hover:text-[#e97e42]">{stats?.streakDays ?? 0} <span className="text-sm sm:text-base font-normal">jours</span></p>
             <p className="text-xs sm:text-sm text-gray-500">Série active</p>
           </div>
         </Link>
@@ -303,8 +312,8 @@ export default function DashboardPage() {
             <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-green-500" />
           </div>
           <div className="min-w-0">
-            <p className="text-lg sm:text-2xl font-bold text-gray-800 group-hover:text-[#e97e42]">+12%</p>
-            <p className="text-xs sm:text-sm text-gray-500">Progression</p>
+            <p className="text-lg sm:text-2xl font-bold text-green-600 group-hover:text-[#e97e42]">+{formatNumber(stats?.weeklyPoints ?? 0)}</p>
+            <p className="text-xs sm:text-sm text-gray-500">Points cette semaine</p>
           </div>
         </Link>
 
@@ -316,7 +325,7 @@ export default function DashboardPage() {
             <Award className="w-5 h-5 sm:w-6 sm:h-6 text-purple-500" />
           </div>
           <div className="min-w-0">
-            <p className="text-lg sm:text-2xl font-bold text-gray-800 group-hover:text-[#e97e42]">2</p>
+            <p className="text-lg sm:text-2xl font-bold text-gray-800 group-hover:text-[#e97e42]">{stats?.completed ?? 0}</p>
             <p className="text-xs sm:text-sm text-gray-500">Certificats</p>
           </div>
         </Link>
