@@ -110,7 +110,7 @@ export async function toggleLessonComplete(
 
   const { data: enr } = await supabase
     .from('formation_enrollments')
-    .select('progress')
+    .select('progress, formation_id')
     .eq('id', enrollmentId)
     .eq('user_id', user.id)
     .single()
@@ -126,6 +126,16 @@ export async function toggleLessonComplete(
     .update({ progress: next })
     .eq('id', enrollmentId)
     .eq('user_id', user.id)
+
+  // Journal daté des complétions (pour le classement / l'évolution)
+  if (completed) {
+    await supabase.from('lesson_completions').upsert(
+      { user_id: user.id, formation_id: enr.formation_id, lesson_id: lessonId },
+      { onConflict: 'user_id,lesson_id' }
+    )
+  } else {
+    await supabase.from('lesson_completions').delete().eq('user_id', user.id).eq('lesson_id', lessonId)
+  }
 
   return { success: true }
 }
