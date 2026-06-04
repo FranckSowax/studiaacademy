@@ -40,24 +40,27 @@ export function HostScreen({
   const questions = game.questions ?? []
   const q = questions[game.current_index]
 
-  // Realtime : joueurs + jeu + réponses
+  const refresh = useCallback(async () => {
+    const [{ data: pl }, { count }] = await Promise.all([
+      supabase.from('live_players').select('*').eq('game_id', game.id).order('score', { ascending: false }),
+      supabase.from('live_answers').select('*', { count: 'exact', head: true }).eq('game_id', game.id).eq('question_index', game.current_index),
+    ])
+    if (pl) setPlayers(pl as LivePlayer[])
+    setAnswerCount(count ?? 0)
+  }, [game.id, game.current_index, supabase])
+
+  // Realtime (snappy) + polling de secours (fiabilité du nombre de joueurs / réponses)
   useEffect(() => {
+    refresh()
     const ch = supabase
       .channel(`host-${game.id}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'live_players', filter: `game_id=eq.${game.id}` }, async () => {
-        const { data } = await supabase.from('live_players').select('*').eq('game_id', game.id).order('score', { ascending: false })
-        if (data) setPlayers(data as LivePlayer[])
-      })
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'live_games', filter: `id=eq.${game.id}` }, (p) => {
-        setGame((g) => ({ ...g, ...(p.new as LiveGame) }))
-      })
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'live_answers', filter: `game_id=eq.${game.id}` }, (p) => {
-        const a = p.new as { question_index: number }
-        if (a.question_index === game.current_index) setAnswerCount((c) => c + 1)
-      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'live_players', filter: `game_id=eq.${game.id}` }, () => refresh())
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'live_games', filter: `id=eq.${game.id}` }, (p) => setGame((g) => ({ ...g, ...(p.new as LiveGame) })))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'live_answers', filter: `game_id=eq.${game.id}` }, () => refresh())
       .subscribe()
-    return () => { supabase.removeChannel(ch) }
-  }, [game.id, game.current_index, supabase])
+    const poll = setInterval(refresh, 2000)
+    return () => { supabase.removeChannel(ch); clearInterval(poll) }
+  }, [game.id, supabase, refresh])
 
   // Timer pendant la phase question → révèle automatiquement à 0
   useEffect(() => {

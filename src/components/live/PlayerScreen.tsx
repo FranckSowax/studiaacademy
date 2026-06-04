@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import {
-  Triangle, Diamond, Circle, Square, Loader2, Check, X, Clock, Trophy, Crown, Zap,
+  Triangle, Diamond, Circle, Square, Loader2, Check, X, Clock, Trophy, Crown, Zap, Wifi,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { joinLiveGame, submitLiveAnswer } from '@/lib/live/actions'
@@ -19,10 +19,13 @@ const TILES = [
 
 export function PlayerScreen({ game: initialGame }: { game: LiveGame }) {
   const supabase = createClient()
+  const storageKey = `studia_live_${initialGame.code}`
+
   const [game, setGame] = useState(initialGame)
   const [players, setPlayers] = useState<LivePlayer[]>([])
   const [playerId, setPlayerId] = useState<string | null>(null)
   const [pseudo, setPseudo] = useState('')
+  const [restored, setRestored] = useState(false)
   const [joining, setJoining] = useState(false)
   const [joinError, setJoinError] = useState('')
 
@@ -33,32 +36,43 @@ export function PlayerScreen({ game: initialGame }: { game: LiveGame }) {
 
   const questions = game.questions ?? []
   const me = players.find((p) => p.id === playerId)
+  const myScore = me?.score ?? 0
   const ranked = [...players].sort((a, b) => b.score - a.score)
   const myRank = me ? ranked.findIndex((p) => p.id === playerId) + 1 : 0
 
-  // Realtime jeu + scores
+  // Restaure une session existante (évite de re-saisir un pseudo au refresh)
   useEffect(() => {
-    if (!playerId) return
-    const ch = supabase
-      .channel(`player-${game.id}-${playerId}`)
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'live_games', filter: `id=eq.${game.id}` }, (p) => {
-        setGame((g) => ({ ...g, ...(p.new as LiveGame) }))
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'live_players', filter: `game_id=eq.${game.id}` }, async () => {
-        const { data } = await supabase.from('live_players').select('*').eq('game_id', game.id).order('score', { ascending: false })
-        if (data) setPlayers(data as LivePlayer[])
-      })
-      .subscribe()
-    return () => { supabase.removeChannel(ch) }
-  }, [game.id, playerId, supabase])
+    try {
+      const raw = localStorage.getItem(storageKey)
+      if (raw) {
+        const s = JSON.parse(raw) as { playerId: string; pseudo: string }
+        if (s.playerId) { setPlayerId(s.playerId); setPseudo(s.pseudo ?? '') }
+      }
+    } catch { /* ignore */ }
+    setRestored(true)
+  }, [storageKey])
 
-  // Charge les joueurs après join
+  const refresh = useCallback(async () => {
+    const [{ data: g }, { data: pl }] = await Promise.all([
+      supabase.from('live_games').select('status, current_index, question_started_at, titre').eq('id', game.id).maybeSingle(),
+      supabase.from('live_players').select('*').eq('game_id', game.id).order('score', { ascending: false }),
+    ])
+    if (g) setGame((prev) => ({ ...prev, ...(g as Partial<LiveGame>) }))
+    if (pl) setPlayers(pl as LivePlayer[])
+  }, [game.id, supabase])
+
+  // Realtime (snappy) + polling de secours (fiabilité)
   useEffect(() => {
     if (!playerId) return
-    supabase.from('live_players').select('*').eq('game_id', game.id).then(({ data }) => {
-      if (data) setPlayers(data as LivePlayer[])
-    })
-  }, [playerId, game.id, supabase])
+    refresh()
+    const ch = supabase
+      .channel(`player-${game.id}`)
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'live_games', filter: `id=eq.${game.id}` }, (p) => setGame((prev) => ({ ...prev, ...(p.new as LiveGame) })))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'live_players', filter: `game_id=eq.${game.id}` }, () => refresh())
+      .subscribe()
+    const poll = setInterval(refresh, 2000)
+    return () => { supabase.removeChannel(ch); clearInterval(poll) }
+  }, [game.id, playerId, supabase, refresh])
 
   // Reset à chaque nouvelle question
   useEffect(() => {
@@ -85,26 +99,27 @@ export function PlayerScreen({ game: initialGame }: { game: LiveGame }) {
     const r = await joinLiveGame(game.code, pseudo.trim())
     setJoining(false)
     if (!r.success || !r.playerId) { setJoinError(r.error ?? 'Impossible de rejoindre'); return }
+    try { localStorage.setItem(storageKey, JSON.stringify({ playerId: r.playerId, pseudo: pseudo.trim() })) } catch { /* ignore */ }
     setPlayerId(r.playerId)
-  }, [pseudo, game.code])
+  }, [pseudo, game.code, game.id, storageKey])
 
   const answer = useCallback(async (choice: number) => {
     if (answered !== null || !playerId) return
     setAnswered(choice)
     const r = await submitLiveAnswer({ gameId: game.id, playerId, questionIndex: game.current_index, choice })
-    if (r.success) setLastResult({ correct: !!r.correct, points: r.points ?? 0 })
-  }, [answered, playerId, game.id, game.current_index])
+    if (r.success) { setLastResult({ correct: !!r.correct, points: r.points ?? 0 }); refresh() }
+  }, [answered, playerId, game.id, game.current_index, refresh])
 
   // ── ÉCRAN JOIN ──
-  if (!playerId) {
+  if (restored && !playerId) {
     const closed = game.status === 'ended'
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#7C3AED] to-[#4c1d95] text-white flex items-center justify-center p-6">
+      <div className="min-h-dvh bg-gradient-to-br from-[#7C3AED] to-[#4c1d95] text-white flex items-center justify-center p-6">
         <div className="w-full max-w-sm">
           <div className="text-center mb-6">
-            <Zap className="w-10 h-10 mx-auto mb-2" />
+            <div className="w-16 h-16 rounded-2xl bg-white/15 flex items-center justify-center mx-auto mb-3"><Zap className="w-8 h-8" /></div>
             <h1 className="text-2xl font-extrabold font-heading">{game.titre}</h1>
-            <p className="text-white/70 text-sm mt-1">Partie {game.code}</p>
+            <p className="text-white/70 text-sm mt-1 font-mono tracking-widest">{game.code}</p>
           </div>
           {closed ? (
             <div className="bg-white/10 rounded-2xl p-6 text-center">Cette partie est terminée.</div>
@@ -131,14 +146,22 @@ export function PlayerScreen({ game: initialGame }: { game: LiveGame }) {
     )
   }
 
-  // ── LOBBY (attente) ──
+  if (!restored) {
+    return <div className="min-h-dvh bg-[#4c1d95] flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-white" /></div>
+  }
+
+  // ── LOBBY (salon d'attente) ──
   if (game.status === 'lobby') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#7C3AED] to-[#4c1d95] text-white flex flex-col items-center justify-center p-6 text-center">
-        <Loader2 className="w-10 h-10 animate-spin mb-4" />
-        <h1 className="text-2xl font-bold font-heading">Tu es dans la partie, {me?.pseudo} !</h1>
-        <p className="text-white/70 mt-2">En attente du lancement par l&apos;hôte…</p>
-        <div className="mt-6 bg-white/10 rounded-full px-4 py-2 text-sm">{players.length} joueur{players.length > 1 ? 's' : ''} connecté{players.length > 1 ? 's' : ''}</div>
+      <div className="min-h-dvh bg-gradient-to-br from-[#7C3AED] to-[#4c1d95] text-white flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-20 h-20 rounded-full bg-white/15 flex items-center justify-center mb-5 animate-pulse">
+          <span className="text-3xl font-extrabold">{(pseudo || '?').charAt(0).toUpperCase()}</span>
+        </div>
+        <h1 className="text-2xl font-bold font-heading">Tu es dans la partie{pseudo ? `, ${pseudo}` : ''} !</h1>
+        <p className="text-white/70 mt-2 inline-flex items-center gap-1.5"><Loader2 className="w-4 h-4 animate-spin" />En attente du lancement par l&apos;hôte…</p>
+        <div className="mt-6 bg-white/10 rounded-full px-4 py-2 text-sm inline-flex items-center gap-2">
+          <Wifi className="w-4 h-4 text-green-300" />{players.length} joueur{players.length > 1 ? 's' : ''} connecté{players.length > 1 ? 's' : ''}
+        </div>
       </div>
     )
   }
@@ -146,13 +169,13 @@ export function PlayerScreen({ game: initialGame }: { game: LiveGame }) {
   // ── ENDED ──
   if (game.status === 'ended') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#e97e42] to-[#c45a20] text-white flex flex-col items-center justify-center p-6 text-center">
+      <div className="min-h-dvh bg-gradient-to-br from-[#e97e42] to-[#c45a20] text-white flex flex-col items-center justify-center p-6 text-center">
         <Trophy className="w-14 h-14 mb-4" />
         <h1 className="text-3xl font-extrabold font-heading">{myRank === 1 ? '🏆 Tu as gagné !' : 'Partie terminée'}</h1>
-        <p className="text-xl mt-3">{me?.pseudo}</p>
+        <p className="text-xl mt-3">{pseudo}</p>
         <div className="mt-4 bg-white/15 rounded-2xl px-8 py-5">
-          <p className="text-4xl font-extrabold">{me?.score ?? 0}</p>
-          <p className="text-white/80 text-sm">points · {myRank}{myRank === 1 ? 'er' : 'e'} place</p>
+          <p className="text-4xl font-extrabold">{myScore}</p>
+          <p className="text-white/80 text-sm">points{myRank > 0 ? ` · ${myRank}${myRank === 1 ? 'er' : 'e'} place` : ''}</p>
         </div>
       </div>
     )
@@ -162,7 +185,7 @@ export function PlayerScreen({ game: initialGame }: { game: LiveGame }) {
   if (game.status === 'reveal') {
     const got = lastResult
     return (
-      <div className={`min-h-screen flex flex-col items-center justify-center p-6 text-center text-white ${got?.correct ? 'bg-green-600' : answered !== null ? 'bg-red-600' : 'bg-slate-700'}`}>
+      <div className={`min-h-dvh flex flex-col items-center justify-center p-6 text-center text-white ${got?.correct ? 'bg-green-600' : answered !== null ? 'bg-red-600' : 'bg-slate-700'}`}>
         {answered === null ? (
           <><Clock className="w-12 h-12 mb-3" /><h1 className="text-2xl font-bold">Trop tard !</h1></>
         ) : got?.correct ? (
@@ -171,8 +194,8 @@ export function PlayerScreen({ game: initialGame }: { game: LiveGame }) {
           <><X className="w-16 h-16 mb-3" /><h1 className="text-3xl font-extrabold font-heading">Raté…</h1></>
         )}
         <div className="mt-6 bg-white/15 rounded-2xl px-6 py-3">
-          <p className="font-bold text-lg">{me?.score ?? 0} pts</p>
-          <p className="text-white/80 text-sm flex items-center gap-1.5 justify-center"><Crown className="w-4 h-4" />{myRank}{myRank === 1 ? 'er' : 'e'} sur {players.length}</p>
+          <p className="font-bold text-lg">{myScore} pts</p>
+          {myRank > 0 && <p className="text-white/80 text-sm flex items-center gap-1.5 justify-center"><Crown className="w-4 h-4" />{myRank}{myRank === 1 ? 'er' : 'e'} sur {players.length}</p>}
         </div>
       </div>
     )
@@ -181,11 +204,11 @@ export function PlayerScreen({ game: initialGame }: { game: LiveGame }) {
   // ── QUESTION (répondre) ──
   const q = questions[game.current_index]
   return (
-    <div className="min-h-screen bg-slate-900 text-white flex flex-col">
+    <div className="min-h-dvh bg-slate-900 text-white flex flex-col">
       <div className="flex items-center justify-between px-5 py-3 text-sm">
         <span className="text-white/60">Q{game.current_index + 1}/{questions.length}</span>
         <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full font-bold font-mono ${timeLeft <= 5 ? 'bg-red-500' : 'bg-white/10'}`}><Clock className="w-4 h-4" />{timeLeft}</span>
-        <span className="font-semibold">{me?.score ?? 0} pts</span>
+        <span className="font-semibold">{myScore} pts</span>
       </div>
 
       {answered !== null ? (
@@ -204,12 +227,9 @@ export function PlayerScreen({ game: initialGame }: { game: LiveGame }) {
               const tile = TILES[i % 4]
               const TileIcon = tile.icon
               return (
-                <button
-                  key={i}
-                  onClick={() => answer(i)}
+                <button key={i} onClick={() => answer(i)}
                   className="flex flex-col items-center justify-center gap-2 rounded-2xl p-4 font-bold text-white shadow-lg active:scale-95 transition-transform min-h-[110px]"
-                  style={{ backgroundColor: tile.bg }}
-                >
+                  style={{ backgroundColor: tile.bg }}>
                   <TileIcon className="w-8 h-8" fill="white" />
                   <span className="text-sm leading-tight">{opt}</span>
                 </button>
