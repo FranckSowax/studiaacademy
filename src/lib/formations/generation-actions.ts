@@ -125,7 +125,7 @@ export async function publishGeneration(
       categorie: gen.matiere ?? null,
       niveau: gen.niveau,
       description: `Formation générée à partir de ${gen.source_type ?? 'une source'}.`,
-      is_published: false,
+      is_published: true,
     })
     .select('id')
     .single()
@@ -151,5 +151,7 @@ export async function publishGeneration(
     .eq('id', generationId)
 
   revalidatePath('/admin/formations')
+  revalidatePath('/formations/en-ligne')
+  revalidatePath('/formations')
   return { success: true, formationId: formation.id }
 }
