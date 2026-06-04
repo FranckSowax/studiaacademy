@@ -488,6 +488,162 @@ Produis en Markdown : un **résumé** à la longueur demandée, une liste des **
       user: `Longueur souhaitée : ${i.longueur}\nTexte :\n${i.texte}`,
     }),
   },
+
+  // ============================================
+  // ENTREPRISE & RH — Tier 1
+  // ============================================
+
+  // Annonce d'emploi
+  {
+    slug: 'annonce-emploi',
+    titre: "Annonce d'emploi qui attire",
+    sousTitre: 'Offre claire, attractive, prête à publier',
+    description:
+      "Rédigez une offre d'emploi professionnelle et attractive à partir de quelques informations : missions, profil, conditions — optimisée pour attirer les bons candidats.",
+    iconName: 'Megaphone',
+    couleur: '#7C3AED',
+    category: 'entreprise',
+    badge: 'RH',
+    prixCredits: 4,
+    ctaLabel: "Rédiger l'annonce",
+    generateLabel: "Générer l'annonce",
+    outputType: 'markdown',
+    fields: [
+      { name: 'poste', label: 'Intitulé du poste', type: 'text', placeholder: 'Ex: Comptable, Développeur, Commercial…', required: true },
+      { name: 'entreprise', label: "Entreprise", type: 'text', placeholder: "Nom et secteur d'activité", required: true },
+      { name: 'missions', label: 'Missions principales', type: 'textarea', placeholder: 'Listez les tâches et responsabilités clés…', required: true, rows: 4 },
+      { name: 'profil', label: 'Profil recherché', type: 'textarea', placeholder: 'Diplômes, expérience, compétences, qualités…', required: true, rows: 3 },
+      { name: 'typeContrat', label: 'Type de contrat', type: 'select', options: ['CDI', 'CDD', 'Stage', 'Alternance', 'Freelance / Prestation'] },
+      { name: 'lieu', label: 'Lieu', type: 'text', placeholder: 'Ex: Libreville, Port-Gentil, télétravail…' },
+      { name: 'ton', label: 'Ton de l\'annonce', type: 'select', options: ['Professionnel', 'Chaleureux', 'Dynamique / startup'] },
+    ],
+    buildPrompt: (i) => ({
+      system: `Tu es STUDIA RH, expert en recrutement. ${CONTEXTE_GABON}
+Rédige une **offre d'emploi** complète et attractive en Markdown, structurée ainsi :
+## Titre accrocheur
+Présentation courte de l'entreprise · **Missions** (puces) · **Profil recherché** (puces) · **Ce que nous offrons** · **Comment postuler**.
+Ton : ${i.ton || 'professionnel'}. Sois inclusif et non discriminant. N'invente pas d'avantages non fournis ; reste réaliste pour le marché local.`,
+      user: `Poste : ${i.poste}\nEntreprise : ${i.entreprise}\nMissions :\n${i.missions}\nProfil :\n${i.profil}\nContrat : ${i.typeContrat || 'non précisé'}\nLieu : ${i.lieu || 'non précisé'}`,
+    }),
+  },
+
+  // Fiche de poste
+  {
+    slug: 'fiche-de-poste',
+    titre: 'Fiche de poste structurée',
+    sousTitre: 'Référentiel clair du rôle',
+    description:
+      "Générez une fiche de poste professionnelle : finalité, missions, activités, compétences requises et indicateurs — un référentiel clair pour recruter et évaluer.",
+    iconName: 'FileText',
+    couleur: '#e97e42',
+    category: 'entreprise',
+    badge: 'RH',
+    prixCredits: 5,
+    ctaLabel: 'Créer la fiche de poste',
+    generateLabel: 'Générer la fiche',
+    outputType: 'markdown',
+    fields: [
+      { name: 'poste', label: 'Intitulé du poste', type: 'text', placeholder: 'Ex: Responsable administratif', required: true },
+      { name: 'service', label: 'Service / département', type: 'text', placeholder: 'Ex: Finances, Opérations…' },
+      { name: 'rattachement', label: 'Rattachement hiérarchique', type: 'text', placeholder: 'Ex: Directeur Général' },
+      { name: 'missions', label: 'Missions / contexte', type: 'textarea', placeholder: 'Décrivez le rôle et ses objectifs…', required: true, rows: 4 },
+      { name: 'niveau', label: 'Niveau du poste', type: 'select', options: ['Employé', 'Agent de maîtrise', 'Cadre', 'Cadre dirigeant'] },
+    ],
+    buildPrompt: (i) => ({
+      system: `Tu es STUDIA RH, expert en organisation et référentiels métiers. ${CONTEXTE_GABON}
+Produis une **fiche de poste** en Markdown avec : Intitulé & rattachement · **Finalité du poste** · **Missions principales** · **Activités détaillées** (puces) · **Compétences requises** (savoir, savoir-faire, savoir-être) · **Indicateurs de performance (KPI)** · **Conditions d'exercice**. Concret et professionnel.`,
+      user: `Poste : ${i.poste}\nService : ${i.service || 'non précisé'}\nRattachement : ${i.rattachement || 'non précisé'}\nNiveau : ${i.niveau || 'non précisé'}\nMissions / contexte :\n${i.missions}`,
+    }),
+  },
+
+  // Analyse / scoring de CV
+  {
+    slug: 'scoring-cv',
+    titre: 'Analyse de CV par l\'IA',
+    sousTitre: 'Adéquation CV / poste, sans biais',
+    description:
+      "Évaluez objectivement l'adéquation d'un CV avec un poste : score, points forts, lacunes et questions à poser en entretien. L'analyse ignore l'âge, le sexe et l'origine.",
+    iconName: 'FileCheck',
+    couleur: '#0EA5E9',
+    category: 'entreprise',
+    badge: 'RH',
+    prixCredits: 6,
+    ctaLabel: 'Analyser le CV',
+    generateLabel: 'Analyser',
+    outputType: 'html',
+    fields: [
+      { name: 'posteCible', label: 'Poste à pourvoir (description)', type: 'textarea', placeholder: 'Intitulé + missions + profil recherché…', required: true, rows: 4 },
+      { name: 'cv', label: 'CV du candidat (texte)', type: 'textarea', placeholder: 'Collez le contenu du CV…', required: true, rows: 8 },
+      { name: 'criteres', label: 'Critères prioritaires (optionnel)', type: 'text', placeholder: 'Ex: maîtrise Excel, expérience banque…' },
+    ],
+    buildPrompt: (i) => ({
+      system: `Tu es STUDIA RH, expert en évaluation de candidatures, rigoureux et ÉQUITABLE. ${CONTEXTE_GABON}
+Analyse l'adéquation entre le CV et le poste et produis une **page HTML autonome** (sans <script>), claire et imprimable, avec :
+- un **score d'adéquation /100** bien visible,
+- un tableau **points forts** / **points de vigilance** au regard du poste,
+- les **compétences manquantes** éventuelles,
+- 5 **questions à poser en entretien** pour lever les doutes,
+- une **recommandation** finale (à recevoir / à approfondir / ne correspond pas).
+RÈGLE D'ÉQUITÉ STRICTE : ignore totalement l'âge, le sexe, l'origine, la situation familiale, la religion ; évalue UNIQUEMENT les compétences, l'expérience et la formation au regard du poste. Reste factuel, ne sur-interprète pas.`,
+      user: `POSTE CIBLE :\n${i.posteCible}\n\nCRITÈRES PRIORITAIRES : ${i.criteres || 'non précisés'}\n\nCV DU CANDIDAT :\n${i.cv}`,
+    }),
+  },
+
+  // Grille d'entretien
+  {
+    slug: 'grille-entretien',
+    titre: "Grille d'entretien sur mesure",
+    sousTitre: 'Questions + grille de notation',
+    description:
+      "Préparez un entretien de recrutement structuré : questions ciblées par compétence, critères d'évaluation et grille de notation pour comparer les candidats objectivement.",
+    iconName: 'FileSignature',
+    couleur: '#16A34A',
+    category: 'entreprise',
+    badge: 'RH',
+    prixCredits: 5,
+    ctaLabel: "Préparer l'entretien",
+    generateLabel: 'Générer la grille',
+    outputType: 'markdown',
+    fields: [
+      { name: 'poste', label: 'Poste à pourvoir', type: 'text', placeholder: 'Ex: Chargé de clientèle', required: true },
+      { name: 'competencesCles', label: 'Compétences clés à évaluer', type: 'textarea', placeholder: 'Ex: relation client, rigueur, maîtrise outils…', required: true, rows: 3 },
+      { name: 'typeEntretien', label: "Type d'entretien", type: 'select', options: ['Présélection téléphonique', 'Entretien RH', 'Entretien technique', 'Entretien final / direction'] },
+      { name: 'duree', label: 'Durée prévue', type: 'select', options: ['20 min', '30 min', '45 min', '1 h'] },
+    ],
+    buildPrompt: (i) => ({
+      system: `Tu es STUDIA RH, expert en conduite d'entretiens de recrutement. ${CONTEXTE_GABON}
+Produis en Markdown une **grille d'entretien** structurée : trame (accueil → questions → conclusion), **questions par compétence** (comportementales et situationnelles), pour chaque compétence une **échelle de notation 1-5** avec ce qu'on attend à chaque niveau, et une **fiche de synthèse** à remplir. Questions ouvertes, non discriminantes.`,
+      user: `Poste : ${i.poste}\nCompétences clés : ${i.competencesCles}\nType d'entretien : ${i.typeEntretien || 'entretien RH'}\nDurée : ${i.duree || '45 min'}`,
+    }),
+  },
+
+  // Plan d'onboarding
+  {
+    slug: 'plan-onboarding',
+    titre: 'Plan d\'onboarding 30-60-90 j',
+    sousTitre: 'Intégration réussie des nouveaux',
+    description:
+      "Générez un parcours d'intégration complet pour un nouvel embauché : étapes 30/60/90 jours, objectifs, interlocuteurs et points de suivi — pour fidéliser dès le départ.",
+    iconName: 'Briefcase',
+    couleur: '#D97706',
+    category: 'entreprise',
+    badge: 'RH',
+    prixCredits: 5,
+    ctaLabel: "Créer le parcours",
+    generateLabel: "Générer l'onboarding",
+    outputType: 'markdown',
+    fields: [
+      { name: 'poste', label: 'Poste du nouvel embauché', type: 'text', placeholder: 'Ex: Assistant commercial', required: true },
+      { name: 'service', label: 'Service / équipe', type: 'text', placeholder: 'Ex: Service commercial' },
+      { name: 'tailleEntreprise', label: "Taille de l'entreprise", type: 'select', options: ['TPE (1-10)', 'PME (11-50)', 'ETI (51-250)', 'Grande entreprise (250+)'] },
+      { name: 'specificites', label: 'Spécificités / outils à maîtriser', type: 'textarea', placeholder: 'Logiciels, process, particularités du poste…', rows: 3 },
+    ],
+    buildPrompt: (i) => ({
+      system: `Tu es STUDIA RH, expert en intégration et fidélisation des collaborateurs. ${CONTEXTE_GABON}
+Produis en Markdown un **plan d'onboarding** structuré en **3 phases : 30 jours / 60 jours / 90 jours**. Pour chaque phase : objectifs, activités/formations, interlocuteurs clés, et un **point de suivi**. Ajoute une **checklist du jour 1** et une **checklist de la 1ère semaine**. Concret, bienveillant et orienté réussite.`,
+      user: `Poste : ${i.poste}\nService : ${i.service || 'non précisé'}\nTaille entreprise : ${i.tailleEntreprise || 'non précisée'}\nSpécificités : ${i.specificites || 'aucune'}`,
+    }),
+  },
 ]
 
 export function getServiceBySlug(slug: string): AIServiceDef | undefined {

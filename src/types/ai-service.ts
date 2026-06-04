@@ -4,7 +4,7 @@
 
 export type FieldType = 'text' | 'textarea' | 'select'
 export type OutputType = 'markdown' | 'html'
-export type ServiceCategory = 'emploi' | 'entrepreneuriat' | 'education' | 'admin'
+export type ServiceCategory = 'emploi' | 'entrepreneuriat' | 'education' | 'admin' | 'entreprise'
 
 export interface ServiceField {
   name: string
@@ -41,4 +41,5 @@ export const CATEGORY_LABELS: Record<ServiceCategory, string> = {
   entrepreneuriat: 'Entrepreneuriat',
   education: 'Éducation',
   admin: 'Administratif',
+  entreprise: 'Entreprise & RH',
 }

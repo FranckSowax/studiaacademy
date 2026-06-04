@@ -12,6 +12,7 @@ const navLinks = [
   { label: 'Modules', href: '/#modules' },
   { label: 'Outils IA', href: '/outils' },
   { label: 'Formations', href: '/formations' },
+  { label: 'Entreprise', href: '/entreprise' },
   { label: 'Studia Labs', href: '/studia-labs' },
   { label: 'Contact', href: '/contact' },
 ]
