@@ -10,6 +10,7 @@ import {
   Users,
   GraduationCap,
   ArrowLeft,
+  Trophy,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -17,6 +18,7 @@ const menuItems = [
   { icon: LayoutDashboard, label: "Vue d'ensemble", href: '/professeur' },
   { icon: FileCheck, label: 'Correction de copies', href: '/professeur/correction' },
   { icon: ListChecks, label: 'Devoirs QCM', href: '/professeur/qcm' },
+  { icon: Trophy, label: 'Kahoot', href: '/professeur/kahoot' },
   { icon: Users, label: 'Mes classes', href: '/professeur/classes' },
 ]
 

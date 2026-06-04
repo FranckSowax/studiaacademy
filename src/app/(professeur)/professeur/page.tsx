@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic'
 
 import Link from 'next/link'
-import { FileCheck, ListChecks, Users, ArrowRight, Sparkles } from 'lucide-react'
+import { FileCheck, ListChecks, Users, ArrowRight, Sparkles, Trophy } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { getTeacherProfile } from '../actions'
 import { ActivateTeacher } from '@/components/teacher/ActivateTeacher'
@@ -17,13 +17,17 @@ export default async function ProfesseurDashboard() {
   const supabase = await createClient()
 
   // Stats
-  const [{ count: nbCorrections }, { count: nbQcm }, { count: nbClasses }] = await Promise.all([
+  const [{ count: nbCorrections }, { count: nbQcm }, { count: nbKahoots }, { count: nbClasses }] = await Promise.all([
     supabase
       .from('correction_sessions')
       .select('*', { count: 'exact', head: true })
       .eq('teacher_id', teacherProfile.id),
     supabase
       .from('qcm_devoirs')
+      .select('*', { count: 'exact', head: true })
+      .eq('teacher_id', teacherProfile.id),
+    supabase
+      .from('teacher_kahoots')
       .select('*', { count: 'exact', head: true })
       .eq('teacher_id', teacherProfile.id),
     supabase
@@ -50,6 +54,15 @@ export default async function ProfesseurDashboard() {
       color: '#3B82F6',
       count: nbQcm ?? 0,
       countLabel: 'devoirs',
+    },
+    {
+      icon: Trophy,
+      title: 'Kahoot',
+      description: 'Générez un quiz depuis un cours, lancez-le en direct par QR code.',
+      href: '/professeur/kahoot',
+      color: '#7C3AED',
+      count: nbKahoots ?? 0,
+      countLabel: 'kahoots',
     },
     {
       icon: Users,
@@ -133,6 +146,16 @@ export default async function ProfesseurDashboard() {
           <div>
             <p className="font-bold font-heading">Créer un QCM</p>
             <p className="text-sm text-white/80">Génération IA depuis un cours</p>
+          </div>
+        </Link>
+        <Link
+          href="/professeur/kahoot/nouveau"
+          className="flex items-center gap-4 bg-gradient-to-r from-[#7C3AED] to-[#6d28d9] rounded-2xl p-5 text-white hover:shadow-lg transition-all"
+        >
+          <Trophy className="w-8 h-8 flex-shrink-0" />
+          <div>
+            <p className="font-bold font-heading">Créer un Kahoot</p>
+            <p className="text-sm text-white/80">Quiz en direct par QR code</p>
           </div>
         </Link>
       </div>

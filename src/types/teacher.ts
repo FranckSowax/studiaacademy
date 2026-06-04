@@ -18,6 +18,21 @@ export interface TeacherProfile {
   created_at: string
 }
 
+// ── Kahoot professeur ───────────────────────
+export interface TeacherKahoot {
+  id: string
+  teacher_id: string
+  titre: string
+  matiere: string | null
+  niveau: string | null
+  source_content: string | null
+  questions: import('@/types/formation').LessonQuizQuestion[]
+  nb_questions: number
+  generation_status: JobStatus
+  created_at: string
+  updated_at: string
+}
+
 // ── Profil de correction IA ─────────────────
 export interface WizardConfig {
   severite: 'strict' | 'standard' | 'bienveillant'

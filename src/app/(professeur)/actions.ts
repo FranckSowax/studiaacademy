@@ -241,3 +241,25 @@ export async function deleteClassStudent(
   revalidatePath('/professeur/classes')
   return { success: true }
 }
+
+/**
+ * Supprime un Kahoot du professeur.
+ */
+export async function deleteKahoot(id: string): Promise<{ success: boolean }> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { success: false }
+
+  const { data: teacher } = await supabase
+    .from('teacher_profiles')
+    .select('id')
+    .eq('user_id', user.id)
+    .single()
+  if (!teacher) return { success: false }
+
+  await supabase.from('teacher_kahoots').delete().eq('id', id).eq('teacher_id', teacher.id)
+  revalidatePath('/professeur/kahoot')
+  return { success: true }
+}

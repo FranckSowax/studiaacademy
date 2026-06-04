@@ -55,6 +55,42 @@ export async function createLiveGame(formationId: string): Promise<{ success: bo
 }
 
 /**
+ * Crée une partie live à partir d'un jeu de questions (sans formation).
+ * Utilisé par l'espace professeur (Kahoot autonome).
+ */
+export async function createLiveGameFromQuestions(input: {
+  titre: string
+  questions: LessonQuizQuestion[]
+}): Promise<{ success: boolean; code?: string; error?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { success: false, error: 'Connexion requise pour héberger' }
+
+  const questions = input.questions ?? []
+  if (questions.length === 0) return { success: false, error: 'Aucune question à jouer' }
+
+  const admin = createAdminClient()
+  let code = genCode()
+  for (let i = 0; i < 5; i++) {
+    const { data: exist } = await admin.from('live_games').select('id').eq('code', code).maybeSingle()
+    if (!exist) break
+    code = genCode()
+  }
+
+  const { error } = await admin.from('live_games').insert({
+    formation_id: null,
+    host_id: user.id,
+    titre: input.titre,
+    code,
+    questions,
+    status: 'lobby',
+    current_index: 0,
+  })
+  if (error) return { success: false, error: error.message }
+  return { success: true, code }
+}
+
+/**
  * Un joueur rejoint une partie (sans compte).
  */
 export async function joinLiveGame(code: string, pseudo: string): Promise<{ success: boolean; playerId?: string; gameId?: string; error?: string }> {
