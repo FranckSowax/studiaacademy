@@ -199,6 +199,7 @@ export async function generateProposal(id: string): Promise<{ success: boolean; 
     return {
       type: 'formation',
       ref: r.ref ?? null,
+      slug: cat?.slug ?? null,
       titre: cat?.titre ?? r.titre ?? 'Formation',
       domaine: r.domaine ?? cat?.domaines?.[0] ?? '',
       format: cat?.format ?? '',

@@ -3,6 +3,9 @@ import type { AIServiceDef } from '@/types/ai-service'
 const CONTEXTE_GABON =
   "Contexte : Gabon / Afrique Centrale, public francophone. Adapte les exemples, références et le ton au contexte gabonais quand c'est pertinent."
 
+const GARDE_FOU_JURIDIQUE =
+  "IMPORTANT (cadre légal) : ce document est un MODÈLE INDICATIF à faire valider par un juriste ou l'inspection du travail avant usage. Respecte les grands principes du droit du travail gabonais (sans citer d'articles précis), mentionne la CNSS/CNAMGS si pertinent, et ajoute en fin de document un avertissement invitant à une validation juridique."
+
 // ============================================
 // TIER 1 — Micro-services à fort impact
 // ============================================
@@ -642,6 +645,180 @@ Produis en Markdown une **grille d'entretien** structurée : trame (accueil → 
       system: `Tu es STUDIA RH, expert en intégration et fidélisation des collaborateurs. ${CONTEXTE_GABON}
 Produis en Markdown un **plan d'onboarding** structuré en **3 phases : 30 jours / 60 jours / 90 jours**. Pour chaque phase : objectifs, activités/formations, interlocuteurs clés, et un **point de suivi**. Ajoute une **checklist du jour 1** et une **checklist de la 1ère semaine**. Concret, bienveillant et orienté réussite.`,
       user: `Poste : ${i.poste}\nService : ${i.service || 'non précisé'}\nTaille entreprise : ${i.tailleEntreprise || 'non précisée'}\nSpécificités : ${i.specificites || 'aucune'}`,
+    }),
+  },
+
+  // ============================================
+  // ENTREPRISE & RH — Tier 2 / 3
+  // ============================================
+
+  {
+    slug: 'reponse-candidat',
+    titre: 'Réponse candidat (oui / non)',
+    sousTitre: 'E-mails de réponse professionnels',
+    description: "Rédigez une réponse professionnelle à un candidat : convocation à un entretien ou refus bienveillant, prêt à envoyer.",
+    iconName: 'Mail', couleur: '#0EA5E9', category: 'entreprise', badge: 'RH', prixCredits: 3,
+    ctaLabel: 'Rédiger la réponse', generateLabel: 'Générer', outputType: 'markdown',
+    fields: [
+      { name: 'sens', label: 'Type de réponse', type: 'select', options: ['Convocation à un entretien', 'Refus bienveillant', 'Demande de complément'], required: true },
+      { name: 'poste', label: 'Poste concerné', type: 'text', placeholder: 'Intitulé du poste', required: true },
+      { name: 'candidat', label: 'Nom du candidat', type: 'text', placeholder: 'Prénom Nom' },
+      { name: 'details', label: 'Détails (date, lieu, motif…)', type: 'textarea', placeholder: 'Infos à intégrer', rows: 3 },
+    ],
+    buildPrompt: (i) => ({
+      system: `Tu es STUDIA RH. ${CONTEXTE_GABON}\nRédige un e-mail professionnel de réponse à un candidat (${i.sens}). Ton respectueux et humain ; si refus, reste bienveillant et encourageant. Markdown court, prêt à envoyer.`,
+      user: `Type : ${i.sens}\nPoste : ${i.poste}\nCandidat : ${i.candidat || 'le candidat'}\nDétails : ${i.details || 'aucun'}`,
+    }),
+  },
+
+  {
+    slug: 'evaluation-annuelle',
+    titre: 'Entretien annuel d\'évaluation',
+    sousTitre: 'Trame + grille d\'évaluation',
+    description: "Préparez l'entretien annuel d'un collaborateur : trame de discussion, bilan des objectifs et fixation de nouveaux objectifs.",
+    iconName: 'Presentation', couleur: '#7C3AED', category: 'entreprise', badge: 'RH', prixCredits: 5,
+    ctaLabel: 'Préparer l\'entretien', generateLabel: 'Générer', outputType: 'markdown',
+    fields: [
+      { name: 'poste', label: 'Poste du collaborateur', type: 'text', placeholder: 'Intitulé', required: true },
+      { name: 'objectifsPrecedents', label: 'Objectifs de l\'an dernier', type: 'textarea', placeholder: 'Ce qui avait été fixé…', rows: 3 },
+      { name: 'contexte', label: 'Contexte / éléments à aborder', type: 'textarea', placeholder: 'Réussites, difficultés, évolution souhaitée…', rows: 3 },
+    ],
+    buildPrompt: (i) => ({
+      system: `Tu es STUDIA RH, expert des entretiens annuels. ${CONTEXTE_GABON}\nProduis en Markdown : une trame d'entretien (introduction → bilan → perspectives → objectifs), un bilan structuré des objectifs précédents, une grille d'évaluation (compétences, échelle 1-5), et une proposition de 3-5 nouveaux objectifs SMART. Ton constructif et équitable.`,
+      user: `Poste : ${i.poste}\nObjectifs précédents : ${i.objectifsPrecedents || 'non précisés'}\nContexte : ${i.contexte || 'non précisé'}`,
+    }),
+  },
+
+  {
+    slug: 'reglement-interieur',
+    titre: 'Règlement intérieur (modèle)',
+    sousTitre: 'Document de référence interne',
+    description: "Générez un modèle de règlement intérieur adapté à votre entreprise (horaires, discipline, sécurité, sanctions). À faire valider juridiquement.",
+    iconName: 'BookOpen', couleur: '#16A34A', category: 'entreprise', badge: '⚖️ Légal', prixCredits: 9,
+    ctaLabel: 'Générer le modèle', generateLabel: 'Générer', outputType: 'markdown',
+    fields: [
+      { name: 'entreprise', label: 'Nom de l\'entreprise', type: 'text', placeholder: 'Raison sociale', required: true },
+      { name: 'secteur', label: 'Secteur d\'activité', type: 'text', placeholder: 'Ex: commerce, BTP…' },
+      { name: 'effectif', label: 'Effectif', type: 'text', placeholder: 'Ex: 30 salariés' },
+      { name: 'theme', label: 'Accent particulier', type: 'select', options: ['Général (complet)', 'Hygiène & sécurité', 'Discipline', 'Numérique & confidentialité'] },
+    ],
+    buildPrompt: (i) => ({
+      system: `Tu es STUDIA RH, juriste social. ${CONTEXTE_GABON}\n${GARDE_FOU_JURIDIQUE}\nProduis en Markdown un modèle de règlement intérieur structuré en articles (objet, champ d'application, horaires et discipline, hygiène et sécurité, usage du numérique, sanctions, entrée en vigueur). Accent : ${i.theme}.`,
+      user: `Entreprise : ${i.entreprise}\nSecteur : ${i.secteur || 'non précisé'}\nEffectif : ${i.effectif || 'non précisé'}`,
+    }),
+  },
+
+  {
+    slug: 'contrat-type',
+    titre: 'Modèle de contrat de travail',
+    sousTitre: 'CDI / CDD / Stage',
+    description: "Générez un modèle de contrat de travail (CDI, CDD, stage) reprenant les clauses essentielles. Modèle indicatif à valider juridiquement.",
+    iconName: 'FileSignature', couleur: '#e97e42', category: 'entreprise', badge: '⚖️ Légal', prixCredits: 8,
+    ctaLabel: 'Générer le contrat', generateLabel: 'Générer', outputType: 'markdown',
+    fields: [
+      { name: 'typeContrat', label: 'Type de contrat', type: 'select', options: ['CDI', 'CDD', 'Contrat de stage', 'Contrat d\'essai'], required: true },
+      { name: 'poste', label: 'Poste', type: 'text', placeholder: 'Intitulé du poste', required: true },
+      { name: 'remuneration', label: 'Rémunération', type: 'text', placeholder: 'Ex: 250 000 FCFA / mois' },
+      { name: 'duree', label: 'Durée (si CDD/stage)', type: 'text', placeholder: 'Ex: 6 mois' },
+      { name: 'specificites', label: 'Clauses particulières', type: 'textarea', placeholder: 'Confidentialité, mobilité, période d\'essai…', rows: 3 },
+    ],
+    buildPrompt: (i) => ({
+      system: `Tu es STUDIA RH, juriste social. ${CONTEXTE_GABON}\n${GARDE_FOU_JURIDIQUE}\nProduis en Markdown un modèle de contrat (${i.typeContrat}) avec les clauses essentielles : parties, poste et missions, lieu, durée, rémunération, temps de travail, période d'essai, confidentialité, rupture, signatures. Champs à compléter entre crochets.`,
+      user: `Type : ${i.typeContrat}\nPoste : ${i.poste}\nRémunération : ${i.remuneration || '[à compléter]'}\nDurée : ${i.duree || 'non applicable'}\nClauses particulières : ${i.specificites || 'aucune'}`,
+    }),
+  },
+
+  {
+    slug: 'communication-rh',
+    titre: 'Note de communication interne',
+    sousTitre: 'Annonces & notes de service',
+    description: "Rédigez une communication interne claire : note de service, annonce d'un changement, information aux équipes.",
+    iconName: 'PenTool', couleur: '#EC4899', category: 'entreprise', badge: 'RH', prixCredits: 3,
+    ctaLabel: 'Rédiger la note', generateLabel: 'Générer', outputType: 'markdown',
+    fields: [
+      { name: 'sujet', label: 'Sujet', type: 'text', placeholder: 'Ex: nouveaux horaires, congés…', required: true },
+      { name: 'type', label: 'Type de communication', type: 'select', options: ['Note de service', 'Annonce de changement', 'Information générale', 'Rappel / consigne'] },
+      { name: 'messageCle', label: 'Message clé à transmettre', type: 'textarea', placeholder: 'Ce que les équipes doivent retenir et faire…', required: true, rows: 3 },
+      { name: 'ton', label: 'Ton', type: 'select', options: ['Formel', 'Cordial', 'Motivant'] },
+    ],
+    buildPrompt: (i) => ({
+      system: `Tu es STUDIA RH, expert en communication interne. ${CONTEXTE_GABON}\nRédige une communication interne claire et structurée (objet, contexte, message, actions attendues, date d'effet). Ton : ${i.ton || 'cordial'}. Concis et sans ambiguïté.`,
+      user: `Type : ${i.type || 'note de service'}\nSujet : ${i.sujet}\nMessage clé : ${i.messageCle}`,
+    }),
+  },
+
+  {
+    slug: 'montee-competences',
+    titre: 'Plan de montée en compétences',
+    sousTitre: 'Parcours de formation d\'une équipe',
+    description: "Construisez un plan de développement des compétences pour un collaborateur ou une équipe : objectifs, étapes, formations et indicateurs.",
+    iconName: 'TrendingUp', couleur: '#10B981', category: 'entreprise', badge: 'RH', prixCredits: 6,
+    ctaLabel: 'Créer le plan', generateLabel: 'Générer', outputType: 'markdown',
+    fields: [
+      { name: 'cible', label: 'Cible', type: 'select', options: ['Un collaborateur', 'Une équipe', 'Un service entier'], required: true },
+      { name: 'posteOuEquipe', label: 'Poste / équipe concerné(e)', type: 'text', placeholder: 'Ex: équipe commerciale', required: true },
+      { name: 'niveauActuel', label: 'Niveau / situation actuelle', type: 'textarea', placeholder: 'Compétences actuelles, lacunes…', required: true, rows: 3 },
+      { name: 'objectif', label: 'Objectif visé', type: 'textarea', placeholder: 'Ce qu\'on veut atteindre…', required: true, rows: 2 },
+      { name: 'horizon', label: 'Horizon', type: 'select', options: ['3 mois', '6 mois', '12 mois'] },
+    ],
+    buildPrompt: (i) => ({
+      system: `Tu es STUDIA RH, expert en développement des compétences. ${CONTEXTE_GABON}\nProduis en Markdown un plan de montée en compétences : diagnostic, objectifs prioritaires, parcours par étapes (avec types de formation : e-learning, atelier, mentorat), planning sur l'horizon donné, et indicateurs de réussite. Concret et actionnable.`,
+      user: `Cible : ${i.cible}\nConcerné : ${i.posteOuEquipe}\nNiveau actuel : ${i.niveauActuel}\nObjectif : ${i.objectif}\nHorizon : ${i.horizon || '6 mois'}`,
+    }),
+  },
+
+  {
+    slug: 'entretien-recadrage',
+    titre: 'Préparer un entretien délicat',
+    sousTitre: 'Recadrage, conflit, sous-performance',
+    description: "Préparez un entretien difficile (recadrage, sous-performance, conflit) : trame factuelle, points à aborder et posture managériale.",
+    iconName: 'Compass', couleur: '#DC2626', category: 'entreprise', badge: '⚖️ Légal', prixCredits: 4,
+    ctaLabel: 'Préparer l\'entretien', generateLabel: 'Générer', outputType: 'markdown',
+    fields: [
+      { name: 'situation', label: 'Situation', type: 'textarea', placeholder: 'Décrivez les faits, sans jugement…', required: true, rows: 4 },
+      { name: 'objectif', label: 'Objectif de l\'entretien', type: 'text', placeholder: 'Ce que vous voulez obtenir', required: true },
+      { name: 'relation', label: 'Relation', type: 'select', options: ['Manager → collaborateur', 'Entre collègues', 'RH → salarié'] },
+    ],
+    buildPrompt: (i) => ({
+      system: `Tu es STUDIA RH, coach managérial. ${CONTEXTE_GABON}\n${GARDE_FOU_JURIDIQUE}\nProduis en Markdown une préparation d'entretien délicat : rappel des faits (factuel, non accusatoire), trame en étapes (méthode DESC), formulations conseillées, écueils à éviter, et issue/plan d'action. Reste respectueux et conforme au cadre légal (pas de sanction déguisée).`,
+      user: `Situation : ${i.situation}\nObjectif : ${i.objectif}\nRelation : ${i.relation || 'manager → collaborateur'}`,
+    }),
+  },
+
+  {
+    slug: 'offboarding',
+    titre: 'Checklist de départ collaborateur',
+    sousTitre: 'Offboarding structuré',
+    description: "Organisez le départ d'un collaborateur : checklist administrative, restitution, passation et entretien de départ.",
+    iconName: 'Receipt', couleur: '#64748B', category: 'entreprise', badge: '⚖️ Légal', prixCredits: 4,
+    ctaLabel: 'Générer la checklist', generateLabel: 'Générer', outputType: 'markdown',
+    fields: [
+      { name: 'typeDepart', label: 'Type de départ', type: 'select', options: ['Démission', 'Fin de contrat (CDD)', 'Licenciement', 'Départ à la retraite', 'Rupture à l\'amiable'], required: true },
+      { name: 'poste', label: 'Poste concerné', type: 'text', placeholder: 'Intitulé', required: true },
+      { name: 'specificites', label: 'Spécificités (accès, matériel, passation…)', type: 'textarea', placeholder: 'Éléments à restituer / transmettre', rows: 3 },
+    ],
+    buildPrompt: (i) => ({
+      system: `Tu es STUDIA RH. ${CONTEXTE_GABON}\n${GARDE_FOU_JURIDIQUE}\nProduis en Markdown une checklist d'offboarding : démarches administratives (solde de tout compte, documents de fin de contrat, CNSS), restitution du matériel et des accès, passation des dossiers, entretien de départ, communication interne. Adapte au type de départ : ${i.typeDepart}.`,
+      user: `Type de départ : ${i.typeDepart}\nPoste : ${i.poste}\nSpécificités : ${i.specificites || 'aucune'}`,
+    }),
+  },
+
+  {
+    slug: 'qcm-recrutement',
+    titre: 'Test de pré-sélection candidat',
+    sousTitre: 'QCM technique corrigé',
+    description: "Générez un test à choix multiples pour présélectionner des candidats sur les compétences clés d'un poste, avec corrigé.",
+    iconName: 'GraduationCap', couleur: '#2563EB', category: 'entreprise', badge: 'RH', prixCredits: 5,
+    ctaLabel: 'Générer le test', generateLabel: 'Générer', outputType: 'markdown',
+    fields: [
+      { name: 'poste', label: 'Poste à pourvoir', type: 'text', placeholder: 'Ex: Comptable', required: true },
+      { name: 'domaines', label: 'Compétences / domaines à tester', type: 'textarea', placeholder: 'Ex: comptabilité générale, Excel, fiscalité…', required: true, rows: 3 },
+      { name: 'nbQuestions', label: 'Nombre de questions', type: 'select', options: ['10', '15', '20'] },
+      { name: 'niveau', label: 'Niveau attendu', type: 'select', options: ['Débutant', 'Intermédiaire', 'Confirmé'] },
+    ],
+    buildPrompt: (i) => ({
+      system: `Tu es STUDIA RH, expert en évaluation de candidats. ${CONTEXTE_GABON}\nProduis en Markdown un QCM de présélection (${i.nbQuestions || '10'} questions) sur les compétences indiquées, niveau ${i.niveau || 'intermédiaire'}. Chaque question a 4 options. À la fin, fournis le **corrigé** et un barème indicatif. Questions claires et discriminantes.`,
+      user: `Poste : ${i.poste}\nCompétences à tester : ${i.domaines}\nNombre de questions : ${i.nbQuestions || '10'}\nNiveau : ${i.niveau || 'intermédiaire'}`,
     }),
   },
 ]

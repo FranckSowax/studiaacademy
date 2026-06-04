@@ -9,6 +9,7 @@ import {
   ArrowRight, Megaphone, FileText, FileCheck, FileSignature, Briefcase, Sparkles,
   CheckCircle, BarChart3, Clock, ShieldCheck, Building2, Users, Rocket,
   GraduationCap, Target, MessageSquare, ChevronRight,
+  Mail, Presentation, BookOpen, PenTool, TrendingUp, Compass, Receipt,
 } from 'lucide-react'
 
 export const metadata: Metadata = {
@@ -19,6 +20,7 @@ export const metadata: Metadata = {
 
 const iconMap: Record<string, React.ComponentType<{ className?: string; style?: React.CSSProperties }>> = {
   Megaphone, FileText, FileCheck, FileSignature, Briefcase,
+  Mail, Presentation, BookOpen, PenTool, TrendingUp, Compass, Receipt, GraduationCap,
 }
 
 const packs = [

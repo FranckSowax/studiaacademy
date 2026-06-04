@@ -28,7 +28,7 @@ interface Proposal {
   id: string
   titre: string | null
   resume: string | null
-  items: { titre: string; domaine: string; format?: string; duree?: string; justification?: string; prix_fcfa: number }[]
+  items: { titre: string; domaine: string; slug?: string | null; format?: string; duree?: string; justification?: string; prix_fcfa: number }[]
   prix_total_fcfa: number
   status: string
 }
@@ -130,7 +130,11 @@ export function RapportView({
               {proposal.items.map((it, i) => (
                 <div key={i} className="p-4 flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="font-medium text-gray-900">{it.titre}</p>
+                    {it.slug ? (
+                      <Link href={`/formations/en-ligne/${it.slug}`} target="_blank" className="font-medium text-gray-900 hover:text-[#7C3AED]">{it.titre} ↗</Link>
+                    ) : (
+                      <p className="font-medium text-gray-900">{it.titre}</p>
+                    )}
                     <p className="text-xs text-gray-500">{domLabel(it.domaine)}{it.format ? ` · ${it.format}` : ''}{it.duree ? ` · ${it.duree}` : ''}</p>
                     {it.justification && <p className="text-xs text-gray-400 mt-1">{it.justification}</p>}
                   </div>
