@@ -48,21 +48,38 @@ export function useAuth() {
   }, [state.user])
 
   useEffect(() => {
-    // Get initial session
+    let mounted = true
+
+    // Filet de sécurité : ne jamais rester bloqué sur le spinner même si
+    // une requête réseau (getSession / profil / wallet) ne répond pas.
+    const safety = setTimeout(() => {
+      if (mounted) setState(prev => (prev.isLoading ? { ...prev, isLoading: false } : prev))
+    }, 6000)
+
+    // Charge profil + wallet en arrière-plan (ne bloque PAS l'auth).
+    const loadUserDataInBackground = (userId: string) => {
+      fetchUserData(userId)
+        .then(({ profile, wallet }) => {
+          if (mounted) setState(prev => ({ ...prev, profile, wallet }))
+        })
+        .catch(() => { /* profil/wallet optionnels pour l'affichage */ })
+    }
+
+    // Get initial session — débloque dès qu'on connaît l'état de session.
     const initializeAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession()
-
+        if (!mounted) return
         if (session?.user) {
-          const { profile, wallet } = await fetchUserData(session.user.id)
           setState({
             user: session.user,
             session,
-            profile,
-            wallet,
+            profile: null,
+            wallet: null,
             isLoading: false,
             isAuthenticated: true,
           })
+          loadUserDataInBackground(session.user.id)
         } else {
           setState({
             user: null,
@@ -75,7 +92,7 @@ export function useAuth() {
         }
       } catch (error) {
         console.error('Error initializing auth:', error)
-        setState(prev => ({ ...prev, isLoading: false }))
+        if (mounted) setState(prev => ({ ...prev, isLoading: false }))
       }
     }
 
@@ -85,15 +102,15 @@ export function useAuth() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (event === 'SIGNED_IN' && session?.user) {
-          const { profile, wallet } = await fetchUserData(session.user.id)
           setState({
             user: session.user,
             session,
-            profile,
-            wallet,
+            profile: null,
+            wallet: null,
             isLoading: false,
             isAuthenticated: true,
           })
+          loadUserDataInBackground(session.user.id)
         } else if (event === 'SIGNED_OUT') {
           setState({
             user: null,
@@ -114,6 +131,8 @@ export function useAuth() {
     )
 
     return () => {
+      mounted = false
+      clearTimeout(safety)
       subscription.unsubscribe()
     }
   }, [supabase.auth, fetchUserData])
