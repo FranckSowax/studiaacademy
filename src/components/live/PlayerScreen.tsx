@@ -114,7 +114,7 @@ export function PlayerScreen({ game: initialGame }: { game: LiveGame }) {
   if (restored && !playerId) {
     const closed = game.status === 'ended'
     return (
-      <div className="min-h-dvh bg-gradient-to-br from-[#7C3AED] to-[#4c1d95] text-white flex items-center justify-center p-6">
+      <div className="min-h-dvh kahoot-gradient text-white flex items-center justify-center p-6">
         <div className="w-full max-w-sm">
           <div className="text-center mb-6">
             <div className="w-16 h-16 rounded-2xl bg-white/15 flex items-center justify-center mx-auto mb-3"><Zap className="w-8 h-8" /></div>
@@ -153,8 +153,8 @@ export function PlayerScreen({ game: initialGame }: { game: LiveGame }) {
   // ── LOBBY (salon d'attente) ──
   if (game.status === 'lobby') {
     return (
-      <div className="min-h-dvh bg-gradient-to-br from-[#7C3AED] to-[#4c1d95] text-white flex flex-col items-center justify-center p-6 text-center">
-        <div className="w-20 h-20 rounded-full bg-white/15 flex items-center justify-center mb-5 animate-pulse">
+      <div className="min-h-dvh kahoot-gradient text-white flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-20 h-20 rounded-full kahoot-glass flex items-center justify-center mb-5 kahoot-float">
           <span className="text-3xl font-extrabold">{(pseudo || '?').charAt(0).toUpperCase()}</span>
         </div>
         <h1 className="text-2xl font-bold font-heading">Tu es dans la partie{pseudo ? `, ${pseudo}` : ''} !</h1>
@@ -228,9 +228,9 @@ export function PlayerScreen({ game: initialGame }: { game: LiveGame }) {
               const TileIcon = tile.icon
               return (
                 <button key={i} onClick={() => answer(i)}
-                  className="flex flex-col items-center justify-center gap-2 rounded-2xl p-4 font-bold text-white shadow-lg active:scale-95 transition-transform min-h-[110px]"
+                  className={`kahoot-tile kahoot-tile-${i + 1} flex flex-col items-center justify-center gap-2 rounded-2xl p-4 font-bold text-white shadow-xl active:scale-95 transition-transform min-h-[120px]`}
                   style={{ backgroundColor: tile.bg }}>
-                  <TileIcon className="w-8 h-8" fill="white" />
+                  <TileIcon className="w-9 h-9" fill="white" />
                   <span className="text-sm leading-tight">{opt}</span>
                 </button>
               )

@@ -172,6 +172,41 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
+/* ── Kahoot / Live : système d'animations ── */
+.kahoot-gradient {
+  background: linear-gradient(135deg, #7C3AED 0%, #6d28d9 45%, #4c1d95 100%);
+  background-size: 200% 200%;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .kahoot-gradient { animation: kahootGradient 12s ease infinite; }
+  .kahoot-pop { animation: kahootPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+  .kahoot-float { animation: kahootFloat 3s ease-in-out infinite; }
+  .kahoot-tile { animation: kahootPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+  .kahoot-tile-1 { animation-delay: 60ms; }
+  .kahoot-tile-2 { animation-delay: 120ms; }
+  .kahoot-tile-3 { animation-delay: 180ms; }
+  .kahoot-tile-4 { animation-delay: 240ms; }
+}
+@keyframes kahootGradient {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+@keyframes kahootPop {
+  from { opacity: 0; transform: scale(0.8); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes kahootFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+/* Effet verre */
+.kahoot-glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
 /* Header scroll-aware */
 #main-header {
   transition: background-color 0.3s ease, box-shadow 0.3s ease;

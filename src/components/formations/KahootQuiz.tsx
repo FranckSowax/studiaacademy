@@ -134,8 +134,8 @@ export function KahootQuiz({
   // ── INTRO ──
   if (phase === 'intro') {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-[#7C3AED] via-[#6d28d9] to-[#4c1d95] text-white px-4 text-center">
-        <div className="w-20 h-20 rounded-3xl bg-white/15 flex items-center justify-center mb-6">
+      <div className="min-h-screen flex flex-col items-center justify-center kahoot-gradient text-white px-4 text-center">
+        <div className="w-20 h-20 rounded-3xl kahoot-glass flex items-center justify-center mb-6 kahoot-float">
           <Trophy className="w-10 h-10" />
         </div>
         <p className="text-white/70 uppercase tracking-widest text-sm mb-2">Quiz final</p>
@@ -208,6 +208,10 @@ export function KahootQuiz({
   const urgent = timeLeft <= 5 && phase === 'play'
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#1e293b] to-[#0f172a] text-white">
+      {/* Progression */}
+      <div className="h-1.5 bg-white/10">
+        <div className="h-full bg-gradient-to-r from-[#7C3AED] to-[#e97e42] transition-all duration-500" style={{ width: `${((idx + 1) / questions.length) * 100}%` }} />
+      </div>
       {/* Barre haute */}
       <div className="flex items-center justify-between px-4 sm:px-8 py-4">
         <span className="text-sm text-white/60">Question {idx + 1}/{questions.length}</span>
@@ -268,7 +272,7 @@ export function KahootQuiz({
               key={i}
               disabled={phase === 'reveal' || selected !== null}
               onClick={() => answer(i)}
-              className={`flex items-center gap-3 px-5 py-5 rounded-2xl text-left font-semibold text-white shadow-lg transition-all ${opacity} ${ring} ${phase === 'play' ? 'hover:scale-[1.02] active:scale-95' : ''}`}
+              className={`kahoot-tile kahoot-tile-${i + 1} flex items-center gap-3 px-5 py-5 rounded-2xl text-left font-semibold text-white shadow-xl transition-all ${opacity} ${ring} ${phase === 'play' ? 'hover:scale-[1.02] active:scale-95' : ''}`}
               style={{ backgroundColor: tile.bg }}
             >
               <TileIcon className="w-6 h-6 flex-shrink-0" fill="white" />

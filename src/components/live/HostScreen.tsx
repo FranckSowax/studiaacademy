@@ -103,10 +103,10 @@ export function HostScreen({
   // ── LOBBY ──
   if (game.status === 'lobby') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#7C3AED] to-[#4c1d95] text-white p-6 flex flex-col">
+      <div className="min-h-screen kahoot-gradient text-white p-6 flex flex-col">
         <div className="text-center mb-6">
           <p className="text-white/70 uppercase tracking-widest text-sm">Rejoignez la partie</p>
-          <h1 className="text-2xl font-bold font-heading">{game.titre}</h1>
+          <h1 className="text-3xl font-extrabold font-heading">{game.titre}</h1>
         </div>
         <div className="flex flex-col lg:flex-row items-center justify-center gap-8 flex-1">
           {/* Code + QR */}
@@ -124,11 +124,14 @@ export function HostScreen({
             </div>
           </div>
           {/* Joueurs */}
-          <div className="bg-white/10 rounded-3xl p-6 w-full max-w-sm">
-            <p className="font-semibold mb-4 flex items-center gap-2"><Users className="w-5 h-5" />{players.length} joueur{players.length > 1 ? 's' : ''}</p>
+          <div className="kahoot-glass rounded-3xl p-6 w-full max-w-sm">
+            <p className="font-semibold mb-4 flex items-center gap-2">
+              <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-white/20"><Users className="w-4 h-4" /></span>
+              <span className="text-2xl font-extrabold tabular-nums">{players.length}</span> joueur{players.length > 1 ? 's' : ''}
+            </p>
             <div className="flex flex-wrap gap-2 max-h-64 overflow-y-auto">
               {players.map((p) => (
-                <span key={p.id} className="bg-white/20 px-3 py-1.5 rounded-full text-sm font-medium animate-fade-up">{p.pseudo}</span>
+                <span key={p.id} className="bg-white/20 px-3 py-1.5 rounded-full text-sm font-semibold kahoot-pop">{p.pseudo}</span>
               ))}
               {players.length === 0 && <p className="text-white/60 text-sm">En attente de joueurs…</p>}
             </div>
@@ -148,7 +151,7 @@ export function HostScreen({
     const podium = ranked.slice(0, 3)
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#e97e42] to-[#c45a20] text-white p-6 flex flex-col items-center justify-center">
-        <Trophy className="w-16 h-16 mb-4" />
+        <Trophy className="w-16 h-16 mb-4 kahoot-float" />
         <h1 className="text-3xl font-extrabold font-heading mb-8">Classement final</h1>
         <div className="flex items-end gap-4 mb-8">
           {[1, 0, 2].map((pos) => {
@@ -157,11 +160,11 @@ export function HostScreen({
             const heights = ['h-32', 'h-44', 'h-24']
             const medals = ['🥈', '🥇', '🥉']
             return (
-              <div key={pos} className="flex flex-col items-center">
+              <div key={pos} className="flex flex-col items-center kahoot-pop" style={{ animationDelay: `${pos * 150}ms` }}>
                 <span className="text-3xl mb-1">{medals[pos]}</span>
                 <span className="font-bold mb-1 text-center">{p.pseudo}</span>
                 <span className="text-sm text-white/80 mb-2">{p.score} pts</span>
-                <div className={`w-24 ${heights[pos]} bg-white/20 rounded-t-2xl flex items-start justify-center pt-2 font-extrabold text-2xl`}>{pos === 1 ? 1 : pos === 0 ? 2 : 3}</div>
+                <div className={`w-24 ${heights[pos]} kahoot-glass rounded-t-2xl flex items-start justify-center pt-2 font-extrabold text-2xl`}>{pos === 1 ? 1 : pos === 0 ? 2 : 3}</div>
               </div>
             )
           })}
@@ -181,6 +184,9 @@ export function HostScreen({
   const isReveal = game.status === 'reveal'
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1e293b] to-[#0f172a] text-white flex flex-col">
+      <div className="h-1.5 bg-white/10">
+        <div className="h-full bg-gradient-to-r from-[#7C3AED] to-[#e97e42] transition-all duration-500" style={{ width: `${((game.current_index + 1) / questions.length) * 100}%` }} />
+      </div>
       <div className="flex items-center justify-between px-6 py-4">
         <span className="text-white/60">Question {game.current_index + 1}/{questions.length}</span>
         <div className="flex items-center gap-3">
@@ -209,10 +215,10 @@ export function HostScreen({
           const dim = isReveal && !correct ? 'opacity-35' : 'opacity-100'
           const ring = isReveal && correct ? 'ring-4 ring-white scale-[1.02]' : ''
           return (
-            <div key={i} className={`flex items-center gap-3 px-5 py-5 rounded-2xl font-bold text-white shadow-lg transition-all ${dim} ${ring}`} style={{ backgroundColor: tile.bg }}>
+            <div key={i} className={`kahoot-tile kahoot-tile-${i + 1} flex items-center gap-3 px-5 py-5 rounded-2xl font-bold text-white shadow-xl transition-all ${dim} ${ring}`} style={{ backgroundColor: tile.bg }}>
               <TileIcon className="w-6 h-6 flex-shrink-0" fill="white" />
-              <span className="flex-1">{opt}</span>
-              {isReveal && correct && <Check className="w-6 h-6" />}
+              <span className="flex-1 text-lg">{opt}</span>
+              {isReveal && correct && <Check className="w-7 h-7" />}
             </div>
           )
         })}
