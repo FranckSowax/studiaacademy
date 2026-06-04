@@ -59,6 +59,42 @@ export async function requestEnrollment(input: {
 }
 
 /**
+ * Inscription immédiate à une formation gratuite (compte Studia suffisant).
+ * Aucune validation manuelle / WhatsApp : l'accès est accordé directement.
+ */
+export async function enrollFree(
+  formationId: string
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { success: false, error: 'Connectez-vous pour accéder à la formation' }
+
+  // Sécurité : ne pas accorder l'accès gratuit à une formation payante
+  const { data: formation } = await supabase
+    .from('formations')
+    .select('prix_fcfa')
+    .eq('id', formationId)
+    .single()
+  if (!formation) return { success: false, error: 'Formation introuvable' }
+  if ((formation.prix_fcfa ?? 0) > 0) return { success: false, error: 'Cette formation est payante' }
+
+  const { error } = await supabase.from('formation_enrollments').upsert(
+    {
+      formation_id: formationId,
+      user_id: user.id,
+      status: 'active',
+    },
+    { onConflict: 'formation_id,user_id' }
+  )
+  if (error) return { success: false, error: error.message }
+
+  revalidatePath('/dashboard/formations')
+  return { success: true }
+}
+
+/**
  * Marque une leçon comme complétée (progression).
  */
 export async function toggleLessonComplete(

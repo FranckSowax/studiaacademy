@@ -7,7 +7,7 @@ import { Loader2, ArrowRight, CheckCircle, Clock, PlayCircle } from 'lucide-reac
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { requestEnrollment } from '@/lib/formations/actions'
+import { requestEnrollment, enrollFree } from '@/lib/formations/actions'
 import type { EnrollmentStatus } from '@/types/formation'
 
 interface Props {
@@ -15,9 +15,10 @@ interface Props {
   formationSlug: string
   isLoggedIn: boolean
   enrollmentStatus: EnrollmentStatus | null
+  isFree?: boolean
 }
 
-export function EnrollCTA({ formationId, formationSlug, isLoggedIn, enrollmentStatus }: Props) {
+export function EnrollCTA({ formationId, formationSlug, isLoggedIn, enrollmentStatus, isFree = false }: Props) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -33,6 +34,41 @@ export function EnrollCTA({ formationId, formationSlug, isLoggedIn, enrollmentSt
           Commencer la formation
         </Button>
       </Link>
+    )
+  }
+
+  // ── Formation GRATUITE : accès direct, juste un compte Studia ──
+  if (isFree) {
+    if (!isLoggedIn) {
+      return (
+        <div className="space-y-2">
+          <Link href={`/signup?redirect=/formations/en-ligne/${formationSlug}`}>
+            <Button className="w-full bg-gradient-to-r from-[#e97e42] to-[#d56a2e] text-white rounded-xl py-6 text-base font-semibold">
+              Créer un compte gratuit
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+          </Link>
+          <Link href={`/login?redirect=/formations/en-ligne/${formationSlug}`} className="block text-center text-sm text-gray-500 hover:text-[#e97e42]">
+            Déjà un compte ? Se connecter
+          </Link>
+        </div>
+      )
+    }
+    const startFree = async () => {
+      setLoading(true)
+      const res = await enrollFree(formationId)
+      setLoading(false)
+      if (res.success) router.push(`/apprendre/${formationSlug}`)
+      else alert(res.error || 'Erreur')
+    }
+    return (
+      <Button
+        onClick={startFree}
+        disabled={loading}
+        className="w-full bg-gradient-to-r from-[#e97e42] to-[#d56a2e] text-white rounded-xl py-6 text-base font-semibold"
+      >
+        {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <><PlayCircle className="w-5 h-5 mr-2" />Accéder gratuitement</>}
+      </Button>
     )
   }
 

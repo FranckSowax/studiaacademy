@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { genererSection } from '@/lib/mistral'
+import { syncLessonsFromGeneration } from '@/lib/formations/generation-actions'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 300
@@ -61,6 +62,11 @@ export async function POST(
         status: 'generated',
       })
       .eq('id', sectionId)
+
+    // Si la formation est déjà publiée, refléter immédiatement la nouvelle section.
+    if (gen.formation_id) {
+      await syncLessonsFromGeneration(supabase, id)
+    }
 
     return NextResponse.json({ success: true })
   } catch (e) {

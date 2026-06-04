@@ -212,6 +212,40 @@ export async function genererSection(input: SectionInput): Promise<SectionResult
   })
 }
 
+// ── Présentation marketing de la formation ──
+interface PresentationInput {
+  titre: string
+  niveau: string
+  sommaire: string[] // titres des sections
+}
+const STUDIA_PRESENTATION = `Tu es responsable marketing pédagogique chez Studia Academy (edtech au Gabon).
+À partir du titre d'une formation, de son niveau et de la liste de ses chapitres, rédige une présentation commerciale engageante et professionnelle.
+
+RÈGLES STRICTES :
+- N'invente pas de chiffres ni de témoignages.
+- Ne mentionne JAMAIS l'IA, la génération automatique, ni la manière dont le contenu a été produit.
+- Ton positif, concret, orienté bénéfices pour l'apprenant (contexte africain / gabonais bienvenu).
+- Français impeccable.
+
+Réponds en JSON strict :
+{
+  "description": "2 à 3 paragraphes (Markdown léger autorisé : sauts de ligne). Présente la formation, à qui elle s'adresse, ce qu'elle apporte concrètement.",
+  "objectifs": ["6 à 8 objectifs d'apprentissage concrets, commençant par un verbe d'action"]
+}`
+export async function genererPresentationFormation(
+  input: PresentationInput
+): Promise<{ description: string; objectifs: string[] }> {
+  return mistralChatJSON({
+    model: 'mistral-large-latest',
+    temperature: 0.6,
+    maxTokens: 1500,
+    messages: [
+      { role: 'system', content: STUDIA_PRESENTATION },
+      { role: 'user', content: JSON.stringify(input) },
+    ],
+  })
+}
+
 // ── Génération du quiz final (Kahoot) ───────
 interface FinalQuizInput {
   formation_titre: string

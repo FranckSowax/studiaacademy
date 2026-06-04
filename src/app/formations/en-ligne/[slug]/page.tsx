@@ -106,6 +106,7 @@ export default async function FormationDetailPage({
                       formationSlug={f.slug}
                       isLoggedIn={!!user}
                       enrollmentStatus={enrollment?.status ?? null}
+                      isFree={(f.prix_fcfa ?? 0) === 0}
                     />
                     <ul className="mt-5 space-y-2">
                       {['Accès à vie au contenu', 'Supports téléchargeables', 'Certificat de réussite', 'Support par l\'équipe'].map((b) => (
