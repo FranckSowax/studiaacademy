@@ -191,7 +191,7 @@ function SectionsWorkspace({
         </div>
         <Button onClick={publish} disabled={generated === 0 || publishing}
           className="bg-green-600 hover:bg-green-700 text-white">
-          {publishing ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Rocket className="w-4 h-4 mr-1" />Publier la formation</>}
+          {publishing ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Rocket className="w-4 h-4 mr-1" />{generation.formation_id ? 'Mettre à jour la formation' : 'Publier la formation'}</>}
         </Button>
       </div>
 

@@ -158,10 +158,17 @@ export function AdminFormationsManager({
                   </div>
                 </Link>
                 <div className="flex items-center gap-1 flex-shrink-0">
-                  {g.status !== 'published' && (
+                  {g.status !== 'published' ? (
                     <Button asChild variant="ghost" size="sm">
                       <Link href={resumeHref}>
                         Reprendre <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                      </Link>
+                    </Button>
+                  ) : (
+                    <Button asChild variant="ghost" size="sm" className="text-[#e97e42] hover:bg-[#fff7ed]">
+                      <Link href={`/admin/formations/generer/${g.id}`}>
+                        <Wand2 className="w-3.5 h-3.5 mr-1" />
+                        {g.sections_generated < g.sections_total ? 'Générer la suite' : 'Sommaire'}
                       </Link>
                     </Button>
                   )}

@@ -104,36 +104,45 @@ export async function publishGeneration(
     return { success: false, error: 'Aucune section générée à publier' }
   }
 
-  // Créer la formation (brouillon)
-  const slug =
-    gen.titre
-      .normalize('NFD')
-      .replace(/[̀-ͯ]/g, '')
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)/g, '')
-      .slice(0, 50) +
-    '-' +
-    Math.random().toString(36).slice(2, 6)
+  // Si déjà publiée : on met à jour la formation existante (pas de doublon).
+  let formationId = gen.formation_id as string | null
 
-  const { data: formation, error: fErr } = await supabase
-    .from('formations')
-    .insert({
-      slug,
-      titre: gen.titre,
-      sous_titre: gen.objectif ?? null,
-      categorie: gen.matiere ?? null,
-      niveau: gen.niveau,
-      description: `Formation générée à partir de ${gen.source_type ?? 'une source'}.`,
-      is_published: true,
-    })
-    .select('id')
-    .single()
-  if (fErr) return { success: false, error: fErr.message }
+  if (formationId) {
+    // Re-synchronise les leçons depuis le sommaire (l'atelier est la source).
+    await supabase.from('formation_lessons').delete().eq('formation_id', formationId)
+  } else {
+    // Première publication : créer la formation publiée.
+    const slug =
+      gen.titre
+        .normalize('NFD')
+        .replace(/[̀-ͯ]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '')
+        .slice(0, 50) +
+      '-' +
+      Math.random().toString(36).slice(2, 6)
+
+    const { data: formation, error: fErr } = await supabase
+      .from('formations')
+      .insert({
+        slug,
+        titre: gen.titre,
+        sous_titre: gen.objectif ?? null,
+        categorie: gen.matiere ?? null,
+        niveau: gen.niveau,
+        description: `Formation générée à partir de ${gen.source_type ?? 'une source'}.`,
+        is_published: true,
+      })
+      .select('id')
+      .single()
+    if (fErr) return { success: false, error: fErr.message }
+    formationId = formation.id
+  }
 
   // Créer une leçon par section (texte + quiz embarqué)
   const lessons = generated.map((s, i) => ({
-    formation_id: formation.id,
+    formation_id: formationId,
     ordre: i + 1,
     titre: s.titre,
     type: 'texte' as const,
@@ -147,11 +156,11 @@ export async function publishGeneration(
 
   await supabase
     .from('formation_generations')
-    .update({ status: 'published', formation_id: formation.id })
+    .update({ status: 'published', formation_id: formationId })
     .eq('id', generationId)
 
   revalidatePath('/admin/formations')
   revalidatePath('/formations/en-ligne')
   revalidatePath('/formations')
-  return { success: true, formationId: formation.id }
+  return { success: true, formationId: formationId ?? undefined }
 }
