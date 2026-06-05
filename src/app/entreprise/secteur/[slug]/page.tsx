@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
 import { getSecteur, SECTEURS } from '@/lib/secteurs'
@@ -74,8 +75,8 @@ export default async function SecteurPage({ params }: { params: Promise<{ slug: 
               const FIcon = fmtIcon(f.format)
               return (
                 <div key={f.slug} className="group bg-white rounded-3xl border border-[#f0ebe3] overflow-hidden hover:shadow-xl transition-all flex flex-col">
-                  <div className="relative h-40 w-full flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${secteur.couleur}, ${secteur.couleur}99)` }}>
-                    <SectorIcon className="w-12 h-12 text-white/40" />
+                  <div className="relative h-44 w-full" style={{ background: `linear-gradient(135deg, ${secteur.couleur}, ${secteur.couleur}99)` }}>
+                    <Image src={f.cover} alt={f.titre} fill sizes="(max-width:768px) 100vw, 50vw" className="object-cover" />
                     <span className="absolute top-3 left-3 inline-flex items-center gap-1.5 bg-white/90 text-gray-700 text-xs font-medium px-2.5 py-1 rounded-full"><FIcon className="w-3.5 h-3.5" />{f.format}</span>
                   </div>
                   <div className="p-6 flex flex-col flex-1">
