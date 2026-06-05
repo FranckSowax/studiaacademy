@@ -13,13 +13,13 @@ import {
   Users, Landmark, ClipboardList, Calculator, ShoppingBag, Megaphone, HeartPulse,
   BarChart3, ChevronRight, FileText, FileCheck, FileSignature, Briefcase, Mail,
   Presentation, BookOpen, PenTool, TrendingUp, Compass, Receipt, Building2, Globe,
-  Palette, Lightbulb, AlignLeft,
+  Palette, Lightbulb, AlignLeft, Sprout, Rocket, Scale, Wrench,
 } from 'lucide-react'
 
 const iconMap: Record<string, React.ComponentType<{ className?: string; style?: React.CSSProperties }>> = {
   Users, Landmark, ClipboardList, Calculator, ShoppingBag, Megaphone, GraduationCap, HeartPulse,
   FileText, FileCheck, FileSignature, Briefcase, Mail, Presentation, BookOpen, PenTool, TrendingUp,
-  Compass, Receipt, Building2, Globe, Palette, Lightbulb, AlignLeft, Sparkles,
+  Compass, Receipt, Building2, Globe, Palette, Lightbulb, AlignLeft, Sparkles, Sprout, Rocket, Scale, Wrench,
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {

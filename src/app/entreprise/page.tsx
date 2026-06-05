@@ -8,7 +8,7 @@ import { SECTEURS } from '@/lib/secteurs'
 import {
   ArrowRight, BarChart3, Building2, Sparkles, ChevronRight, MessageSquare, Clock,
   ShieldCheck, Users, Landmark, ClipboardList, Calculator, ShoppingBag, Megaphone,
-  GraduationCap, HeartPulse,
+  GraduationCap, HeartPulse, Sprout, Rocket, Scale, Wrench,
 } from 'lucide-react'
 
 export const metadata: Metadata = {
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 }
 
 const iconMap: Record<string, React.ComponentType<{ className?: string; style?: React.CSSProperties }>> = {
-  Users, Landmark, ClipboardList, Calculator, ShoppingBag, Megaphone, GraduationCap, HeartPulse,
+  Users, Landmark, ClipboardList, Calculator, ShoppingBag, Megaphone, GraduationCap, HeartPulse, Sprout, Rocket, Scale, Wrench,
 }
 
 export default function EntreprisePage() {

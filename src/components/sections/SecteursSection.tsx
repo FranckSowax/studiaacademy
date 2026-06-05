@@ -3,10 +3,11 @@ import { SECTEURS } from '@/lib/secteurs'
 import {
   ArrowRight, ChevronRight, Building2,
   Users, Landmark, ClipboardList, Calculator, ShoppingBag, Megaphone, GraduationCap, HeartPulse,
+  Sprout, Rocket, Scale, Wrench,
 } from 'lucide-react'
 
 const iconMap: Record<string, React.ComponentType<{ className?: string; style?: React.CSSProperties }>> = {
-  Users, Landmark, ClipboardList, Calculator, ShoppingBag, Megaphone, GraduationCap, HeartPulse,
+  Users, Landmark, ClipboardList, Calculator, ShoppingBag, Megaphone, GraduationCap, HeartPulse, Sprout, Rocket, Scale, Wrench,
 }
 
 export function SecteursSection() {

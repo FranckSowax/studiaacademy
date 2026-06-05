@@ -108,3 +108,60 @@
 - **`public/secteurs/sante-vulgarisation.png`** — Prompt : Gros plan sur explication à un patient avec support visuel, dans le contexte santé & médical. Style : illustration/photo lifestyle professionnelle, moderne et chaleureuse, contexte africain/gabonais, lumière naturelle, optimiste. Palette de marque Studia : orange #e97e42 et violet #7C3AED en touches d’accent. Composition épurée laissant de l’espace, format paysage 16:9, haute qualité, SANS texte ni logo.
 - **`public/secteurs/sante-organisation.png`** — Prompt : Gros plan sur organisation du cabinet médical, planning numérique, dans le contexte santé & médical. Style : illustration/photo lifestyle professionnelle, moderne et chaleureuse, contexte africain/gabonais, lumière naturelle, optimiste. Palette de marque Studia : orange #e97e42 et violet #7C3AED en touches d’accent. Composition épurée laissant de l’espace, format paysage 16:9, haute qualité, SANS texte ni logo.
 - **`public/secteurs/sante-veille.png`** — Prompt : Gros plan sur soignant se formant en ligne, lecture sur écran, dans le contexte santé & médical. Style : illustration/photo lifestyle professionnelle, moderne et chaleureuse, contexte africain/gabonais, lumière naturelle, optimiste. Palette de marque Studia : orange #e97e42 et violet #7C3AED en touches d’accent. Composition épurée laissant de l’espace, format paysage 16:9, haute qualité, SANS texte ni logo.
+
+
+---
+
+# Nouveaux secteurs
+
+## Agriculture & Agro-business
+
+**Cover du secteur** — `public/secteurs/agriculture.png`
+
+> Prompt : Scène représentant un·e agriculteur·rice africain·e dans un champ ou une exploitation, smartphone/tablette en main, cultures verdoyantes. Style : illustration/photo lifestyle professionnelle, moderne et chaleureuse, contexte africain/gabonais, lumière naturelle, optimiste. Palette de marque Studia : orange #e97e42 et violet #7C3AED en touches d’accent. Composition épurée laissant de l’espace, format paysage 16:9, haute qualité, SANS texte ni logo.
+
+### Formations
+
+- **`public/secteurs/agri-gestion.png`** — Prompt : Gros plan sur suivi d’exploitation sur tablette dans un champ, dans le contexte agriculture & agro-business. Style : illustration/photo lifestyle professionnelle, moderne et chaleureuse, contexte africain/gabonais, lumière naturelle, optimiste. Palette de marque Studia : orange #e97e42 et violet #7C3AED en touches d’accent. Composition épurée laissant de l’espace, format paysage 16:9, haute qualité, SANS texte ni logo.
+- **`public/secteurs/agri-vente.png`** — Prompt : Gros plan sur vente de produits agricoles au marché et en ligne, dans le contexte agriculture & agro-business. Style : illustration/photo lifestyle professionnelle, moderne et chaleureuse, contexte africain/gabonais, lumière naturelle, optimiste. Palette de marque Studia : orange #e97e42 et violet #7C3AED en touches d’accent. Composition épurée laissant de l’espace, format paysage 16:9, haute qualité, SANS texte ni logo.
+- **`public/secteurs/agri-financement.png`** — Prompt : Gros plan sur dossier de financement de projet agricole, réunion, dans le contexte agriculture & agro-business. Style : illustration/photo lifestyle professionnelle, moderne et chaleureuse, contexte africain/gabonais, lumière naturelle, optimiste. Palette de marque Studia : orange #e97e42 et violet #7C3AED en touches d’accent. Composition épurée laissant de l’espace, format paysage 16:9, haute qualité, SANS texte ni logo.
+- **`public/secteurs/agri-decider.png`** — Prompt : Gros plan sur agriculteur consultant des conseils sur son téléphone, dans le contexte agriculture & agro-business. Style : illustration/photo lifestyle professionnelle, moderne et chaleureuse, contexte africain/gabonais, lumière naturelle, optimiste. Palette de marque Studia : orange #e97e42 et violet #7C3AED en touches d’accent. Composition épurée laissant de l’espace, format paysage 16:9, haute qualité, SANS texte ni logo.
+
+## Entrepreneuriat & Startups
+
+**Cover du secteur** — `public/secteurs/entrepreneuriat.png`
+
+> Prompt : Scène représentant un·e jeune entrepreneur·e africain·e enthousiaste dans un espace de coworking, ordinateur et tableau d’idées. Style : illustration/photo lifestyle professionnelle, moderne et chaleureuse, contexte africain/gabonais, lumière naturelle, optimiste. Palette de marque Studia : orange #e97e42 et violet #7C3AED en touches d’accent. Composition épurée laissant de l’espace, format paysage 16:9, haute qualité, SANS texte ni logo.
+
+### Formations
+
+- **`public/secteurs/entr-business-plan.png`** — Prompt : Gros plan sur élaboration d’un business plan, tableau et post-it, dans le contexte entrepreneuriat & startups. Style : illustration/photo lifestyle professionnelle, moderne et chaleureuse, contexte africain/gabonais, lumière naturelle, optimiste. Palette de marque Studia : orange #e97e42 et violet #7C3AED en touches d’accent. Composition épurée laissant de l’espace, format paysage 16:9, haute qualité, SANS texte ni logo.
+- **`public/secteurs/entr-creation.png`** — Prompt : Gros plan sur création d’entreprise, signature et démarrage, dans le contexte entrepreneuriat & startups. Style : illustration/photo lifestyle professionnelle, moderne et chaleureuse, contexte africain/gabonais, lumière naturelle, optimiste. Palette de marque Studia : orange #e97e42 et violet #7C3AED en touches d’accent. Composition épurée laissant de l’espace, format paysage 16:9, haute qualité, SANS texte ni logo.
+- **`public/secteurs/entr-pitch.png`** — Prompt : Gros plan sur pitch devant des investisseurs, projecteur, dans le contexte entrepreneuriat & startups. Style : illustration/photo lifestyle professionnelle, moderne et chaleureuse, contexte africain/gabonais, lumière naturelle, optimiste. Palette de marque Studia : orange #e97e42 et violet #7C3AED en touches d’accent. Composition épurée laissant de l’espace, format paysage 16:9, haute qualité, SANS texte ni logo.
+- **`public/secteurs/entr-clients.png`** — Prompt : Gros plan sur recherche des premiers clients, marketing, dans le contexte entrepreneuriat & startups. Style : illustration/photo lifestyle professionnelle, moderne et chaleureuse, contexte africain/gabonais, lumière naturelle, optimiste. Palette de marque Studia : orange #e97e42 et violet #7C3AED en touches d’accent. Composition épurée laissant de l’espace, format paysage 16:9, haute qualité, SANS texte ni logo.
+
+## Notaire, Huissier & Juriste
+
+**Cover du secteur** — `public/secteurs/juridique.png`
+
+> Prompt : Scène représentant un·e juriste/notaire africain·e en cabinet élégant, codes de loi, ordinateur, balance de la justice discrète. Style : illustration/photo lifestyle professionnelle, moderne et chaleureuse, contexte africain/gabonais, lumière naturelle, optimiste. Palette de marque Studia : orange #e97e42 et violet #7C3AED en touches d’accent. Composition épurée laissant de l’espace, format paysage 16:9, haute qualité, SANS texte ni logo.
+
+### Formations
+
+- **`public/secteurs/jur-actes.png`** — Prompt : Gros plan sur rédaction d’actes juridiques sur ordinateur, dans le contexte notaire, huissier & juriste. Style : illustration/photo lifestyle professionnelle, moderne et chaleureuse, contexte africain/gabonais, lumière naturelle, optimiste. Palette de marque Studia : orange #e97e42 et violet #7C3AED en touches d’accent. Composition épurée laissant de l’espace, format paysage 16:9, haute qualité, SANS texte ni logo.
+- **`public/secteurs/jur-synthese.png`** — Prompt : Gros plan sur analyse et synthèse d’un dossier juridique épais, dans le contexte notaire, huissier & juriste. Style : illustration/photo lifestyle professionnelle, moderne et chaleureuse, contexte africain/gabonais, lumière naturelle, optimiste. Palette de marque Studia : orange #e97e42 et violet #7C3AED en touches d’accent. Composition épurée laissant de l’espace, format paysage 16:9, haute qualité, SANS texte ni logo.
+- **`public/secteurs/jur-contrats.png`** — Prompt : Gros plan sur signature de contrats et conventions, dans le contexte notaire, huissier & juriste. Style : illustration/photo lifestyle professionnelle, moderne et chaleureuse, contexte africain/gabonais, lumière naturelle, optimiste. Palette de marque Studia : orange #e97e42 et violet #7C3AED en touches d’accent. Composition épurée laissant de l’espace, format paysage 16:9, haute qualité, SANS texte ni logo.
+- **`public/secteurs/jur-relation.png`** — Prompt : Gros plan sur accueil et conseil d’un client au cabinet, dans le contexte notaire, huissier & juriste. Style : illustration/photo lifestyle professionnelle, moderne et chaleureuse, contexte africain/gabonais, lumière naturelle, optimiste. Palette de marque Studia : orange #e97e42 et violet #7C3AED en touches d’accent. Composition épurée laissant de l’espace, format paysage 16:9, haute qualité, SANS texte ni logo.
+
+## Services & Artisanat
+
+**Cover du secteur** — `public/secteurs/services.png`
+
+> Prompt : Scène représentant un·e artisan·e ou prestataire de services africain·e au travail, smartphone pour devis, ambiance atelier/terrain. Style : illustration/photo lifestyle professionnelle, moderne et chaleureuse, contexte africain/gabonais, lumière naturelle, optimiste. Palette de marque Studia : orange #e97e42 et violet #7C3AED en touches d’accent. Composition épurée laissant de l’espace, format paysage 16:9, haute qualité, SANS texte ni logo.
+
+### Formations
+
+- **`public/secteurs/serv-devis.png`** — Prompt : Gros plan sur édition de devis et factures sur smartphone, dans le contexte services & artisanat. Style : illustration/photo lifestyle professionnelle, moderne et chaleureuse, contexte africain/gabonais, lumière naturelle, optimiste. Palette de marque Studia : orange #e97e42 et violet #7C3AED en touches d’accent. Composition épurée laissant de l’espace, format paysage 16:9, haute qualité, SANS texte ni logo.
+- **`public/secteurs/serv-presence.png`** — Prompt : Gros plan sur présence en ligne, fiche et réseaux sociaux, dans le contexte services & artisanat. Style : illustration/photo lifestyle professionnelle, moderne et chaleureuse, contexte africain/gabonais, lumière naturelle, optimiste. Palette de marque Studia : orange #e97e42 et violet #7C3AED en touches d’accent. Composition épurée laissant de l’espace, format paysage 16:9, haute qualité, SANS texte ni logo.
+- **`public/secteurs/serv-organisation.png`** — Prompt : Gros plan sur agenda et rendez-vous organisés, dans le contexte services & artisanat. Style : illustration/photo lifestyle professionnelle, moderne et chaleureuse, contexte africain/gabonais, lumière naturelle, optimiste. Palette de marque Studia : orange #e97e42 et violet #7C3AED en touches d’accent. Composition épurée laissant de l’espace, format paysage 16:9, haute qualité, SANS texte ni logo.
+- **`public/secteurs/serv-prospection.png`** — Prompt : Gros plan sur prospection et fidélisation de clients, dans le contexte services & artisanat. Style : illustration/photo lifestyle professionnelle, moderne et chaleureuse, contexte africain/gabonais, lumière naturelle, optimiste. Palette de marque Studia : orange #e97e42 et violet #7C3AED en touches d’accent. Composition épurée laissant de l’espace, format paysage 16:9, haute qualité, SANS texte ni logo.
