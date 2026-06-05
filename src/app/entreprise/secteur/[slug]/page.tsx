@@ -74,9 +74,9 @@ export default async function SecteurPage({ params }: { params: Promise<{ slug: 
             {secteur.formations.map((f) => {
               const FIcon = fmtIcon(f.format)
               return (
-                <div key={f.slug} className="group bg-white rounded-3xl border border-[#f0ebe3] overflow-hidden hover:shadow-xl transition-all flex flex-col">
-                  <div className="relative h-44 w-full" style={{ background: `linear-gradient(135deg, ${secteur.couleur}, ${secteur.couleur}99)` }}>
-                    <Image src={f.cover} alt={f.titre} fill sizes="(max-width:768px) 100vw, 50vw" className="object-cover" />
+                <div key={f.slug} className="group bg-white rounded-3xl border border-[#f0ebe3] overflow-hidden hover:shadow-xl transition-all flex flex-col sm:flex-row">
+                  <div className="relative w-full sm:w-48 aspect-square flex-shrink-0" style={{ background: `linear-gradient(135deg, ${secteur.couleur}, ${secteur.couleur}99)` }}>
+                    <Image src={f.cover} alt={f.titre} fill sizes="(max-width:640px) 100vw, 192px" className="object-cover" />
                     <span className="absolute top-3 left-3 inline-flex items-center gap-1.5 bg-white/90 text-gray-700 text-xs font-medium px-2.5 py-1 rounded-full"><FIcon className="w-3.5 h-3.5" />{f.format}</span>
                   </div>
                   <div className="p-6 flex flex-col flex-1">
