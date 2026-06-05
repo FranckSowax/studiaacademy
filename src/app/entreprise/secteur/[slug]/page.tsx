@@ -50,14 +50,16 @@ export default async function SecteurPage({ params }: { params: Promise<{ slug: 
     <div className="relative flex min-h-screen flex-col">
       <Header />
       <main className="flex-1">
-        {/* HERO — cover 21:9 en fond + overlay conservé + texte du bon côté */}
-        <section className="relative overflow-hidden text-white" style={{ backgroundColor: secteur.couleur }}>
-          <Image src={secteur.cover} alt={secteur.label} fill priority sizes="100vw" className="object-cover" />
-          {/* Overlays (gardés) : base sur mobile + dégradé directionnel sur desktop */}
-          <div className="absolute inset-0 bg-black/45 lg:bg-transparent" />
-          <div className={`hidden lg:block absolute inset-0 ${textRight ? 'bg-gradient-to-l' : 'bg-gradient-to-r'} from-black/75 via-black/40 to-transparent`} />
+        {/* HERO — cover 21:9 en fond + overlay conservé + texte du bon côté.
+            pt-16 (section) = décalage du header fixe, pour ne pas le chevaucher. */}
+        <section className="relative text-white pt-16 bg-[#faf8f5]">
+          <div className="relative overflow-hidden" style={{ backgroundColor: secteur.couleur }}>
+            <Image src={secteur.cover} alt={secteur.label} fill priority sizes="100vw" className="object-cover" />
+            {/* Overlays (gardés) : base sur mobile + dégradé directionnel sur desktop */}
+            <div className="absolute inset-0 bg-black/45 lg:bg-transparent" />
+            <div className={`hidden lg:block absolute inset-0 ${textRight ? 'bg-gradient-to-l' : 'bg-gradient-to-r'} from-black/75 via-black/40 to-transparent`} />
 
-          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-14 min-h-[440px] lg:min-h-[480px]">
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-14 min-h-[400px] lg:min-h-[440px]">
             <Link href="/entreprise" className="inline-flex items-center gap-2 text-sm text-white/80 hover:text-white mb-4"><ArrowLeft className="w-4 h-4" />Tous les secteurs</Link>
             <div className="grid lg:grid-cols-2 items-center gap-6">
               <div className={textRight ? 'lg:order-2' : 'lg:order-1'}>
@@ -78,6 +80,7 @@ export default async function SecteurPage({ params }: { params: Promise<{ slug: 
               </div>
               <div className={`hidden lg:block ${textRight ? 'lg:order-1' : 'lg:order-2'}`} />
             </div>
+          </div>
           </div>
         </section>
 
