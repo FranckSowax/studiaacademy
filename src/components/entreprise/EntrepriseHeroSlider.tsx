@@ -57,8 +57,9 @@ export function EntrepriseHeroSlider({ slides }: { slides: HeroSlide[] }) {
       onMouseEnter={() => { paused.current = true }}
       onMouseLeave={() => { paused.current = false }}
     >
-      {/* Boîte 16:9 bornée en largeur → l'image s'affiche ENTIÈRE, jamais rognée */}
-      <div className="relative mx-auto w-full max-w-[1500px] lg:aspect-[16/9]">
+      {/* Boîte 16:9 bornée en largeur → l'image s'affiche ENTIÈRE, jamais rognée.
+          Décalage en haut sur mobile pour ne pas passer sous le header. */}
+      <div className="relative mx-auto w-full max-w-[1500px] pt-16 lg:pt-0 lg:aspect-[16/9]">
         {hasImg ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
