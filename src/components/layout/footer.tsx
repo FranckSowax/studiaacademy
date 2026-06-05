@@ -16,15 +16,12 @@ export function Footer() {
     company: [
       { label: 'À propos', href: '/about' },
       { label: 'Tarifs', href: '/pricing' },
-      { label: 'Blog', href: '/blog' },
-      { label: 'Carrières', href: '/careers' },
+      { label: 'Outils IA', href: '/outils' },
       { label: 'Contact', href: '/contact' },
     ],
     legal: [
       { label: 'Conditions d\'utilisation', href: '/terms' },
       { label: 'Politique de confidentialité', href: '/privacy' },
-      { label: 'Mentions légales', href: '/legal' },
-      { label: 'CGV', href: '/cgv' },
     ],
   }
 

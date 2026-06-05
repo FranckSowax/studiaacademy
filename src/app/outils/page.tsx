@@ -4,7 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
-import { aiServices } from '@/lib/ai-services/definitions'
+import { aiServices, coverFor } from '@/lib/ai-services/definitions'
 import { CATEGORY_LABELS, type ServiceCategory } from '@/types/ai-service'
 import {
   ArrowRight, Sparkles, GraduationCap, FileText, Briefcase, Presentation, Mail, Zap,
@@ -67,14 +67,25 @@ export default function OutilsPage() {
                         >
                           {/* Cover */}
                           <div className="relative h-36 w-full bg-[#fbf8f3]">
-                            <Image
-                              src={s.coverImage ?? `/${s.slug}.png`}
-                              alt={s.titre}
-                              fill
-                              sizes="(max-width: 768px) 100vw, 33vw"
-                              className="object-cover"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+                            {coverFor(s) ? (
+                              <>
+                                <Image
+                                  src={coverFor(s)!}
+                                  alt={s.titre}
+                                  fill
+                                  sizes="(max-width: 768px) 100vw, 33vw"
+                                  className="object-cover"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+                              </>
+                            ) : (
+                              <div
+                                className="absolute inset-0"
+                                style={{ background: `linear-gradient(135deg, ${s.couleur}, ${s.couleur}cc 60%, #1e293b)` }}
+                              >
+                                <Icon className="absolute right-4 top-4 w-12 h-12 text-white/25" />
+                              </div>
+                            )}
                             <div className="absolute top-0 left-0 right-0 h-1" style={{ backgroundColor: s.couleur }} />
                             {s.badge && (
                               <span className="absolute top-3 right-3 text-xs font-semibold px-2 py-0.5 rounded-full text-white shadow" style={{ backgroundColor: s.couleur }}>

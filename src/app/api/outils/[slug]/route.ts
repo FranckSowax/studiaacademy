@@ -7,6 +7,15 @@ import { getServiceBySlug } from '@/lib/ai-services/definitions'
 export const dynamic = 'force-dynamic'
 export const maxDuration = 300
 
+const FORMAT_RICHE = `
+
+MISE EN FORME (IMPORTANT) — ta réponse sera affichée comme une fiche HTML interactive :
+- Commence par un titre principal « # ... » puis découpe TOUT le contenu en sections « ## ... » explicites (une idée par section).
+- Pour des définitions / du vocabulaire : crée une section « ## Définitions » où CHAQUE puce suit EXACTEMENT le format « **Terme** : explication » (elles deviennent des cartes à retourner).
+- Pour des démarches, étapes, actions ou points à vérifier : crée une section dont le titre contient « Checklist » / « Étapes » / « À faire » avec une puce par élément (elles deviennent des cases à cocher).
+- Mets les conseils/astuces dans une section « ## Astuces » ou « ## Conseils », et les mises en garde dans une section « ## Important ».
+- Mets en **gras** les éléments clés. Utilise des tableaux Markdown pour les données chiffrées. N'ajoute aucune balise HTML.`
+
 function stripCodeFences(s: string): string {
   return s
     .replace(/^```(?:html|markdown|md)?\s*/i, '')
@@ -76,12 +85,13 @@ export async function POST(
   // ── Génération Mistral ──
   try {
     const { system, user: userMsg } = service.buildPrompt(inputs)
+    const systemFull = service.outputType === 'markdown' ? system + FORMAT_RICHE : system
     const raw = await mistralChat({
       model: 'mistral-large-latest',
       temperature: service.outputType === 'html' ? 0.5 : 0.4,
       maxTokens: 8000,
       messages: [
-        { role: 'system', content: system },
+        { role: 'system', content: systemFull },
         { role: 'user', content: userMsg },
       ],
     })

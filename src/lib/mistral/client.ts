@@ -72,14 +72,30 @@ export async function mistralChat(options: MistralChatOptions): Promise<string> 
     body.response_format = { type: 'json_object' }
   }
 
-  const response = await fetch(MISTRAL_API_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${getApiKey()}`,
-    },
-    body: JSON.stringify(body),
-  })
+  // Timeout dur : évite qu'une connexion suspendue ne fasse tomber la requête
+  // en 502 côté proxy (Railway). On échoue proprement => géré par le try/catch appelant.
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 110_000)
+
+  let response: Response
+  try {
+    response = await fetch(MISTRAL_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${getApiKey()}`,
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    })
+  } catch (e) {
+    if (e instanceof Error && e.name === 'AbortError') {
+      throw new Error("L'IA met trop de temps à répondre. Réessayez (texte plus court si besoin).")
+    }
+    throw e
+  } finally {
+    clearTimeout(timeout)
+  }
 
   if (!response.ok) {
     const errorText = await response.text()

@@ -1,19 +1,18 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
 import {
-  ArrowLeft, Sparkles, Loader2, Copy, Check, Printer, Download, RefreshCw,
+  ArrowLeft, Sparkles, Loader2, Copy, Check, Download, RefreshCw,
   Wallet, ExternalLink,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { RichResult } from './RichResult'
 import type { ServiceField, OutputType } from '@/types/ai-service'
 
 interface ClientDef {
@@ -46,6 +45,26 @@ export function ToolRunner({
   const [output, setOutput] = useState<string | null>(null)
   const [error, setError] = useState('')
   const [copied, setCopied] = useState(false)
+  const [progress, setProgress] = useState(0)
+
+  // Barre de progression animée pendant la génération IA (durée non connue → easing)
+  useEffect(() => {
+    if (!loading) return
+    const id = setInterval(() => {
+      setProgress((p) => {
+        if (p >= 94) return p
+        const inc = p < 45 ? 7 : p < 70 ? 3.5 : p < 88 ? 1.4 : 0.5
+        return Math.min(94, p + inc)
+      })
+    }, 450)
+    return () => clearInterval(id)
+  }, [loading])
+
+  const progressStep =
+    progress < 30 ? 'Analyse de votre demande…' :
+    progress < 60 ? 'Rédaction par l\'IA…' :
+    progress < 88 ? 'Structuration du contenu…' :
+    'Mise en forme finale…'
 
   const set = (name: string, v: string) => setValues((p) => ({ ...p, [name]: v }))
   const canSubmit = def.fields.every((f) => !f.required || values[f.name]?.trim())
@@ -56,6 +75,7 @@ export function ToolRunner({
       return
     }
     setLoading(true)
+    setProgress(6)
     setError('')
     setOutput(null)
     try {
@@ -81,6 +101,7 @@ export function ToolRunner({
     setLoading(false)
   }
 
+  // ── Actions pour les services à sortie HTML (pitch, site, devis, scoring) ──
   const copy = () => {
     if (!output) return
     navigator.clipboard.writeText(output)
@@ -88,40 +109,21 @@ export function ToolRunner({
     setTimeout(() => setCopied(false), 2000)
   }
 
-  const download = () => {
-    if (!output) return
-    const ext = def.outputType === 'html' ? 'html' : 'md'
-    const blob = new Blob([output], { type: def.outputType === 'html' ? 'text/html' : 'text/markdown' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `${def.slug}.${ext}`
-    a.click()
-    URL.revokeObjectURL(url)
-  }
-
   const openHtml = () => {
     if (!output) return
     const w = window.open()
-    if (w) {
-      w.document.write(output)
-      w.document.close()
-    }
+    if (w) { w.document.write(output); w.document.close() }
   }
 
-  const printResult = () => {
+  // Télécharger en PDF : ouvre le document et lance « Enregistrer en PDF »
+  const downloadPdf = () => {
     if (!output) return
-    const w = window.open('', '', 'width=900,height=700')
+    const w = window.open('', '_blank', 'width=900,height=700')
     if (!w) return
-    if (def.outputType === 'html') {
-      w.document.write(output)
-    } else {
-      // Markdown brut → rendu basique pour impression
-      w.document.write(`<html><head><meta charset="utf-8"><title>${def.titre}</title><style>body{font-family:Georgia,serif;max-width:720px;margin:40px auto;padding:0 20px;line-height:1.6;color:#1a1a1a;white-space:pre-wrap}</style></head><body>${output.replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c] as string))}</body></html>`)
-    }
+    const script = `<script>window.onload=function(){setTimeout(function(){window.focus();window.print()},350)};window.onafterprint=function(){setTimeout(function(){window.close()},100)}<\/script>`
+    const doc = output.includes('</body>') ? output.replace('</body>', `${script}</body>`) : output + script
+    w.document.write(doc)
     w.document.close()
-    w.focus()
-    setTimeout(() => w.print(), 300)
   }
 
   return (
@@ -212,7 +214,22 @@ export function ToolRunner({
             </>
           )}
         </Button>
-        {!isLoggedIn && (
+        {loading && (
+          <div className="pt-1" role="progressbar" aria-valuenow={Math.round(progress)} aria-valuemin={0} aria-valuemax={100}>
+            <div className="flex items-center justify-between mb-1.5 text-xs">
+              <span className="text-gray-500">{progressStep}</span>
+              <span className="font-semibold text-[#a84d16]">{Math.round(progress)}%</span>
+            </div>
+            <div className="h-2 w-full rounded-full bg-[#f0ebe3] overflow-hidden">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-[#e97e42] to-[#d56a2e] transition-[width] duration-500 ease-out"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+          </div>
+        )}
+
+        {!isLoggedIn && !loading && (
           <p className="text-xs text-center text-gray-400">Connexion requise — vous serez redirigé.</p>
         )}
       </div>
@@ -220,39 +237,39 @@ export function ToolRunner({
       {/* Résultat */}
       {output && (
         <div className="mt-8">
-          <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-            <h2 className="font-bold font-heading text-gray-900 flex items-center gap-2">
-              <Check className="w-5 h-5 text-green-500" />Résultat
-            </h2>
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <Button variant="outline" size="sm" onClick={copy} className="rounded-lg border-[#e2e8f0]">
-                {copied ? <Check className="w-4 h-4 mr-1" /> : <Copy className="w-4 h-4 mr-1" />}{copied ? 'Copié' : 'Copier'}
-              </Button>
-              {def.outputType === 'html' && (
-                <Button variant="outline" size="sm" onClick={openHtml} className="rounded-lg border-[#e2e8f0]">
-                  <ExternalLink className="w-4 h-4 mr-1" />Ouvrir
-                </Button>
-              )}
-              <Button variant="outline" size="sm" onClick={printResult} className="rounded-lg border-[#e2e8f0]">
-                <Printer className="w-4 h-4 mr-1" />Imprimer
-              </Button>
-              <Button variant="outline" size="sm" onClick={download} className="rounded-lg border-[#e2e8f0]">
-                <Download className="w-4 h-4 mr-1" />Télécharger
-              </Button>
-              <Button variant="outline" size="sm" onClick={generate} className="rounded-lg border-[#e2e8f0]">
-                <RefreshCw className="w-4 h-4 mr-1" />Regénérer
-              </Button>
-            </div>
-          </div>
-
           {def.outputType === 'html' ? (
-            <div className="rounded-2xl border border-[#f0ebe3] overflow-hidden bg-white">
-              <iframe srcDoc={output} className="w-full h-[600px]" title="Aperçu" sandbox="allow-same-origin" />
-            </div>
+            <>
+              <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+                <h2 className="font-bold font-heading text-gray-900 flex items-center gap-2">
+                  <Check className="w-5 h-5 text-green-500" />Résultat
+                </h2>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <Button variant="outline" size="sm" onClick={copy} className="rounded-lg border-[#e2e8f0]">
+                    {copied ? <Check className="w-4 h-4 mr-1" /> : <Copy className="w-4 h-4 mr-1" />}{copied ? 'Copié' : 'Copier'}
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={openHtml} className="rounded-lg border-[#e2e8f0]">
+                    <ExternalLink className="w-4 h-4 mr-1" />Ouvrir
+                  </Button>
+                  <Button size="sm" onClick={downloadPdf} className="rounded-lg bg-gradient-to-r from-[#e97e42] to-[#d56a2e] text-white">
+                    <Download className="w-4 h-4 mr-1" />Télécharger PDF
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={generate} className="rounded-lg border-[#e2e8f0]">
+                    <RefreshCw className="w-4 h-4 mr-1" />Regénérer
+                  </Button>
+                </div>
+              </div>
+              <div className="rounded-2xl border border-[#f0ebe3] overflow-hidden bg-white">
+                <iframe srcDoc={output} className="w-full h-[680px]" title="Aperçu" sandbox="allow-same-origin allow-popups" />
+              </div>
+            </>
           ) : (
-            <div className="markdown-body bg-white rounded-2xl border border-[#f0ebe3] p-6 sm:p-8">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{output}</ReactMarkdown>
-            </div>
+            <RichResult
+              markdown={output}
+              title={def.titre}
+              sousTitre={def.sousTitre}
+              accent={def.couleur}
+              onRegenerate={generate}
+            />
           )}
         </div>
       )}

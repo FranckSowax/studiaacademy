@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation'
 import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
 import { createClient } from '@/lib/supabase/server'
-import { getServiceBySlug, aiServices } from '@/lib/ai-services/definitions'
+import { getServiceBySlug, aiServices, coverFor } from '@/lib/ai-services/definitions'
 import { ToolRunner } from '@/components/outils/ToolRunner'
 import type { Metadata } from 'next'
 
@@ -38,7 +38,7 @@ export default async function OutilPage({ params }: Props) {
     sousTitre: service.sousTitre,
     description: service.description,
     couleur: service.couleur,
-    coverImage: service.coverImage ?? `/${service.slug}.png`,
+    coverImage: coverFor(service),
     badge: service.badge,
     prixCredits: service.prixCredits,
     ctaLabel: service.ctaLabel,

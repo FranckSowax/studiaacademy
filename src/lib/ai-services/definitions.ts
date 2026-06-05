@@ -826,3 +826,16 @@ Produis en Markdown un **plan d'onboarding** structuré en **3 phases : 30 jours
 export function getServiceBySlug(slug: string): AIServiceDef | undefined {
   return aiServices.find((s) => s.slug === slug)
 }
+
+/** Slugs disposant d'une image de couverture dans /public (évite les 400 next/image). */
+export const COVER_SLUGS = new Set<string>([
+  'prepa-concours', 'pack-candidature', 'business-plan', 'pitch-html', 'courrier-admin',
+  'site-vitrine', 'identite-marque', 'devis-facture', 'posts-reseaux', 'creation-entreprise',
+  'etude-marche', 'fiches-revision', 'correcteur-dissertation', 'plan-memoire', 'explique-cours',
+  'orientation', 'resume-document',
+])
+
+/** Chemin de cover si l'image existe, sinon undefined (fallback dégradé côté UI). */
+export function coverFor(s: AIServiceDef): string | undefined {
+  return s.coverImage ?? (COVER_SLUGS.has(s.slug) ? `/${s.slug}.png` : undefined)
+}
