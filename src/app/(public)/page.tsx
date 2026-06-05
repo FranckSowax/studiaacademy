@@ -27,6 +27,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { StatsCounter } from '@/components/sections/StatsCounter'
 import { FAQSection } from '@/components/sections/FAQSection'
+import { SecteursSection } from '@/components/sections/SecteursSection'
 import { GlobeWrapper } from '@/components/hero/GlobeWrapper'
 import { modules } from '@/lib/modules'
 
@@ -542,6 +543,9 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ─── SECTEURS D'ACTIVITÉ ───────────────────────────────────── */}
+      <SecteursSection />
 
       {/* ─── FAQ ───────────────────────────────────────────────────── */}
       <FAQSection />
