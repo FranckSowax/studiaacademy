@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useRef, useState } from 'react'
+import Link from 'next/link'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import {
@@ -174,13 +175,16 @@ function flashParse(item: string): { front: string; back: string } {
 // Composant principal
 // ───────────────────────────────────────────
 export function RichResult({
-  markdown, title, accent, sousTitre, onRegenerate,
+  markdown, title, accent, sousTitre, onRegenerate, savedHref, heading = 'Résultat',
 }: {
   markdown: string
   title: string
   accent: string
   sousTitre?: string
-  onRegenerate: () => void
+  onRegenerate?: () => void
+  /** Si fourni, affiche « Enregistré dans Mes documents » avec ce lien. */
+  savedHref?: string
+  heading?: string
 }) {
   const ref = useRef<HTMLDivElement>(null)
   const [copied, setCopied] = useState(false)
@@ -214,7 +218,7 @@ export function RichResult({
     <div>
       <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
         <h2 className="font-bold font-heading text-gray-900 flex items-center gap-2">
-          <Check className="w-5 h-5 text-green-500" />Résultat
+          <Check className="w-5 h-5 text-green-500" />{heading}
         </h2>
         <div className="flex items-center gap-1.5 flex-wrap">
           <Button variant="outline" size="sm" onClick={copy} className="rounded-lg border-[#e2e8f0]">
@@ -229,11 +233,19 @@ export function RichResult({
           >
             <Download className="w-4 h-4 mr-1" />Télécharger PDF
           </Button>
-          <Button variant="outline" size="sm" onClick={onRegenerate} className="rounded-lg border-[#e2e8f0]">
-            <RefreshCw className="w-4 h-4 mr-1" />Regénérer
-          </Button>
+          {onRegenerate && (
+            <Button variant="outline" size="sm" onClick={onRegenerate} className="rounded-lg border-[#e2e8f0]">
+              <RefreshCw className="w-4 h-4 mr-1" />Regénérer
+            </Button>
+          )}
         </div>
       </div>
+
+      {savedHref && (
+        <Link href={savedHref} className="inline-flex items-center gap-1.5 text-xs text-green-700 bg-green-50 border border-green-200 rounded-full px-3 py-1 mb-3 hover:bg-green-100 transition-colors">
+          <Check className="w-3.5 h-3.5" />Enregistré dans Mes documents
+        </Link>
+      )}
 
       <div ref={ref} className="rich-result" style={{ ['--accent' as string]: accent }}>
         <style dangerouslySetInnerHTML={{ __html: RICH_CSS }} />

@@ -12,6 +12,7 @@ import {
   BarChart3,
   GraduationCap,
   Award,
+  FileText,
   MessageSquare,
   Bell,
   Settings,
@@ -33,6 +34,7 @@ interface MenuItem {
 const menuItems: MenuItem[] = [
   { id: 'overview', icon: Home, label: "Vue d'ensemble", href: '/dashboard', badge: null },
   { id: 'services', icon: Zap, label: 'Micro-Services', href: '/services', badge: 'Nouveau' },
+  { id: 'documents', icon: FileText, label: 'Mes documents', href: '/dashboard/documents', badge: null },
   { id: 'lessons', icon: BookOpen, label: 'Mes Formations', href: '/dashboard/courses', badge: null },
   { id: 'leaderboard', icon: Trophy, label: 'Classement', href: '/dashboard/leaderboard', badge: null },
   { id: 'skills', icon: BarChart3, label: 'Compétences', href: '/dashboard/skills', badge: null },

@@ -96,6 +96,23 @@ export async function POST(
       ],
     })
     const output = stripCodeFences(raw)
+
+    // ── Sauvegarde du résultat (historique « Mes documents ») ──
+    // Via le client admin pour garantir l'enregistrement ; n'interrompt jamais la réponse.
+    try {
+      await admin.from('outil_generations').insert({
+        user_id: user.id,
+        tool_slug: service.slug,
+        title: service.titre,
+        inputs,
+        output,
+        output_type: service.outputType,
+        credits_used: service.prixCredits,
+      })
+    } catch (saveErr) {
+      console.error('outil_generations insert failed:', saveErr)
+    }
+
     return NextResponse.json({ output, outputType: service.outputType, credits: creditsApres })
   } catch (e) {
     // En cas d'échec, rembourser les crédits débités

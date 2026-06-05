@@ -258,6 +258,9 @@ export function ToolRunner({
                   </Button>
                 </div>
               </div>
+              <Link href="/dashboard/documents" className="inline-flex items-center gap-1.5 text-xs text-green-700 bg-green-50 border border-green-200 rounded-full px-3 py-1 mb-3 hover:bg-green-100 transition-colors">
+                <Check className="w-3.5 h-3.5" />Enregistré dans Mes documents
+              </Link>
               <div className="rounded-2xl border border-[#f0ebe3] overflow-hidden bg-white">
                 <iframe srcDoc={output} className="w-full h-[680px]" title="Aperçu" sandbox="allow-same-origin allow-popups" />
               </div>
@@ -269,6 +272,7 @@ export function ToolRunner({
               sousTitre={def.sousTitre}
               accent={def.couleur}
               onRegenerate={generate}
+              savedHref="/dashboard/documents"
             />
           )}
         </div>
