@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
-import { ChevronLeft, ChevronRight, ArrowRight, Building2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react'
 
 export interface HeroSlide {
   id: string
@@ -37,63 +37,60 @@ export function EntrepriseHeroSlider({ slides }: { slides: HeroSlide[] }) {
 
   return (
     <section
-      className="relative overflow-hidden"
+      className="relative overflow-hidden bg-[#faf8f5]"
       onMouseEnter={() => { paused.current = true }}
       onMouseLeave={() => { paused.current = false }}
-      style={{ background: `linear-gradient(120deg, ${s.couleur}, #1e1147)` }}
     >
-      <div className="pointer-events-none absolute -top-24 right-1/4 w-[40vw] h-[40vw] rounded-full bg-white/10 blur-3xl transition-all duration-700" />
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-[540px] pt-24 pb-12 grid lg:grid-cols-2 items-center gap-6">
-        {/* Texte */}
-        <div className={`text-white ${textRight ? 'lg:order-2' : 'lg:order-1'}`}>
-          <div key={`${s.id}-txt`} className="slide-anim max-w-xl">
-            <span className="inline-flex items-center gap-2 bg-white/10 border border-white/15 px-3 py-1.5 rounded-full text-sm font-medium mb-4">
-              <Building2 className="w-4 h-4" />Studia Pro · {idx + 1}/{n}
+      {/* Image plein cadre (sans overlay) */}
+      {hasImg ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          key={`${s.id}-bg`}
+          src={s.image_url!}
+          alt={s.titre}
+          onError={() => setImgOk((m) => ({ ...m, [s.id]: false }))}
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+      ) : (
+        <div className="absolute inset-0" style={{ background: `linear-gradient(120deg, ${s.couleur}22, #faf8f5)` }} />
+      )}
+
+      {/* Contenu */}
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-[460px] lg:min-h-[560px] pt-24 pb-20 grid lg:grid-cols-2 items-center gap-6">
+        <div className={textRight ? 'lg:order-2' : 'lg:order-1'}>
+          <div
+            key={`${s.id}-txt`}
+            className="slide-anim max-w-xl bg-white/70 lg:bg-transparent backdrop-blur-[2px] lg:backdrop-blur-0 rounded-3xl lg:rounded-none p-5 lg:p-0"
+          >
+            <span className="inline-flex items-center gap-2 bg-[#fff1e6] text-[#a84d16] px-3 py-1.5 rounded-full text-sm font-semibold mb-4">
+              Studia Pro · {idx + 1}/{n}
             </span>
-            <h1 className="text-3xl md:text-5xl font-extrabold font-heading leading-tight mb-3">{s.titre}</h1>
-            {s.sous_titre && <p className="text-lg md:text-xl text-white/90 font-medium mb-3">{s.sous_titre}</p>}
-            {s.texte && <p className="text-white/75 mb-7 max-w-lg">{s.texte}</p>}
+            <h1 className="text-3xl md:text-5xl font-extrabold font-heading leading-tight mb-3 text-gray-900">{s.titre}</h1>
+            {s.sous_titre && <p className="text-lg md:text-2xl text-[#e97e42] font-bold mb-3">{s.sous_titre}</p>}
+            {s.texte && <p className="text-gray-700 mb-7 max-w-lg">{s.texte}</p>}
             {s.cta_href && (
-              <Link href={s.cta_href} className="inline-flex items-center gap-2 bg-white text-gray-900 rounded-2xl px-7 py-4 font-bold hover:bg-white/90 transition-colors">
+              <Link href={s.cta_href} className="inline-flex items-center gap-2 bg-[#e97e42] text-white rounded-2xl px-7 py-4 font-bold hover:bg-[#d56a2e] transition-colors shadow-lg shadow-[#e97e42]/25">
                 {s.cta_label || 'Découvrir'}<ArrowRight className="w-5 h-5" />
               </Link>
             )}
           </div>
         </div>
-
-        {/* Visuel (personnage détouré) */}
-        <div className={`hidden lg:flex items-end justify-center h-full ${textRight ? 'lg:order-1' : 'lg:order-2'}`}>
-          {hasImg ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              key={`${s.id}-img`}
-              src={s.image_url!}
-              alt={s.titre}
-              onError={() => setImgOk((m) => ({ ...m, [s.id]: false }))}
-              className="slide-img-in max-h-[460px] w-auto object-contain drop-shadow-2xl"
-            />
-          ) : (
-            <div key={`${s.id}-ph`} className="slide-img-in w-72 h-72 rounded-full bg-white/10 flex items-center justify-center">
-              <Building2 className="w-24 h-24 text-white/30" />
-            </div>
-          )}
-        </div>
+        <div className={textRight ? 'lg:order-1' : 'lg:order-2'} />
       </div>
 
-      {/* Flèches */}
+      {/* Navigation */}
       {n > 1 && (
         <>
-          <button onClick={() => go(-1)} aria-label="Précédent" className="absolute left-3 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center justify-center backdrop-blur transition-colors">
+          <button onClick={() => go(-1)} aria-label="Précédent" className="absolute left-3 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/80 hover:bg-white text-gray-800 flex items-center justify-center shadow-md transition-colors">
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <button onClick={() => go(1)} aria-label="Suivant" className="absolute right-3 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center justify-center backdrop-blur transition-colors">
+          <button onClick={() => go(1)} aria-label="Suivant" className="absolute right-3 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/80 hover:bg-white text-gray-800 flex items-center justify-center shadow-md transition-colors">
             <ChevronRight className="w-5 h-5" />
           </button>
-          {/* Points */}
           <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2">
             {slides.map((sl, i) => (
               <button key={sl.id} onClick={() => setIdx(i)} aria-label={`Slide ${i + 1}`}
-                className={`h-2 rounded-full transition-all ${i === idx ? 'w-7 bg-white' : 'w-2 bg-white/40 hover:bg-white/70'}`} />
+                className={`h-2 rounded-full transition-all ${i === idx ? 'w-7 bg-[#e97e42]' : 'w-2 bg-gray-900/30 hover:bg-gray-900/50'}`} />
             ))}
           </div>
         </>
