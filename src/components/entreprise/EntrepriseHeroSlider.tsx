@@ -35,13 +35,29 @@ export function EntrepriseHeroSlider({ slides }: { slides: HeroSlide[] }) {
   const textRight = s.side === 'right'
   const hasImg = !!s.image_url && imgOk[s.id] !== false
 
+  const TextBlock = (
+    <div key={`${s.id}-txt`} className="slide-anim max-w-xl">
+      <span className="inline-flex items-center gap-2 bg-[#fff1e6] text-[#a84d16] px-3 py-1.5 rounded-full text-xs sm:text-sm font-semibold mb-2 sm:mb-3">
+        Studia Pro · {idx + 1}/{n}
+      </span>
+      <h1 className="text-xl sm:text-3xl md:text-4xl xl:text-5xl font-extrabold font-heading leading-tight mb-1.5 sm:mb-3 text-gray-900">{s.titre}</h1>
+      {s.sous_titre && <p className="text-sm sm:text-lg md:text-xl xl:text-2xl text-[#e97e42] font-bold mb-2 sm:mb-3">{s.sous_titre}</p>}
+      {s.texte && <p className="text-gray-700 text-sm md:text-base mb-4 sm:mb-6 max-w-lg hidden sm:block">{s.texte}</p>}
+      {s.cta_href && (
+        <Link href={s.cta_href} className="inline-flex items-center gap-2 bg-[#e97e42] text-white rounded-xl sm:rounded-2xl px-5 sm:px-7 py-3 sm:py-4 text-sm sm:text-base font-bold hover:bg-[#d56a2e] transition-colors shadow-lg shadow-[#e97e42]/25">
+          {s.cta_label || 'Découvrir'}<ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
+        </Link>
+      )}
+    </div>
+  )
+
   return (
     <section
-      className="relative overflow-hidden bg-[#faf8f5]"
+      className="relative overflow-hidden bg-[#faf8f5] lg:h-[56.25vw] lg:max-h-[700px]"
       onMouseEnter={() => { paused.current = true }}
       onMouseLeave={() => { paused.current = false }}
     >
-      {/* Image plein cadre (sans overlay) */}
+      {/* Image entière (16:9) : empilée en mobile, plein cadre sans rognage en desktop */}
       {hasImg ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
@@ -49,48 +65,33 @@ export function EntrepriseHeroSlider({ slides }: { slides: HeroSlide[] }) {
           src={s.image_url!}
           alt={s.titre}
           onError={() => setImgOk((m) => ({ ...m, [s.id]: false }))}
-          className="absolute inset-0 w-full h-full object-cover"
+          className="block w-full h-auto lg:absolute lg:inset-0 lg:w-full lg:h-full lg:object-cover"
         />
       ) : (
-        <div className="absolute inset-0" style={{ background: `linear-gradient(120deg, ${s.couleur}22, #faf8f5)` }} />
+        <div className="w-full aspect-[16/9] lg:absolute lg:inset-0" style={{ background: `linear-gradient(120deg, ${s.couleur}22, #faf8f5)` }} />
       )}
 
-      {/* Contenu */}
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-[460px] lg:min-h-[560px] pt-24 pb-20 grid lg:grid-cols-2 items-center gap-6">
-        <div className={textRight ? 'lg:order-2' : 'lg:order-1'}>
-          <div
-            key={`${s.id}-txt`}
-            className="slide-anim max-w-xl bg-white/70 lg:bg-transparent backdrop-blur-[2px] lg:backdrop-blur-0 rounded-3xl lg:rounded-none p-5 lg:p-0"
-          >
-            <span className="inline-flex items-center gap-2 bg-[#fff1e6] text-[#a84d16] px-3 py-1.5 rounded-full text-sm font-semibold mb-4">
-              Studia Pro · {idx + 1}/{n}
-            </span>
-            <h1 className="text-3xl md:text-5xl font-extrabold font-heading leading-tight mb-3 text-gray-900">{s.titre}</h1>
-            {s.sous_titre && <p className="text-lg md:text-2xl text-[#e97e42] font-bold mb-3">{s.sous_titre}</p>}
-            {s.texte && <p className="text-gray-700 mb-7 max-w-lg">{s.texte}</p>}
-            {s.cta_href && (
-              <Link href={s.cta_href} className="inline-flex items-center gap-2 bg-[#e97e42] text-white rounded-2xl px-7 py-4 font-bold hover:bg-[#d56a2e] transition-colors shadow-lg shadow-[#e97e42]/25">
-                {s.cta_label || 'Découvrir'}<ArrowRight className="w-5 h-5" />
-              </Link>
-            )}
-          </div>
+      {/* Contenu : sous l'image en mobile, superposé sur le côté vide en desktop */}
+      <div className="relative lg:absolute lg:inset-0">
+        <div className="max-w-7xl mx-auto lg:h-full px-4 sm:px-6 lg:px-8 py-5 sm:py-7 lg:py-0 grid lg:grid-cols-2 items-center gap-4 lg:gap-6">
+          <div className={textRight ? 'lg:order-2' : 'lg:order-1'}>{TextBlock}</div>
+          <div className="hidden lg:block" />
         </div>
-        <div className={textRight ? 'lg:order-1' : 'lg:order-2'} />
       </div>
 
       {/* Navigation */}
       {n > 1 && (
         <>
-          <button onClick={() => go(-1)} aria-label="Précédent" className="absolute left-3 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/80 hover:bg-white text-gray-800 flex items-center justify-center shadow-md transition-colors">
+          <button onClick={() => go(-1)} aria-label="Précédent" className="absolute left-2 sm:left-3 top-[28%] lg:top-1/2 -translate-y-1/2 z-10 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/80 hover:bg-white text-gray-800 flex items-center justify-center shadow-md transition-colors">
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <button onClick={() => go(1)} aria-label="Suivant" className="absolute right-3 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/80 hover:bg-white text-gray-800 flex items-center justify-center shadow-md transition-colors">
+          <button onClick={() => go(1)} aria-label="Suivant" className="absolute right-2 sm:right-3 top-[28%] lg:top-1/2 -translate-y-1/2 z-10 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/80 hover:bg-white text-gray-800 flex items-center justify-center shadow-md transition-colors">
             <ChevronRight className="w-5 h-5" />
           </button>
-          <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2">
+          <div className="absolute bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1.5 sm:gap-2">
             {slides.map((sl, i) => (
               <button key={sl.id} onClick={() => setIdx(i)} aria-label={`Slide ${i + 1}`}
-                className={`h-2 rounded-full transition-all ${i === idx ? 'w-7 bg-[#e97e42]' : 'w-2 bg-gray-900/30 hover:bg-gray-900/50'}`} />
+                className={`h-1.5 sm:h-2 rounded-full transition-all ${i === idx ? 'w-6 sm:w-7 bg-[#e97e42]' : 'w-1.5 sm:w-2 bg-gray-900/30 hover:bg-gray-900/50'}`} />
             ))}
           </div>
         </>
