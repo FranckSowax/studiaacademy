@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
 import { SECTEURS } from '@/lib/secteurs'
+import { createClient } from '@/lib/supabase/server'
+import { EntrepriseHeroSlider, type HeroSlide } from '@/components/entreprise/EntrepriseHeroSlider'
 import {
   ArrowRight, BarChart3, Building2, Sparkles, ChevronRight, MessageSquare, Clock,
   ShieldCheck, Users, Landmark, ClipboardList, Calculator, ShoppingBag, Megaphone,
@@ -20,24 +22,32 @@ const iconMap: Record<string, React.ComponentType<{ className?: string; style?: 
   Users, Landmark, ClipboardList, Calculator, ShoppingBag, Megaphone, GraduationCap, HeartPulse, Sprout, Rocket, Scale, Wrench,
 }
 
-export default function EntreprisePage() {
+export default async function EntreprisePage() {
+  const supabase = await createClient()
+  const { data: slidesData } = await supabase
+    .from('entreprise_slides')
+    .select('id, titre, sous_titre, texte, cta_label, cta_href, image_url, side, couleur')
+    .eq('is_active', true)
+    .order('ordre', { ascending: true })
+  const slides = (slidesData ?? []) as HeroSlide[]
+
   return (
     <div className="relative flex min-h-screen flex-col">
       <Header />
       <main className="flex-1">
-        {/* HERO */}
-        <section className="relative overflow-hidden bg-gradient-to-br from-[#2e1065] via-[#4c1d95] to-[#7C3AED] text-white pt-28 pb-16">
-          <div className="pointer-events-none absolute -top-24 -right-24 w-[40vw] h-[40vw] rounded-full bg-[#e97e42]/20 blur-3xl" />
-          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <span className="inline-flex items-center gap-2 bg-white/10 border border-white/15 px-3 py-1.5 rounded-full text-sm font-medium mb-5"><Building2 className="w-4 h-4" />Entreprises, professionnels & administrations</span>
-            <h1 className="text-4xl md:text-5xl font-extrabold font-heading leading-tight mb-4 max-w-3xl mx-auto">Formez-vous à l&apos;IA selon votre secteur d&apos;activité</h1>
-            <p className="text-lg text-white/80 mb-8 max-w-2xl mx-auto">Choisissez votre métier et accédez à des formations et des outils IA qui transforment votre quotidien — en ligne ou en présentiel.</p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <a href="#secteurs" className="inline-flex items-center justify-center gap-2 bg-white text-[#4c1d95] rounded-2xl px-7 py-4 font-bold hover:bg-white/90 transition-colors">Choisir mon secteur<ArrowRight className="w-5 h-5" /></a>
-              <Link href="/entreprise/diagnostic" className="inline-flex items-center justify-center gap-2 bg-[#e97e42] hover:bg-[#d56a2e] text-white rounded-2xl px-7 py-4 font-bold transition-colors"><BarChart3 className="w-5 h-5" />Diagnostic effectifs gratuit</Link>
+        {/* HERO — slider défilant (géré depuis l'admin) */}
+        {slides.length > 0 ? (
+          <EntrepriseHeroSlider slides={slides} />
+        ) : (
+          <section className="relative overflow-hidden bg-gradient-to-br from-[#2e1065] via-[#4c1d95] to-[#7C3AED] text-white pt-28 pb-16">
+            <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+              <span className="inline-flex items-center gap-2 bg-white/10 border border-white/15 px-3 py-1.5 rounded-full text-sm font-medium mb-5"><Building2 className="w-4 h-4" />Entreprises, professionnels & administrations</span>
+              <h1 className="text-4xl md:text-5xl font-extrabold font-heading leading-tight mb-4 max-w-3xl mx-auto">Formez-vous à l&apos;IA selon votre secteur d&apos;activité</h1>
+              <p className="text-lg text-white/80 mb-8 max-w-2xl mx-auto">Choisissez votre métier et accédez à des formations et des outils IA qui transforment votre quotidien.</p>
+              <a href="#secteurs" className="inline-flex items-center justify-center gap-2 bg-white text-[#4c1d95] rounded-2xl px-7 py-4 font-bold"><span>Choisir mon secteur</span><ArrowRight className="w-5 h-5" /></a>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
 
         {/* BÉNÉFICES */}
         <section className="bg-[#faf8f5] border-y border-[#f0ebe3]">

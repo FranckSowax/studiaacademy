@@ -207,6 +207,24 @@
   border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
+/* ── Slider hero entreprise : texte animé à l'apparition ── */
+@media (prefers-reduced-motion: no-preference) {
+  .slide-anim > * { opacity: 0; animation: slideTextIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+  .slide-anim > *:nth-child(1) { animation-delay: 0.05s; }
+  .slide-anim > *:nth-child(2) { animation-delay: 0.18s; }
+  .slide-anim > *:nth-child(3) { animation-delay: 0.31s; }
+  .slide-anim > *:nth-child(4) { animation-delay: 0.44s; }
+  .slide-img-in { animation: slideImgIn 0.8s cubic-bezier(0.22, 1, 0.36, 1) both; }
+}
+@keyframes slideTextIn {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideImgIn {
+  from { opacity: 0; transform: translateY(30px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
 /* Header scroll-aware */
 #main-header {
   transition: background-color 0.3s ease, box-shadow 0.3s ease;

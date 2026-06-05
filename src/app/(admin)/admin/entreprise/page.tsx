@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic'
 
 import { createAdminClient } from '@/lib/supabase/admin'
-import { Building2, Users, FileBarChart, Package, Send } from 'lucide-react'
+import { Building2, Users, FileBarChart, Package, Send, Image as ImageIcon } from 'lucide-react'
 
 const fcfa = (n: number) => (n ?? 0).toLocaleString('fr-FR') + ' FCFA'
 
@@ -44,9 +44,14 @@ export default async function AdminEntreprisePage() {
 
   return (
     <div className="space-y-6 max-w-6xl">
-      <div>
-        <h2 className="text-3xl font-bold tracking-tight">Espace Entreprise</h2>
-        <p className="text-muted-foreground text-sm mt-1">Diagnostics de compétences, rapports et propositions de packs.</p>
+      <div className="flex items-start justify-between flex-wrap gap-3">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">Espace Entreprise</h2>
+          <p className="text-muted-foreground text-sm mt-1">Diagnostics de compétences, rapports et propositions de packs.</p>
+        </div>
+        <a href="/admin/entreprise/slides" className="inline-flex items-center gap-2 rounded-xl border border-[#7C3AED] text-[#7C3AED] hover:bg-violet-50 px-4 py-2 text-sm font-medium">
+          <ImageIcon className="w-4 h-4" />Gérer les slides du hero
+        </a>
       </div>
 
       {/* Stats */}
