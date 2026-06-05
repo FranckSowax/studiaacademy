@@ -53,49 +53,51 @@ export function EntrepriseHeroSlider({ slides }: { slides: HeroSlide[] }) {
 
   return (
     <section
-      className="relative overflow-hidden bg-[#faf8f5] lg:h-[56.25vw] lg:max-h-[700px]"
+      className="relative overflow-hidden bg-[#faf8f5]"
       onMouseEnter={() => { paused.current = true }}
       onMouseLeave={() => { paused.current = false }}
     >
-      {/* Image entière (16:9) : empilée en mobile, plein cadre sans rognage en desktop */}
-      {hasImg ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          key={`${s.id}-bg`}
-          src={s.image_url!}
-          alt={s.titre}
-          onError={() => setImgOk((m) => ({ ...m, [s.id]: false }))}
-          className="block w-full h-auto lg:absolute lg:inset-0 lg:w-full lg:h-full lg:object-cover"
-        />
-      ) : (
-        <div className="w-full aspect-[16/9] lg:absolute lg:inset-0" style={{ background: `linear-gradient(120deg, ${s.couleur}22, #faf8f5)` }} />
-      )}
+      {/* Boîte 16:9 bornée en largeur → l'image s'affiche ENTIÈRE, jamais rognée */}
+      <div className="relative mx-auto w-full max-w-[1500px] lg:aspect-[16/9]">
+        {hasImg ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            key={`${s.id}-bg`}
+            src={s.image_url!}
+            alt={s.titre}
+            onError={() => setImgOk((m) => ({ ...m, [s.id]: false }))}
+            className="block w-full h-auto lg:absolute lg:inset-0 lg:w-full lg:h-full lg:object-cover"
+          />
+        ) : (
+          <div className="w-full aspect-[16/9] lg:absolute lg:inset-0" style={{ background: `linear-gradient(120deg, ${s.couleur}22, #faf8f5)` }} />
+        )}
 
-      {/* Contenu : sous l'image en mobile, superposé sur le côté vide en desktop */}
-      <div className="relative lg:absolute lg:inset-0">
-        <div className="max-w-7xl mx-auto lg:h-full px-4 sm:px-6 lg:px-8 py-5 sm:py-7 lg:py-0 grid lg:grid-cols-2 items-center gap-4 lg:gap-6">
-          <div className={textRight ? 'lg:order-2' : 'lg:order-1'}>{TextBlock}</div>
-          <div className="hidden lg:block" />
-        </div>
-      </div>
-
-      {/* Navigation */}
-      {n > 1 && (
-        <>
-          <button onClick={() => go(-1)} aria-label="Précédent" className="absolute left-2 sm:left-3 top-[28%] lg:top-1/2 -translate-y-1/2 z-10 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/80 hover:bg-white text-gray-800 flex items-center justify-center shadow-md transition-colors">
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-          <button onClick={() => go(1)} aria-label="Suivant" className="absolute right-2 sm:right-3 top-[28%] lg:top-1/2 -translate-y-1/2 z-10 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/80 hover:bg-white text-gray-800 flex items-center justify-center shadow-md transition-colors">
-            <ChevronRight className="w-5 h-5" />
-          </button>
-          <div className="absolute bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1.5 sm:gap-2">
-            {slides.map((sl, i) => (
-              <button key={sl.id} onClick={() => setIdx(i)} aria-label={`Slide ${i + 1}`}
-                className={`h-1.5 sm:h-2 rounded-full transition-all ${i === idx ? 'w-6 sm:w-7 bg-[#e97e42]' : 'w-1.5 sm:w-2 bg-gray-900/30 hover:bg-gray-900/50'}`} />
-            ))}
+        {/* Contenu : sous l'image en mobile, superposé sur le côté vide en desktop */}
+        <div className="relative lg:absolute lg:inset-0">
+          <div className="max-w-7xl mx-auto lg:h-full px-4 sm:px-6 lg:px-8 py-5 sm:py-7 lg:py-0 grid lg:grid-cols-2 items-center gap-4 lg:gap-6">
+            <div className={textRight ? 'lg:order-2' : 'lg:order-1'}>{TextBlock}</div>
+            <div className="hidden lg:block" />
           </div>
-        </>
-      )}
+        </div>
+
+        {/* Navigation (alignée sur l'image) */}
+        {n > 1 && (
+          <>
+            <button onClick={() => go(-1)} aria-label="Précédent" className="absolute left-2 sm:left-3 top-[28%] lg:top-1/2 -translate-y-1/2 z-10 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/80 hover:bg-white text-gray-800 flex items-center justify-center shadow-md transition-colors">
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <button onClick={() => go(1)} aria-label="Suivant" className="absolute right-2 sm:right-3 top-[28%] lg:top-1/2 -translate-y-1/2 z-10 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/80 hover:bg-white text-gray-800 flex items-center justify-center shadow-md transition-colors">
+              <ChevronRight className="w-5 h-5" />
+            </button>
+            <div className="absolute bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1.5 sm:gap-2">
+              {slides.map((sl, i) => (
+                <button key={sl.id} onClick={() => setIdx(i)} aria-label={`Slide ${i + 1}`}
+                  className={`h-1.5 sm:h-2 rounded-full transition-all ${i === idx ? 'w-6 sm:w-7 bg-[#e97e42]' : 'w-1.5 sm:w-2 bg-gray-900/30 hover:bg-gray-900/50'}`} />
+              ))}
+            </div>
+          </>
+        )}
+      </div>
     </section>
   )
 }
