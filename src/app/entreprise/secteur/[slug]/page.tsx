@@ -36,6 +36,13 @@ export default async function SecteurPage({ params }: { params: Promise<{ slug: 
   const SectorIcon = iconMap[secteur.iconName] ?? Sparkles
   const tools = secteur.outils.map((sl) => getServiceBySlug(sl)).filter(Boolean)
   const isRH = secteur.slug === 'ressources-humaines'
+  // Côté du texte (personnage du côté opposé sur la cover)
+  const HERO_TEXT_SIDE: Record<string, 'left' | 'right'> = {
+    'ressources-humaines': 'right', 'administration': 'left', 'secretariat': 'right', 'comptabilite-finance': 'left',
+    'commerce-vente': 'right', 'communication-marketing': 'left', 'education': 'right', 'sante': 'left',
+    'agriculture': 'right', 'entrepreneuriat': 'left', 'dirigeant': 'right', 'services': 'left',
+  }
+  const textRight = (HERO_TEXT_SIDE[secteur.slug] ?? 'right') === 'right'
 
   const fmtIcon = (f: string) => (f === 'Présentiel' ? MapPin : f === 'Hybride' ? Sparkles : Monitor)
 
@@ -43,22 +50,33 @@ export default async function SecteurPage({ params }: { params: Promise<{ slug: 
     <div className="relative flex min-h-screen flex-col">
       <Header />
       <main className="flex-1">
-        {/* HERO */}
-        <section className="relative overflow-hidden text-white pt-28 pb-16" style={{ background: `linear-gradient(135deg, ${secteur.couleur}, #2e1065)` }}>
-          <div className="pointer-events-none absolute -top-24 -right-24 w-[40vw] h-[40vw] rounded-full bg-white/10 blur-3xl" />
-          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <Link href="/entreprise" className="inline-flex items-center gap-2 text-sm text-white/70 hover:text-white mb-6"><ArrowLeft className="w-4 h-4" />Tous les secteurs</Link>
-            <div className="flex items-start gap-4 max-w-3xl">
-              <div className="w-14 h-14 rounded-2xl bg-white/15 flex items-center justify-center flex-shrink-0"><SectorIcon className="w-7 h-7" /></div>
-              <div>
-                <h1 className="text-3xl md:text-4xl font-extrabold font-heading mb-2">{secteur.label}</h1>
-                <p className="text-lg text-white/85">{secteur.accroche}</p>
-                <p className="text-white/70 mt-2">{secteur.description}</p>
+        {/* HERO — cover 21:9 en fond + overlay conservé + texte du bon côté */}
+        <section className="relative overflow-hidden text-white" style={{ backgroundColor: secteur.couleur }}>
+          <Image src={secteur.cover} alt={secteur.label} fill priority sizes="100vw" className="object-cover" />
+          {/* Overlays (gardés) : base sur mobile + dégradé directionnel sur desktop */}
+          <div className="absolute inset-0 bg-black/45 lg:bg-transparent" />
+          <div className={`hidden lg:block absolute inset-0 ${textRight ? 'bg-gradient-to-l' : 'bg-gradient-to-r'} from-black/75 via-black/40 to-transparent`} />
+
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-14 min-h-[440px] lg:min-h-[480px]">
+            <Link href="/entreprise" className="inline-flex items-center gap-2 text-sm text-white/80 hover:text-white mb-4"><ArrowLeft className="w-4 h-4" />Tous les secteurs</Link>
+            <div className="grid lg:grid-cols-2 items-center gap-6">
+              <div className={textRight ? 'lg:order-2' : 'lg:order-1'}>
+                <div className="max-w-xl">
+                  <div className="flex items-start gap-4">
+                    <div className="w-14 h-14 rounded-2xl bg-white/15 backdrop-blur flex items-center justify-center flex-shrink-0"><SectorIcon className="w-7 h-7" /></div>
+                    <div>
+                      <h1 className="text-3xl md:text-4xl font-extrabold font-heading mb-2 drop-shadow">{secteur.label}</h1>
+                      <p className="text-lg text-white font-semibold drop-shadow">{secteur.accroche}</p>
+                    </div>
+                  </div>
+                  <p className="text-white/85 mt-3 drop-shadow">{secteur.description}</p>
+                  <div className="flex flex-wrap gap-3 mt-6">
+                    <a href="#formations" className="inline-flex items-center gap-2 bg-white text-gray-900 rounded-2xl px-6 py-3 font-bold hover:bg-white/90 transition-colors"><GraduationCap className="w-5 h-5" />Voir les formations</a>
+                    {isRH && <Link href="/entreprise/diagnostic" className="inline-flex items-center gap-2 bg-[#e97e42] text-white rounded-2xl px-6 py-3 font-bold hover:bg-[#d56a2e] transition-colors"><BarChart3 className="w-5 h-5" />Diagnostic gratuit</Link>}
+                  </div>
+                </div>
               </div>
-            </div>
-            <div className="flex flex-wrap gap-3 mt-7">
-              <a href="#formations" className="inline-flex items-center gap-2 bg-white text-gray-900 rounded-2xl px-6 py-3 font-bold hover:bg-white/90 transition-colors"><GraduationCap className="w-5 h-5" />Voir les formations</a>
-              {isRH && <Link href="/entreprise/diagnostic" className="inline-flex items-center gap-2 bg-[#e97e42] text-white rounded-2xl px-6 py-3 font-bold hover:bg-[#d56a2e] transition-colors"><BarChart3 className="w-5 h-5" />Diagnostic gratuit</Link>}
+              <div className={`hidden lg:block ${textRight ? 'lg:order-1' : 'lg:order-2'}`} />
             </div>
           </div>
         </section>
