@@ -15,7 +15,6 @@ import {
   MessageSquare,
   Bell,
   Settings,
-  ChevronRight,
   Menu,
   LogOut,
   Loader2,
@@ -150,32 +149,6 @@ export function StudiaSidebar({ className, defaultOpen = true, onNavigate }: Stu
 
       {/* Bas de sidebar — épinglé */}
       <div className="flex-shrink-0 flex flex-col">
-      {/* Accès espace professeur */}
-      {sidebarOpen && (
-        <Link
-          href="/professeur"
-          onClick={handleNavClick}
-          className="mt-6 p-4 bg-gradient-to-br from-[#e97e42] to-[#d56a2e] rounded-2xl text-white relative overflow-hidden block hover:shadow-lg transition-all"
-        >
-          <div className="absolute -right-4 -bottom-4 w-20 h-20 bg-white/10 rounded-full" />
-          <div className="absolute -right-2 -top-2 w-12 h-12 bg-white/10 rounded-full" />
-          <div className="relative">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
-                <GraduationCap className="w-5 h-5" />
-              </div>
-            </div>
-            <h4 className="font-bold mb-1">Espace Professeur</h4>
-            <p className="text-xs text-white/80 mb-3">
-              Correction de copies IA et génération de QCM.
-            </p>
-            <span className="w-full bg-white text-[#e97e42] font-semibold py-2 px-4 rounded-xl hover:bg-[#fbf8f3] transition-colors flex items-center justify-center gap-2">
-              Activer <ChevronRight className="w-4 h-4" />
-            </span>
-          </div>
-        </Link>
-      )}
-
       {/* Déconnexion */}
       <button
         onClick={handleLogout}

@@ -37,7 +37,14 @@ export default function LoginPage() {
 
       if (data.user) {
         toast.success('Connexion réussie!')
-        router.push('/dashboard')
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('account_type')
+          .eq('id', data.user.id)
+          .maybeSingle()
+        const type = profile?.account_type as string | undefined
+        const dest = type === 'teacher' ? '/professeur' : type === 'pro' ? '/pro' : '/dashboard'
+        router.push(dest)
         router.refresh()
       }
     } catch (error) {

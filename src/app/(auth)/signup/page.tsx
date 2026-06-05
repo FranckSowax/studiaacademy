@@ -7,23 +7,16 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { toast } from 'sonner'
 import Link from 'next/link'
-import { Eye, EyeOff, Loader2, CheckCircle, Sparkles } from 'lucide-react'
+import { Eye, EyeOff, Loader2, CheckCircle, Sparkles, GraduationCap, Presentation, Building2 } from 'lucide-react'
 
 export default function SignupPage() {
   const router = useRouter()
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [role, setRole] = useState('individual')
+  const [accountType, setAccountType] = useState<'student' | 'teacher' | 'pro'>('student')
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
@@ -42,7 +35,7 @@ export default function SignupPage() {
           emailRedirectTo: `${window.location.origin}/auth/callback`,
           data: {
             full_name: fullName,
-            role: role,
+            account_type: accountType,
           },
         },
       })
@@ -52,6 +45,15 @@ export default function SignupPage() {
         return
       }
 
+      // Si la session est immédiate (confirmation e-mail désactivée), on route
+      // directement vers l'espace adapté.
+      if (data.session) {
+        const dest = accountType === 'teacher' ? '/professeur' : accountType === 'pro' ? '/pro' : '/dashboard'
+        toast.success('Compte créé !')
+        router.push(dest)
+        router.refresh()
+        return
+      }
       if (data.user) {
         setIsSuccess(true)
         toast.success('Compte créé! Vérifiez votre email pour confirmer.')
@@ -191,18 +193,24 @@ export default function SignupPage() {
               <p className="text-xs text-gray-500">Minimum 6 caractères</p>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="role" className="text-gray-700">Vous êtes</Label>
-              <Select value={role} onValueChange={setRole}>
-                <SelectTrigger className="border-[#e5e5e5] focus:border-[#e97e42] focus:ring-[#e97e42]">
-                  <SelectValue placeholder="Sélectionnez votre profil" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="individual">Particulier</SelectItem>
-                  <SelectItem value="student">Étudiant</SelectItem>
-                  <SelectItem value="professional">Professionnel</SelectItem>
-                  <SelectItem value="company">Entreprise</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label className="text-gray-700">Vous êtes</Label>
+              <div className="grid grid-cols-3 gap-2">
+                {([
+                  { v: 'student', icon: GraduationCap, label: 'Étudiant', sub: 'ou particulier' },
+                  { v: 'teacher', icon: Presentation, label: 'Professeur', sub: 'enseignant' },
+                  { v: 'pro', icon: Building2, label: 'Professionnel', sub: 'entreprise / RH' },
+                ] as const).map((o) => {
+                  const active = accountType === o.v
+                  return (
+                    <button key={o.v} type="button" onClick={() => setAccountType(o.v)}
+                      className={`flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl border text-center transition-all ${active ? 'border-[#e97e42] bg-[#fff7ed]' : 'border-[#e5e5e5] hover:border-[#e97e42]/50'}`}>
+                      <o.icon className={`w-5 h-5 ${active ? 'text-[#e97e42]' : 'text-gray-400'}`} />
+                      <span className={`text-xs font-semibold ${active ? 'text-[#a84d16]' : 'text-gray-700'}`}>{o.label}</span>
+                      <span className="text-[10px] text-gray-400 leading-tight">{o.sub}</span>
+                    </button>
+                  )
+                })}
+              </div>
             </div>
             <Button
               className="w-full bg-gradient-to-r from-[#e97e42] to-[#d56a2e] hover:from-[#d56a2e] hover:to-[#c45a20] text-white shadow-lg shadow-[#e97e42]/30"

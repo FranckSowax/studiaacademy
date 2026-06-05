@@ -11,6 +11,8 @@ import {
   GraduationCap,
   ArrowLeft,
   Trophy,
+  Sparkles,
+  BookOpen,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -20,6 +22,8 @@ const menuItems = [
   { icon: ListChecks, label: 'Devoirs QCM', href: '/professeur/qcm' },
   { icon: Trophy, label: 'Kahoot', href: '/professeur/kahoot' },
   { icon: Users, label: 'Mes classes', href: '/professeur/classes' },
+  { icon: Sparkles, label: 'Outils IA', href: '/outils' },
+  { icon: BookOpen, label: 'Formations', href: '/formations/en-ligne' },
 ]
 
 interface TeacherSidebarProps {
