@@ -89,10 +89,10 @@ export function EntrepriseHeroSlider({ slides }: { slides: HeroSlide[] }) {
             <button onClick={() => go(1)} aria-label="Suivant" className="absolute right-2 sm:right-3 top-[28%] lg:top-1/2 -translate-y-1/2 z-10 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/80 hover:bg-white text-gray-800 flex items-center justify-center shadow-md transition-colors">
               <ChevronRight className="w-5 h-5" />
             </button>
-            <div className="absolute bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1.5 sm:gap-2 bg-white/70 backdrop-blur-sm rounded-full px-3 py-2 shadow-sm max-w-[92vw] overflow-x-auto scrollbar-hide">
+            <div className="absolute bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1.5 sm:gap-2 max-w-[92vw]">
               {slides.map((sl, i) => (
                 <button key={sl.id} onClick={() => setIdx(i)} aria-label={`Slide ${i + 1}`}
-                  className={`h-1.5 sm:h-2 rounded-full transition-all flex-shrink-0 ${i === idx ? 'w-6 sm:w-7 bg-[#e97e42]' : 'w-1.5 sm:w-2 bg-gray-900/35 hover:bg-gray-900/55'}`} />
+                  className={`h-0.5 rounded-full transition-all flex-shrink-0 ${i === idx ? 'w-6 sm:w-8 bg-[#e97e42]' : 'w-3 sm:w-4 bg-[#e97e42]/35 hover:bg-[#e97e42]/60'}`} />
               ))}
             </div>
           </>
