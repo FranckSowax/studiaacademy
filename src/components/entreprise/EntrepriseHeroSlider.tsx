@@ -76,7 +76,7 @@ export function EntrepriseHeroSlider({ slides }: { slides: HeroSlide[] }) {
         <div className="relative lg:absolute lg:inset-0">
           <div className="max-w-7xl mx-auto lg:h-full px-4 sm:px-6 lg:px-8 py-5 sm:py-7 lg:py-0 grid lg:grid-cols-2 items-center gap-4 lg:gap-6">
             <div className={textRight ? 'lg:order-2' : 'lg:order-1'}>{TextBlock}</div>
-            <div className="hidden lg:block" />
+            <div className={`hidden lg:block ${textRight ? 'lg:order-1' : 'lg:order-2'}`} />
           </div>
         </div>
 
