@@ -19,6 +19,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { modules, getModuleBySlug } from '@/lib/modules'
 import { ChinaPassDetail } from '@/components/sections/ChinaPassDetail'
+import { AuditIADetail } from '@/components/sections/AuditIADetail'
 import type { Metadata } from 'next'
 
 const iconMap: Record<string, React.ComponentType<{ className?: string; style?: React.CSSProperties }>> = {
@@ -161,9 +162,11 @@ export default async function ModulePage({ params }: Props) {
         </div>
       </section>
 
-      {/* Contenu détaillé : bloc dédié pour China Pass, sinon liste de features générique */}
+      {/* Contenu détaillé : bloc dédié par module phare, sinon liste de features générique */}
       {mod.slug === 'universites-chinoises' ? (
         <ChinaPassDetail couleur={mod.couleur} />
+      ) : mod.slug === 'audit-ia-entreprises' ? (
+        <AuditIADetail couleur={mod.couleur} />
       ) : (
         <section className="w-full py-16 bg-[#fbf8f3]">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
