@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { modules, getModuleBySlug } from '@/lib/modules'
+import { ChinaPassDetail } from '@/components/sections/ChinaPassDetail'
 import type { Metadata } from 'next'
 
 const iconMap: Record<string, React.ComponentType<{ className?: string; style?: React.CSSProperties }>> = {
@@ -160,30 +161,34 @@ export default async function ModulePage({ params }: Props) {
         </div>
       </section>
 
-      {/* Fonctionnalités */}
-      <section className="w-full py-16 bg-[#fbf8f3]">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl md:text-3xl font-bold font-heading text-gray-900 mb-8">
-            Ce que vous obtenez
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {mod.features.map((feat) => (
-              <div
-                key={feat}
-                className="flex items-start gap-4 bg-white rounded-2xl p-5 border border-[#f0ebe3] shadow-sm"
-              >
+      {/* Contenu détaillé : bloc dédié pour China Pass, sinon liste de features générique */}
+      {mod.slug === 'universites-chinoises' ? (
+        <ChinaPassDetail couleur={mod.couleur} />
+      ) : (
+        <section className="w-full py-16 bg-[#fbf8f3]">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 className="text-2xl md:text-3xl font-bold font-heading text-gray-900 mb-8">
+              Ce que vous obtenez
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {mod.features.map((feat) => (
                 <div
-                  className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-                  style={{ backgroundColor: `${mod.couleur}18` }}
+                  key={feat}
+                  className="flex items-start gap-4 bg-white rounded-2xl p-5 border border-[#f0ebe3] shadow-sm"
                 >
-                  <CheckCircle className="w-5 h-5" style={{ color: mod.couleur }} />
+                  <div
+                    className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                    style={{ backgroundColor: `${mod.couleur}18` }}
+                  >
+                    <CheckCircle className="w-5 h-5" style={{ color: mod.couleur }} />
+                  </div>
+                  <p className="text-gray-700 font-medium text-sm leading-relaxed">{feat}</p>
                 </div>
-                <p className="text-gray-700 font-medium text-sm leading-relaxed">{feat}</p>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* CTA inscription */}
       <section
