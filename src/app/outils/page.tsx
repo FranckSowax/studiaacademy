@@ -1,25 +1,25 @@
 export const dynamic = 'force-dynamic'
 
-import Link from 'next/link'
-import Image from 'next/image'
 import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
 import { aiServices, coverFor } from '@/lib/ai-services/definitions'
-import { CATEGORY_LABELS, type ServiceCategory } from '@/types/ai-service'
-import {
-  ArrowRight, Sparkles, GraduationCap, FileText, Briefcase, Presentation, Mail, Zap,
-  Globe, Palette, Receipt, Megaphone, FileSignature, TrendingUp, BookOpen, PenTool,
-  FileCheck, Lightbulb, Compass, AlignLeft,
-} from 'lucide-react'
-
-const iconMap: Record<string, React.ComponentType<{ className?: string; style?: React.CSSProperties }>> = {
-  GraduationCap, FileText, Briefcase, Presentation, Mail,
-  Globe, Palette, Receipt, Megaphone, FileSignature, TrendingUp, BookOpen, PenTool,
-  FileCheck, Lightbulb, Compass, AlignLeft,
-}
+import { Sparkles } from 'lucide-react'
+import { OutilsCatalogue, type CatalogueService } from '@/components/outils/OutilsCatalogue'
 
 export default function OutilsPage() {
-  const categories = Object.keys(CATEGORY_LABELS) as ServiceCategory[]
+  // Sérialisation côté serveur (sans buildPrompt, non transférable au client)
+  const services: CatalogueService[] = aiServices.map((s) => ({
+    slug: s.slug,
+    titre: s.titre,
+    sousTitre: s.sousTitre,
+    description: s.description,
+    couleur: s.couleur,
+    category: s.category,
+    badge: s.badge,
+    prixCredits: s.prixCredits,
+    iconName: s.iconName,
+    cover: coverFor(s),
+  }))
 
   return (
     <div className="relative flex min-h-screen flex-col">
@@ -39,84 +39,14 @@ export default function OutilsPage() {
               </span>
             </h1>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              CV, candidatures, business plans, concours, courriers… Générés par IA, prêts à utiliser.
+              Pour les élèves, les profs, les parents et les pros : révisions, exercices, sujets, CV,
+              candidatures, courriers… Générés par IA, prêts à utiliser.
             </p>
           </div>
         </section>
 
-        {/* Catalogue par catégorie */}
-        <section className="py-12">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-            {categories.map((cat) => {
-              const services = aiServices.filter((s) => s.category === cat)
-              if (services.length === 0) return null
-              return (
-                <div key={cat}>
-                  <div className="flex items-center gap-2 mb-5">
-                    <Zap className="w-4 h-4 text-[#e97e42]" />
-                    <h2 className="text-xl font-bold font-heading text-gray-900">{CATEGORY_LABELS[cat]}</h2>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                    {services.map((s) => {
-                      const Icon = iconMap[s.iconName] ?? Sparkles
-                      return (
-                        <Link
-                          key={s.slug}
-                          href={`/outils/${s.slug}`}
-                          className="group relative bg-white rounded-2xl border border-[#f0ebe3] hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden flex flex-col"
-                        >
-                          {/* Cover */}
-                          <div className="relative h-36 w-full bg-[#fbf8f3]">
-                            {coverFor(s) ? (
-                              <>
-                                <Image
-                                  src={coverFor(s)!}
-                                  alt={s.titre}
-                                  fill
-                                  sizes="(max-width: 768px) 100vw, 33vw"
-                                  className="object-cover"
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
-                              </>
-                            ) : (
-                              <div
-                                className="absolute inset-0"
-                                style={{ background: `linear-gradient(135deg, ${s.couleur}, ${s.couleur}cc 60%, #1e293b)` }}
-                              >
-                                <Icon className="absolute right-4 top-4 w-12 h-12 text-white/25" />
-                              </div>
-                            )}
-                            <div className="absolute top-0 left-0 right-0 h-1" style={{ backgroundColor: s.couleur }} />
-                            {s.badge && (
-                              <span className="absolute top-3 right-3 text-xs font-semibold px-2 py-0.5 rounded-full text-white shadow" style={{ backgroundColor: s.couleur }}>
-                                {s.badge}
-                              </span>
-                            )}
-                            <div className="absolute -bottom-5 left-5 w-11 h-11 rounded-xl flex items-center justify-center shadow-lg border-2 border-white" style={{ backgroundColor: s.couleur }}>
-                              <Icon className="w-5 h-5 text-white" />
-                            </div>
-                          </div>
-                          {/* Texte */}
-                          <div className="p-5 pt-7 flex-1 flex flex-col">
-                            <h3 className="font-bold font-heading text-gray-900 group-hover:text-[#e97e42] transition-colors">{s.titre}</h3>
-                            <p className="text-xs font-medium mb-2" style={{ color: s.couleur }}>{s.sousTitre}</p>
-                            <p className="text-sm text-gray-500 leading-relaxed line-clamp-2 mb-4 flex-1">{s.description}</p>
-                            <div className="flex items-center justify-between">
-                              <span className="text-xs text-gray-400">{s.prixCredits} crédits</span>
-                              <span className="inline-flex items-center gap-1 text-sm font-semibold" style={{ color: s.couleur }}>
-                                Utiliser <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-                              </span>
-                            </div>
-                          </div>
-                        </Link>
-                      )
-                    })}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </section>
+        {/* Catalogue avec filtre par persona */}
+        <OutilsCatalogue services={services} />
       </main>
       <Footer />
     </div>

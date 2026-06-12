@@ -821,6 +821,334 @@ Produis en Markdown un **plan d'onboarding** structuré en **3 phases : 30 jours
       user: `Poste : ${i.poste}\nCompétences à tester : ${i.domaines}\nNombre de questions : ${i.nbQuestions || '10'}\nNiveau : ${i.niveau || 'intermédiaire'}`,
     }),
   },
+
+  // ============================================
+  // ÉLÈVES & ÉTUDIANTS
+  // ============================================
+
+  {
+    slug: 'resoudre-exercice',
+    titre: 'Résoudre un exercice',
+    sousTitre: 'Correction détaillée pas à pas',
+    description:
+      "Bloqué sur un exercice ? Obtenez la solution détaillée, étape par étape, avec la méthode et les pièges à éviter — pour comprendre, pas seulement copier.",
+    iconName: 'Calculator',
+    couleur: '#3B82F6',
+    category: 'education',
+    badge: 'Élèves',
+    prixCredits: 3,
+    ctaLabel: 'Résoudre',
+    generateLabel: "Résoudre l'exercice",
+    outputType: 'markdown',
+    fields: [
+      { name: 'matiere', label: 'Matière', type: 'text', placeholder: 'Maths, Physique, SVT, Compta…', required: true },
+      { name: 'enonce', label: "Énoncé de l'exercice", type: 'textarea', placeholder: "Recopiez l'énoncé complet…", required: true, rows: 6 },
+      { name: 'niveau', label: 'Niveau', type: 'select', options: ['Primaire', 'Collège', 'Lycée', 'Université'], required: true },
+    ],
+    buildPrompt: (i) => ({
+      system: `Tu es STUDIA PROF PARTICULIER, pédagogue et rigoureux. ${CONTEXTE_GABON}
+Résous l'exercice en expliquant CHAQUE étape de raisonnement (pas seulement le résultat) : rappel de la méthode/formule utilisée, étapes numérotées détaillées, résultat final mis en évidence, et 1-2 erreurs fréquentes à éviter. Adapte le langage au niveau. Reste exact ; si une donnée manque, précise l'hypothèse prise.`,
+      user: `Matière : ${i.matiere}\nNiveau : ${i.niveau}\nÉnoncé :\n${i.enonce}`,
+    }),
+  },
+
+  {
+    slug: 'quiz-entrainement',
+    titre: 'Quiz d\'entraînement',
+    sousTitre: 'QCM interactif auto-corrigé',
+    description:
+      "Transformez n'importe quel cours en quiz interactif : cliquez pour révéler la bonne réponse et l'explication. Idéal pour s'auto-évaluer avant un contrôle.",
+    iconName: 'HelpCircle',
+    couleur: '#7C3AED',
+    category: 'education',
+    badge: 'Interactif',
+    prixCredits: 3,
+    ctaLabel: 'Créer mon quiz',
+    generateLabel: 'Générer le quiz',
+    outputType: 'html',
+    fields: [
+      { name: 'cours', label: 'Cours / chapitre', type: 'textarea', placeholder: 'Collez le cours à réviser…', required: true, rows: 6 },
+      { name: 'nb', label: 'Nombre de questions', type: 'select', options: ['5', '10', '15'], required: true },
+      { name: 'niveau', label: 'Niveau', type: 'select', options: ['Primaire', 'Collège', 'Lycée', 'Université'], required: true },
+    ],
+    buildPrompt: (i) => ({
+      system: `Tu es STUDIA QUIZ. ${CONTEXTE_GABON}
+À partir du cours, génère un quiz interactif en UN SEUL fichier HTML autonome (CSS dans <style>), SANS aucun JavaScript (aucune balise <script>).
+Contraintes d'interactivité SANS script : pour chaque question, utilise une balise <details><summary>…</summary>…</details> :
+- le <summary> contient le numéro + la question + les options (A, B, C, D),
+- le contenu déplié contient « ✅ Bonne réponse : … » suivi d'une courte explication.
+Design : titre du quiz, compteur de questions, cartes aérées, accent ${'#7C3AED'}, responsive, lisible sur mobile. Termine par un encart « Comment te noter ». Réponds UNIQUEMENT avec le HTML complet.`,
+      user: `Niveau : ${i.niveau}\nNombre de questions : ${i.nb}\nCours :\n${i.cours}`,
+    }),
+  },
+
+  {
+    slug: 'planning-revision',
+    titre: 'Planning de révision',
+    sousTitre: 'Programme jour par jour',
+    description:
+      "Recevez un planning de révision réaliste et personnalisé jusqu'à votre examen : matières priorisées, séances jour par jour et conseils de méthode.",
+    iconName: 'CalendarDays',
+    couleur: '#10B981',
+    category: 'education',
+    badge: 'Examens',
+    prixCredits: 3,
+    ctaLabel: 'Créer mon planning',
+    generateLabel: 'Générer le planning',
+    outputType: 'markdown',
+    fields: [
+      { name: 'examen', label: 'Examen / objectif', type: 'text', placeholder: 'Ex: BAC, BEPC, partiels de janvier…', required: true },
+      { name: 'matieres', label: 'Matières à réviser (et niveau de maîtrise)', type: 'textarea', placeholder: 'Ex: Maths (faible), Histoire (moyen), Anglais (bon)…', required: true, rows: 3 },
+      { name: 'temps', label: 'Temps disponible', type: 'text', placeholder: 'Ex: 3 semaines, 2h par jour', required: true },
+    ],
+    buildPrompt: (i) => ({
+      system: `Tu es STUDIA COACH RÉVISIONS. ${CONTEXTE_GABON}
+Construis un planning de révision réaliste en Markdown : une section « ## Stratégie » (priorités selon le niveau de maîtrise), une section « ## Planning » sous forme de tableau (jour / matière / objectif de la séance / durée), une section « ## Astuces » de méthode (mémorisation, pauses, sommeil), et une « ## Checklist » des points à ne pas oublier. Reste atteignable, pas surchargé.`,
+      user: `Examen : ${i.examen}\nMatières & maîtrise : ${i.matieres}\nTemps disponible : ${i.temps}`,
+    }),
+  },
+
+  {
+    slug: 'cv-etudiant',
+    titre: 'CV étudiant & stage',
+    sousTitre: 'Premier CV qui valorise',
+    description:
+      "Pas encore d'expérience ? Générez un CV étudiant qui met en valeur vos études, projets, stages et qualités — parfait pour un premier stage ou job.",
+    iconName: 'FileText',
+    couleur: '#e97e42',
+    category: 'education',
+    badge: 'Étudiants',
+    prixCredits: 4,
+    ctaLabel: 'Créer mon CV',
+    generateLabel: 'Générer mon CV',
+    outputType: 'markdown',
+    fields: [
+      { name: 'profil', label: 'Vous, en quelques lignes', type: 'textarea', placeholder: 'Études, niveau, projets, stages, centres d’intérêt, qualités…', required: true, rows: 5 },
+      { name: 'objectif', label: 'Objectif', type: 'text', placeholder: 'Ex: stage en comptabilité, job étudiant, alternance…', required: true },
+    ],
+    buildPrompt: (i) => ({
+      system: `Tu es STUDIA CONSEILLER EMPLOI (jeunes diplômés). ${CONTEXTE_GABON}
+Rédige un CV étudiant clair et valorisant en Markdown, structuré : en-tête (à compléter avec coordonnées), « ## Accroche » (2 lignes), « ## Formation », « ## Expériences & projets » (même scolaires/associatifs), « ## Compétences », « ## Centres d'intérêt ». Mets en avant le potentiel et les qualités quand l'expérience manque. Reste honnête, n'invente pas de diplômes.`,
+      user: `Profil : ${i.profil}\nObjectif : ${i.objectif}`,
+    }),
+  },
+
+  {
+    slug: 'lettre-motivation-etudes',
+    titre: 'Lettre de motivation (études)',
+    sousTitre: 'Bourse, université, stage',
+    description:
+      "Rédigez une lettre de motivation convaincante pour une inscription, une bourse, une université ou un stage — personnalisée et au bon ton.",
+    iconName: 'Mail',
+    couleur: '#0EA5E9',
+    category: 'education',
+    badge: 'Étudiants',
+    prixCredits: 3,
+    ctaLabel: 'Rédiger ma lettre',
+    generateLabel: 'Rédiger la lettre',
+    outputType: 'markdown',
+    fields: [
+      { name: 'cible', label: 'Pour quoi ?', type: 'select', options: ['Inscription université', 'Demande de bourse', 'Candidature stage', 'École / formation'], required: true },
+      { name: 'profil', label: 'Votre profil & parcours', type: 'textarea', placeholder: 'Études, résultats, projet, motivations…', required: true, rows: 4 },
+      { name: 'destination', label: 'Établissement / programme visé', type: 'text', placeholder: "Nom de l'université, du programme ou de l'entreprise", required: true },
+    ],
+    buildPrompt: (i) => ({
+      system: `Tu es STUDIA CONSEILLER D'ORIENTATION. ${CONTEXTE_GABON}
+Rédige une lettre de motivation personnalisée (~300 mots) pour : ${i.cible}. Structure : accroche, pourquoi ce programme/établissement, ce que le profil apporte, projet et conclusion polie. Ton sincère et professionnel, sans formules creuses. Rends-la prête à envoyer (avec champs entre crochets à compléter).`,
+      user: `Type : ${i.cible}\nProfil : ${i.profil}\nÉtablissement / programme : ${i.destination}`,
+    }),
+  },
+
+  // ============================================
+  // ENSEIGNANTS
+  // ============================================
+
+  {
+    slug: 'sujet-examen',
+    titre: 'Sujet d\'examen + corrigé',
+    sousTitre: 'Devoir prêt avec barème',
+    description:
+      "Générez un sujet d'évaluation complet sur le programme de votre choix : énoncés, corrigé détaillé et barème de notation — prêt à imprimer.",
+    iconName: 'FileCheck',
+    couleur: '#2563EB',
+    category: 'enseignant',
+    badge: 'Profs',
+    prixCredits: 6,
+    ctaLabel: 'Créer le sujet',
+    generateLabel: 'Générer le sujet',
+    outputType: 'markdown',
+    fields: [
+      { name: 'matiere', label: 'Matière', type: 'text', placeholder: 'Ex: Mathématiques, Français, SVT…', required: true },
+      { name: 'theme', label: 'Chapitre / notions évaluées', type: 'textarea', placeholder: 'Programme et notions à couvrir…', required: true, rows: 3 },
+      { name: 'niveau', label: 'Classe / niveau', type: 'text', placeholder: 'Ex: 3e, Terminale C, L1…', required: true },
+      { name: 'duree', label: 'Durée / format', type: 'text', placeholder: 'Ex: devoir 2h, contrôle 1h, QCM…' },
+    ],
+    buildPrompt: (i) => ({
+      system: `Tu es STUDIA CONCEPTEUR PÉDAGOGIQUE, enseignant expérimenté. ${CONTEXTE_GABON}
+Produis en Markdown une évaluation complète : « ## Sujet » (exercices/questions progressifs avec points indiqués), « ## Barème » (tableau répartition des points), « ## Corrigé détaillé » (réponses attendues + critères de notation). Adapte la difficulté au niveau et couvre les notions demandées. Clair et prêt à imprimer.`,
+      user: `Matière : ${i.matiere}\nNiveau : ${i.niveau}\nNotions : ${i.theme}\nDurée/format : ${i.duree || 'non précisé'}`,
+    }),
+  },
+
+  {
+    slug: 'fiche-prep-cours',
+    titre: 'Fiche de préparation de cours',
+    sousTitre: 'Séquence pédagogique structurée',
+    description:
+      "Préparez une leçon clé en main : objectifs, déroulé minuté, activités, supports et évaluation — une fiche de prép' professionnelle en quelques secondes.",
+    iconName: 'BookOpen',
+    couleur: '#16A34A',
+    category: 'enseignant',
+    badge: 'Profs',
+    prixCredits: 5,
+    ctaLabel: 'Préparer ma leçon',
+    generateLabel: 'Générer la fiche',
+    outputType: 'markdown',
+    fields: [
+      { name: 'matiere', label: 'Matière', type: 'text', placeholder: 'Ex: Histoire-Géo, SVT…', required: true },
+      { name: 'lecon', label: 'Sujet de la leçon', type: 'text', placeholder: 'Ex: la photosynthèse, la Révolution française…', required: true },
+      { name: 'niveau', label: 'Classe / niveau', type: 'text', placeholder: 'Ex: 5e, 1ère…', required: true },
+      { name: 'duree', label: 'Durée de la séance', type: 'select', options: ['30 min', '55 min', '1h30', '2h'] },
+    ],
+    buildPrompt: (i) => ({
+      system: `Tu es STUDIA INGÉNIEUR PÉDAGOGIQUE. ${CONTEXTE_GABON}
+Produis une fiche de préparation de cours en Markdown : « ## Objectifs pédagogiques » (compétences visées), « ## Prérequis », « ## Déroulé » sous forme de tableau (phase / durée / activité enseignant / activité élèves), « ## Supports & matériel », « ## Évaluation » (comment vérifier les acquis), « ## Différenciation » (élèves en difficulté / avancés). Concret et applicable en classe.`,
+      user: `Matière : ${i.matiere}\nLeçon : ${i.lecon}\nNiveau : ${i.niveau}\nDurée : ${i.duree || '55 min'}`,
+    }),
+  },
+
+  {
+    slug: 'appreciations-bulletin',
+    titre: 'Appréciations de bulletin',
+    sousTitre: 'Commentaires justes & nuancés',
+    description:
+      "Gagnez des heures en période de bulletins : générez des appréciations personnalisées, bienveillantes et constructives à partir de quelques mots.",
+    iconName: 'PenTool',
+    couleur: '#EC4899',
+    category: 'enseignant',
+    badge: 'Profs',
+    prixCredits: 4,
+    ctaLabel: 'Générer les appréciations',
+    generateLabel: 'Générer',
+    outputType: 'markdown',
+    fields: [
+      { name: 'eleves', label: 'Élèves (1 par ligne : prénom — niveau/comportement)', type: 'textarea', placeholder: 'Ex:\nMarie — 14/20, sérieuse, participe peu\nPaul — 8/20, dissipé mais capable…', required: true, rows: 6 },
+      { name: 'matiere', label: 'Matière', type: 'text', placeholder: 'Ex: Mathématiques' },
+      { name: 'ton', label: 'Ton', type: 'select', options: ['Bienveillant', 'Exigeant', 'Encourageant'] },
+    ],
+    buildPrompt: (i) => ({
+      system: `Tu es STUDIA ENSEIGNANT. ${CONTEXTE_GABON}
+Pour chaque élève fourni, rédige une appréciation de bulletin personnalisée (2-3 phrases) : constat factuel, point d'encouragement, et axe d'amélioration concret. Ton : ${i.ton || 'bienveillant'}. Évite les formules toutes faites répétitives ; varie les tournures. Présente sous forme de liste « **Prénom** : appréciation ».`,
+      user: `Matière : ${i.matiere || 'non précisée'}\nÉlèves :\n${i.eleves}`,
+    }),
+  },
+
+  {
+    slug: 'exercices-differencies',
+    titre: 'Banque d\'exercices',
+    sousTitre: '3 niveaux + corrigés',
+    description:
+      "Obtenez une série d'exercices sur une notion, déclinée en 3 niveaux (facile, moyen, difficile) avec corrigés — pour gérer l'hétérogénéité de la classe.",
+    iconName: 'ListChecks',
+    couleur: '#F59E0B',
+    category: 'enseignant',
+    badge: 'Profs',
+    prixCredits: 5,
+    ctaLabel: 'Générer les exercices',
+    generateLabel: 'Générer',
+    outputType: 'markdown',
+    fields: [
+      { name: 'matiere', label: 'Matière', type: 'text', placeholder: 'Ex: Mathématiques', required: true },
+      { name: 'notion', label: 'Notion à travailler', type: 'text', placeholder: 'Ex: les fractions, l’accord du participe passé…', required: true },
+      { name: 'niveau', label: 'Classe / niveau', type: 'text', placeholder: 'Ex: 6e, 2nde…', required: true },
+      { name: 'nb', label: 'Exercices par niveau', type: 'select', options: ['2', '3', '5'] },
+    ],
+    buildPrompt: (i) => ({
+      system: `Tu es STUDIA CONCEPTEUR D'EXERCICES. ${CONTEXTE_GABON}
+Produis en Markdown des exercices sur la notion, en 3 sections : « ## Niveau facile », « ## Niveau moyen », « ## Niveau difficile ». ${i.nb || '3'} exercices par niveau, énoncés clairs et progressifs. Termine par une section « ## Corrigés » regroupant les réponses détaillées. Adapté au niveau de classe indiqué.`,
+      user: `Matière : ${i.matiere}\nNotion : ${i.notion}\nNiveau : ${i.niveau}\nExercices par niveau : ${i.nb || '3'}`,
+    }),
+  },
+
+  // ============================================
+  // PARENTS
+  // ============================================
+
+  {
+    slug: 'aide-aux-devoirs',
+    titre: 'Aider mon enfant aux devoirs',
+    sousTitre: 'La méthode, pas juste la réponse',
+    description:
+      "Accompagnez votre enfant sans être expert : on vous explique la notion simplement et on vous guide, étape par étape, pour l'aider à trouver lui-même.",
+    iconName: 'Lightbulb',
+    couleur: '#F59E0B',
+    category: 'parent',
+    badge: 'Parents',
+    prixCredits: 2,
+    ctaLabel: 'M\'aider à expliquer',
+    generateLabel: 'Générer le guide',
+    outputType: 'markdown',
+    fields: [
+      { name: 'devoir', label: "Le devoir / la notion", type: 'textarea', placeholder: "Décrivez l'exercice ou la leçon où votre enfant bloque…", required: true, rows: 4 },
+      { name: 'classe', label: "Classe de l'enfant", type: 'text', placeholder: 'Ex: CE2, 6e, 3e…', required: true },
+    ],
+    buildPrompt: (i) => ({
+      system: `Tu es STUDIA, allié des parents. ${CONTEXTE_GABON}
+Le parent n'est pas forcément expert de la matière. Fournis en Markdown : « ## La notion en simple » (explication très accessible pour le parent), « ## Comment guider votre enfant » (questions à poser, étapes pour qu'il trouve LUI-MÊME, sans donner directement la réponse), « ## Exemple corrigé » (un exemple proche, résolu), et « ## Astuces » pour l'encourager. Bienveillant et rassurant.`,
+      user: `Classe : ${i.classe}\nDevoir / notion : ${i.devoir}`,
+    }),
+  },
+
+  {
+    slug: 'comprendre-bulletin',
+    titre: 'Comprendre le bulletin',
+    sousTitre: "Décrypter les notes de mon enfant",
+    description:
+      "Le bulletin de votre enfant vous laisse perplexe ? On vous l'explique clairement : points forts, difficultés réelles et un plan d'action concret pour l'aider.",
+    iconName: 'TrendingUp',
+    couleur: '#10B981',
+    category: 'parent',
+    badge: 'Parents',
+    prixCredits: 3,
+    ctaLabel: 'Analyser le bulletin',
+    generateLabel: 'Analyser',
+    outputType: 'markdown',
+    fields: [
+      { name: 'bulletin', label: 'Notes & appréciations', type: 'textarea', placeholder: 'Recopiez les matières, notes et remarques des professeurs…', required: true, rows: 6 },
+      { name: 'classe', label: "Classe de l'enfant", type: 'text', placeholder: 'Ex: 5e, 1ère…', required: true },
+    ],
+    buildPrompt: (i) => ({
+      system: `Tu es STUDIA CONSEILLER PÉDAGOGIQUE pour les familles. ${CONTEXTE_GABON}
+Analyse le bulletin et produis en Markdown : « ## Vue d'ensemble » (interprétation globale, sans dramatiser), « ## Points forts », « ## Points de vigilance » (matières/compétences à travailler), « ## Plan d'action » (3-5 actions concrètes et réalistes pour la maison), et « ## Comment en parler » avec votre enfant de façon positive. Factuel, encourageant, jamais culpabilisant.`,
+      user: `Classe : ${i.classe}\nBulletin :\n${i.bulletin}`,
+    }),
+  },
+
+  {
+    slug: 'courrier-ecole',
+    titre: "Courrier à l'école",
+    sousTitre: 'Mot d\'absence, RDV, demande',
+    description:
+      "Rédigez en un clic un courrier correct à l'établissement de votre enfant : justificatif d'absence, demande de rendez-vous, réclamation ou autorisation.",
+    iconName: 'Mail',
+    couleur: '#0EA5E9',
+    category: 'parent',
+    badge: 'Parents',
+    prixCredits: 2,
+    ctaLabel: 'Rédiger le mot',
+    generateLabel: 'Rédiger',
+    outputType: 'markdown',
+    fields: [
+      { name: 'motif', label: 'Type de courrier', type: 'select', options: ['Justificatif d\'absence', 'Demande de rendez-vous', 'Autorisation de sortie', 'Réclamation', 'Demande d\'information', 'Autre'], required: true },
+      { name: 'details', label: 'Détails', type: 'textarea', placeholder: "Nom de l'enfant, classe, dates, raison…", required: true, rows: 3 },
+      { name: 'destinataire', label: 'Destinataire', type: 'text', placeholder: 'Ex: M. le Directeur, le professeur principal…' },
+    ],
+    buildPrompt: (i) => ({
+      system: `Tu es STUDIA RÉDACTEUR. ${CONTEXTE_GABON}
+Rédige un courrier court, poli et correct adressé à l'établissement scolaire (${i.motif}), respectant les conventions (lieu et date, formule d'appel, corps clair, formule de politesse, signature). Champs à compléter entre crochets si besoin. Prêt à recopier ou imprimer. Réponds en Markdown.`,
+      user: `Type : ${i.motif}\nDestinataire : ${i.destinataire || "l'établissement"}\nDétails : ${i.details}`,
+    }),
+  },
 ]
 
 export function getServiceBySlug(slug: string): AIServiceDef | undefined {
