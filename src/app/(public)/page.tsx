@@ -28,6 +28,7 @@ import { Button } from '@/components/ui/button'
 import { StatsCounter } from '@/components/sections/StatsCounter'
 import { FAQSection } from '@/components/sections/FAQSection'
 import { SecteursSection } from '@/components/sections/SecteursSection'
+import { PersonaHighlight } from '@/components/sections/PersonaHighlight'
 import { GlobeWrapper } from '@/components/hero/GlobeWrapper'
 import { modules } from '@/lib/modules'
 
@@ -300,6 +301,9 @@ export default function HomePage() {
           </HorizontalGallery>
         </div>
       </section>
+
+      {/* ─── NOUVEAU — Élèves / Profs / Parents ────────────────────── */}
+      <PersonaHighlight />
 
       {/* ─── MICRO-SERVICES ────────────────────────────────────────── */}
       <section id="services" className="w-full py-20 md:py-28 bg-[#fbf8f3] scroll-mt-16">

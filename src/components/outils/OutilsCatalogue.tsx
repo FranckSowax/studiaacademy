@@ -40,8 +40,11 @@ const PERSONAS: { id: PersonaId; label: string; icon: React.ElementType; cats: S
   { id: 'pro', label: 'Pros', icon: Building2, cats: ['emploi', 'entrepreneuriat', 'admin', 'entreprise'] },
 ]
 
-export function OutilsCatalogue({ services }: { services: CatalogueService[] }) {
-  const [persona, setPersona] = useState<PersonaId>('all')
+const PERSONA_IDS: PersonaId[] = ['all', 'eleve', 'prof', 'parent', 'pro']
+
+export function OutilsCatalogue({ services, initialPersona }: { services: CatalogueService[]; initialPersona?: string }) {
+  const start = PERSONA_IDS.includes(initialPersona as PersonaId) ? (initialPersona as PersonaId) : 'all'
+  const [persona, setPersona] = useState<PersonaId>(start)
 
   const counts = useMemo(() => {
     const c: Record<PersonaId, number> = { all: services.length, eleve: 0, prof: 0, parent: 0, pro: 0 }

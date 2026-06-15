@@ -6,7 +6,8 @@ import { aiServices, coverFor } from '@/lib/ai-services/definitions'
 import { Sparkles } from 'lucide-react'
 import { OutilsCatalogue, type CatalogueService } from '@/components/outils/OutilsCatalogue'
 
-export default function OutilsPage() {
+export default async function OutilsPage({ searchParams }: { searchParams: Promise<{ p?: string }> }) {
+  const { p } = await searchParams
   // Sérialisation côté serveur (sans buildPrompt, non transférable au client)
   const services: CatalogueService[] = aiServices.map((s) => ({
     slug: s.slug,
@@ -46,7 +47,7 @@ export default function OutilsPage() {
         </section>
 
         {/* Catalogue avec filtre par persona */}
-        <OutilsCatalogue services={services} />
+        <OutilsCatalogue services={services} initialPersona={p} />
       </main>
       <Footer />
     </div>
