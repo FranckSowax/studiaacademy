@@ -52,6 +52,19 @@ export const labsServices: LabsService[] = [
     exemples: ['Déploiement (Railway, Vercel…)', 'Bases de données (Supabase)', 'CI/CD', 'Maintenance & supervision'],
   },
   {
+    iconName: 'MessageCircle',
+    titre: 'Prospection & Campagnes WhatsApp',
+    description:
+      "Outils de prospection et de diffusion WhatsApp pour promouvoir vos événements, programmes et offres. Idéal pour animer une communauté — par exemple les événements de l'Institut Français.",
+    couleur: '#22C55E',
+    exemples: [
+      "Campagnes d'invitation aux événements",
+      'Prospection & qualification de contacts',
+      'Messages personnalisés en masse',
+      'Relances & rappels automatisés',
+    ],
+  },
+  {
     iconName: 'Lightbulb',
     titre: 'Conseil & Transformation Digitale',
     description:

@@ -13,6 +13,7 @@ const navLinks = [
   { label: 'Outils IA', href: '/outils' },
   { label: 'Formations', href: '/formations' },
   { label: 'Entreprise', href: '/entreprise' },
+  { label: 'Institut Français', href: '/institut-francais' },
   { label: 'Studia Labs', href: '/studia-labs' },
   { label: 'Contact', href: '/contact' },
 ]
@@ -47,7 +48,7 @@ export function HeaderNav({ userEmail }: HeaderNavProps) {
                 className="w-9 h-9 object-contain"
               />
               <span className="text-lg font-bold font-heading">
-                <span className={cn('transition-colors duration-300', scrolled ? 'text-gray-800' : 'text-gray-900')}>
+                <span className={cn('transition-colors duration-300', scrolled ? 'text-gray-900' : 'text-white')}>
                   Studia
                 </span>
                 <span className="text-[#e97e42]"> Academy</span>
@@ -62,8 +63,8 @@ export function HeaderNav({ userEmail }: HeaderNavProps) {
                   className={cn(
                     'px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200',
                     scrolled
-                      ? 'text-gray-600 hover:text-[#e97e42] hover:bg-[#fff7ed]'
-                      : 'text-gray-700 hover:text-[#e97e42] hover:bg-white/60'
+                      ? 'text-gray-900 hover:text-[#e97e42] hover:bg-[#fff7ed]'
+                      : 'text-white hover:text-white hover:bg-white/15'
                   )}
                 >
                   {link.label}
@@ -80,8 +81,8 @@ export function HeaderNav({ userEmail }: HeaderNavProps) {
                       className={cn(
                         'text-sm transition-colors',
                         scrolled
-                          ? 'text-gray-600 hover:text-[#e97e42] hover:bg-[#fff7ed]'
-                          : 'text-gray-700 hover:text-[#e97e42] hover:bg-white/60'
+                          ? 'text-gray-900 hover:text-[#e97e42] hover:bg-[#fff7ed]'
+                          : 'text-white hover:text-white hover:bg-white/15'
                       )}
                     >
                       Connexion
@@ -104,7 +105,10 @@ export function HeaderNav({ userEmail }: HeaderNavProps) {
             </div>
 
             <button
-              className="md:hidden p-2 rounded-lg text-gray-700 hover:bg-white/60 transition-colors"
+              className={cn(
+                'md:hidden p-2 rounded-lg transition-colors',
+                scrolled ? 'text-gray-900 hover:bg-[#fff7ed]' : 'text-white hover:bg-white/15'
+              )}
               onClick={() => setMobileOpen(!mobileOpen)}
               aria-label={mobileOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
             >

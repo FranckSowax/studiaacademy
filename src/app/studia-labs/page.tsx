@@ -8,12 +8,12 @@ import { createClient } from '@/lib/supabase/server'
 import { labsServices } from '@/lib/labs-services'
 import {
   Brain, Code2, Workflow, BarChart3, Cloud, Lightbulb, Sparkles,
-  ArrowRight, ArrowUpRight, FlaskConical, CheckCircle, ExternalLink,
+  ArrowRight, ArrowUpRight, FlaskConical, CheckCircle, ExternalLink, MessageCircle,
 } from 'lucide-react'
 import type { LabsSolution } from '@/types/labs'
 
 const serviceIcons: Record<string, React.ComponentType<{ className?: string; style?: React.CSSProperties }>> = {
-  Brain, Code2, Workflow, BarChart3, Cloud, Lightbulb,
+  Brain, Code2, Workflow, BarChart3, Cloud, Lightbulb, MessageCircle,
 }
 
 export default async function StudiaLabsPage() {
