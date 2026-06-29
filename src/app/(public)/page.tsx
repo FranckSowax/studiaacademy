@@ -29,7 +29,7 @@ import { StatsCounter } from '@/components/sections/StatsCounter'
 import { FAQSection } from '@/components/sections/FAQSection'
 import { SecteursSection } from '@/components/sections/SecteursSection'
 import { PersonaHighlight } from '@/components/sections/PersonaHighlight'
-import { GlobeWrapper } from '@/components/hero/GlobeWrapper'
+import { HeroVideo } from '@/components/hero/HeroVideo'
 import { modules } from '@/lib/modules'
 
 const iconMap: Record<string, React.ComponentType<{ className?: string; style?: React.CSSProperties }>> = {
@@ -152,101 +152,7 @@ export default function HomePage() {
   return (
     <div className="flex flex-col">
       {/* ─── HERO ──────────────────────────────────────────────────── */}
-      <section className="relative w-full min-h-screen flex items-center pt-16 overflow-hidden bg-white">
-        {/* Orbes décoratifs */}
-        <div className="absolute top-10 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-[#e97e42]/10 to-transparent rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-tr from-[#7C3AED]/6 to-transparent rounded-full blur-3xl pointer-events-none" />
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-16 md:py-24">
-          <div className="flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
-            {/* Text */}
-            <div className="flex-1 space-y-6 text-center lg:text-left animate-fade-up">
-              <div className="inline-flex items-center gap-2 bg-[#fff7ed] text-[#a84d16] px-4 py-1.5 rounded-full text-sm font-medium">
-                <Sparkles className="w-4 h-4" />
-                Centre d'Excellence #1 en Afrique Centrale
-              </div>
-
-              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold font-heading tracking-tight text-gray-900 leading-[1.05]">
-                Votre excellence,{' '}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#e97e42] to-[#d56a2e]">
-                  propulsée par l'IA
-                </span>
-              </h1>
-
-              <p className="text-lg md:text-xl text-gray-600 max-w-xl mx-auto lg:mx-0">
-                Studia Academy vous ouvre les portes des universités chinoises, des certifications
-                reconnues et de la transformation digitale — depuis Libreville, pour l'Afrique Centrale.
-              </p>
-
-              <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start animate-fade-up animate-fade-up-delay-1">
-                <Link href="/signup">
-                  <Button
-                    size="lg"
-                    className="w-full sm:w-auto bg-gradient-to-r from-[#e97e42] to-[#d56a2e] hover:from-[#d56a2e] hover:to-[#c45a20] text-white px-8 py-6 text-base rounded-xl shadow-lg shadow-[#e97e42]/25"
-                  >
-                    Commencer gratuitement
-                    <ArrowRight className="ml-2 w-5 h-5" />
-                  </Button>
-                </Link>
-                <Link href="/#modules">
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="w-full sm:w-auto border-2 border-gray-200 text-gray-700 hover:border-[#e97e42] hover:text-[#e97e42] hover:bg-[#fff7ed] px-8 py-6 text-base rounded-xl"
-                  >
-                    Nos 9 modules
-                  </Button>
-                </Link>
-              </div>
-
-              {/* Trust pills */}
-              <div className="flex flex-wrap gap-3 justify-center lg:justify-start pt-2 animate-fade-up animate-fade-up-delay-2">
-                {['500+ certifications', '2000+ étudiants', '94% satisfaction'].map((pill) => (
-                  <span
-                    key={pill}
-                    className="flex items-center gap-1.5 text-sm text-gray-600 bg-[#fbf8f3] border border-[#f0ebe3] px-3 py-1 rounded-full"
-                  >
-                    <CheckCircle className="w-3.5 h-3.5 text-[#e97e42]" />
-                    {pill}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Globe 3D */}
-            <div className="flex-1 relative w-full max-w-md lg:max-w-lg mx-auto animate-fade-up animate-fade-up-delay-2">
-              {/* Fallback visible sur mobile, globe sur desktop */}
-              <div className="relative aspect-square">
-                {/* Fallback gradient orbs (toujours visible) */}
-                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[#e97e42]/15 via-[#fff7ed]/30 to-[#7C3AED]/8 blur-2xl" />
-                <div className="absolute inset-4 rounded-full bg-gradient-to-tl from-[#e97e42]/10 to-transparent" />
-
-                {/* Globe WebGL (hidden sur mobile < 640px pour perf) */}
-                <div className="hidden sm:block absolute inset-0 rounded-full overflow-hidden">
-                  <GlobeWrapper className="w-full h-full" />
-                </div>
-
-                {/* Floating badges */}
-                <div className="absolute -top-4 -right-4 bg-white rounded-2xl px-4 py-3 shadow-xl border border-[#f0ebe3] hidden sm:flex items-center gap-2 animate-fade-up animate-fade-up-delay-3">
-                  <GraduationCap className="w-5 h-5 text-[#7C3AED]" />
-                  <div>
-                    <p className="text-xs font-bold text-gray-800">+20 universités</p>
-                    <p className="text-xs text-gray-500">chinoises partenaires</p>
-                  </div>
-                </div>
-
-                <div className="absolute -bottom-4 -left-4 bg-gradient-to-r from-[#e97e42] to-[#d56a2e] rounded-2xl px-4 py-3 shadow-xl text-white hidden sm:flex items-center gap-2 animate-fade-up animate-fade-up-delay-4">
-                  <Star className="w-5 h-5" fill="white" />
-                  <div>
-                    <p className="text-sm font-bold">4.9 / 5</p>
-                    <p className="text-xs text-white/80">Satisfaction</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <HeroVideo />
 
       {/* ─── BANDEAU PARTENAIRES ───────────────────────────────────── */}
       <section className="w-full py-12 bg-[#fbf8f3] border-y border-[#f0ebe3]">
