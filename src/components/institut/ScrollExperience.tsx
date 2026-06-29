@@ -19,7 +19,8 @@ type Chapter = {
   body: string
   companion: string // ce que fait Aïcha (fil conducteur)
   tint: string // couleur d'ambiance (golden hour -> nuit)
-  promptLabel: string // placeholder du clip Seedance à venir
+  src: string // clip Seedance (Aïcha)
+  poster: string
   scrub?: boolean // chapitre signature (video pilotée au scroll)
 }
 
@@ -30,7 +31,7 @@ const chapters: Chapter[] = [
     title: "Allumer l'IA pour la francophonie",
     body: "Libreville, à l'aube. Suivez Aïcha, médiatrice culturelle à l'Institut Français.",
     companion: "Aïcha arrive à l'Institut Français",
-    tint: '#2a1a0e', promptLabel: 'Ch.0 — Push-in aérien sur l’IF Libreville, golden hour',
+    tint: '#2a1a0e', src: '/if-ch0-web.mp4', poster: '/if-ch0-poster.jpg',
   },
   {
     id: 'constat', icon: Eye,
@@ -38,7 +39,7 @@ const chapters: Chapter[] = [
     title: "La culture et l'éducation entrent dans l'ère de l'IA",
     body: "Ses publics — étudiants, expatriés, curieux — attendent de nouveaux outils. Aïcha le sent.",
     companion: 'Aïcha observe sa communauté',
-    tint: '#33240f', promptLabel: 'Ch.1 — Slow orbit, cour de l’IF, affiches d’événements',
+    tint: '#33240f', src: '/if-ch1-web.mp4', poster: '/if-ch1-poster.jpg',
   },
   {
     id: 'staff', icon: GraduationCap,
@@ -46,7 +47,7 @@ const chapters: Chapter[] = [
     title: "Former d'abord ceux qui transmettent",
     body: "Studia forme les équipes de l'Institut : IA au quotidien, contenus pédagogiques, automatisation. Aïcha apprend.",
     companion: "Aïcha se forme à l'IA",
-    tint: '#3a1f3a', promptLabel: 'Ch.2 — Dolly-in salle de formation, écrans qui s’allument',
+    tint: '#3a1f3a', src: '/if-ch2-web.mp4', poster: '/if-ch2-poster.jpg',
   },
   {
     id: 'communaute', icon: Users,
@@ -54,7 +55,7 @@ const chapters: Chapter[] = [
     title: "Ouvrir l'IA à toute la communauté",
     body: "Initiation grand public, IA pour les candidats aux universités chinoises, pour entrepreneurs et expatriés. Aïcha transmet à son tour.",
     companion: 'Aïcha forme la communauté',
-    tint: '#2a1f4d', promptLabel: 'Ch.3 — Crane up + travelling, atelier communautaire',
+    tint: '#2a1f4d', src: '/if-ch3-web.mp4', poster: '/if-ch3-poster.jpg',
   },
   {
     id: 'plateforme', icon: LayoutDashboard,
@@ -62,7 +63,7 @@ const chapters: Chapter[] = [
     title: 'Une plateforme Studia pour tout piloter',
     body: "Conçue pour l'Institut : un seul endroit pour créer, diffuser et publier.",
     companion: 'Aïcha ouvre la plateforme Studia',
-    tint: '#1b1f4d', promptLabel: 'Ch.4 — Locked-off, l’interface se construit en lévitation', scrub: true,
+    tint: '#1b1f4d', src: '/if-ch4-web.mp4', poster: '/if-ch4-poster.jpg', scrub: true,
   },
   {
     id: 'creer', icon: Wand2,
@@ -70,7 +71,7 @@ const chapters: Chapter[] = [
     title: 'Contenus image & vidéo, avec vos prompts Institut',
     body: "Aïcha tape un « prompt Institut » : visuels et vidéos d'événements naissent en secondes, à votre charte.",
     companion: 'Aïcha génère un visuel d’événement',
-    tint: '#141b46', promptLabel: 'Ch.5 — Push-in écran, images/vidéos qui éclosent',
+    tint: '#141b46', src: '/if-ch5-web.mp4', poster: '/if-ch5-poster.jpg',
   },
   {
     id: 'diffuser', icon: MessageCircle,
@@ -78,7 +79,7 @@ const chapters: Chapter[] = [
     title: 'Campagnes WhatsApp en un clic',
     body: "Invitations, rappels, relances : la communauté de l'Institut reçoit l'info là où elle est.",
     companion: 'Aïcha lance une campagne WhatsApp',
-    tint: '#0f2a2a', promptLabel: 'Ch.6 — Dolly-out, bulles WhatsApp qui s’envolent sur la ville',
+    tint: '#0f2a2a', src: '/if-ch6-web.mp4', poster: '/if-ch6-poster.jpg',
   },
   {
     id: 'rayonner', icon: Share2,
@@ -86,7 +87,7 @@ const chapters: Chapter[] = [
     title: 'Publié partout, depuis un seul endroit',
     body: "Instagram, Facebook, TikTok, LinkedIn — programmez et publiez sur tous vos réseaux. Libreville s'illumine.",
     companion: 'Aïcha publie sur tous les réseaux',
-    tint: '#0b1230', promptLabel: 'Ch.7 — Crane up vers la skyline, écrans qui s’allument',
+    tint: '#0b1230', src: '/if-ch7-web.mp4', poster: '/if-ch7-poster.jpg',
   },
 ]
 
@@ -208,13 +209,6 @@ export function ScrollExperience() {
     <div ref={rootRef} className="relative bg-[#0b0a09] text-white">
       {/* Fond d'ambiance (teinte évolutive golden hour → nuit) */}
       <div ref={bgRef} className="fixed inset-0 -z-10 transition-colors" style={{ backgroundColor: chapters[0].tint }} />
-      {/* Texture vidéo de fond (placeholder — remplacé par les clips Seedance) */}
-      <video
-        className="fixed inset-0 -z-10 h-full w-full object-cover opacity-25 mix-blend-screen"
-        autoPlay loop muted playsInline poster="/hero-studia-poster.jpg" aria-hidden
-      >
-        <source src="/hero-studia.mp4" type="video/mp4" />
-      </video>
 
       {/* Effets cinématiques globaux */}
       <canvas ref={canvasRef} className="pointer-events-none fixed inset-0 -z-0" aria-hidden />
@@ -256,16 +250,21 @@ export function ScrollExperience() {
             className={`chapter ${ch.scrub ? 'chapter-scrub' : ''} relative ${ch.scrub ? 'h-[280vh]' : 'h-[170vh]'}`}
           >
             <div className="sticky top-0 flex h-screen items-center overflow-hidden">
-              {/* Média du chapitre */}
+              {/* Média du chapitre (clip Seedance — Aïcha) */}
               <div className="chapter-media absolute inset-0">
                 {ch.scrub ? (
-                  <video ref={scrubVideoRef} className="h-full w-full object-cover opacity-50"
-                    muted playsInline preload="auto" poster="/hero-studia-poster.jpg">
-                    <source src="/hero-studia.mp4" type="video/mp4" />
+                  <video ref={scrubVideoRef} className="h-full w-full object-cover opacity-70"
+                    muted playsInline preload="auto" poster={ch.poster}>
+                    <source src={ch.src} type="video/mp4" />
                   </video>
                 ) : (
-                  <div className="h-full w-full" style={{ background: `radial-gradient(60% 60% at 70% 40%, ${ch.tint}cc, transparent)` }} />
+                  <video className="h-full w-full object-cover opacity-60"
+                    autoPlay loop muted playsInline preload="metadata" poster={ch.poster} aria-hidden>
+                    <source src={ch.src} type="video/mp4" />
+                  </video>
                 )}
+                {/* voile pour lisibilité du texte */}
+                <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
               </div>
 
               {/* Carte texte (glass) */}
@@ -278,11 +277,6 @@ export function ScrollExperience() {
                     {ch.title}
                   </h2>
                   <p className="text-lg text-white/75 md:text-xl">{ch.body}</p>
-
-                  {/* Étiquette placeholder du clip Seedance */}
-                  <p className="mt-6 inline-flex items-center gap-2 rounded-lg border border-dashed border-white/20 px-3 py-1.5 text-[11px] text-white/40">
-                    🎬 Placeholder · {ch.promptLabel}
-                  </p>
                 </div>
               </div>
 
