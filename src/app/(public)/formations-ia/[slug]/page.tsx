@@ -65,14 +65,43 @@ export default async function FormationIAPage({
     <div className={isExec ? 'bg-[#f7f7f4] pt-16' : 'bg-[#f7f8fc] pt-16'}>
       {/* ── HERO ── */}
       <section
-        className="text-white"
+        className="relative overflow-hidden text-white"
         style={{
           background: isExec
             ? 'linear-gradient(140deg, #0e1120, #141828 55%, #2a2f4a)'
             : `linear-gradient(135deg, ${f.from}, ${f.to})`,
         }}
       >
-        <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 md:py-20">
+        {/* Vidéo de fond abstraite (IA qui met de l'ordre) — bouclable, muette */}
+        <video
+          className="absolute inset-0 h-full w-full object-cover"
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="metadata"
+          poster={`/fia-hero-${f.slug}-poster.jpg`}
+          aria-hidden
+        >
+          <source src={`/fia-hero-${f.slug}.mp4`} type="video/mp4" />
+        </video>
+        {/* Teinte de marque pour l'identité + lisibilité */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background: isExec
+              ? 'linear-gradient(140deg, rgba(14,17,32,0.90), rgba(20,24,40,0.72) 55%, rgba(42,47,74,0.62))'
+              : `linear-gradient(135deg, ${f.from}e6, ${f.to}b3)`,
+          }}
+          aria-hidden
+        />
+        {/* Scrim latéral pour le texte */}
+        <div
+          className="absolute inset-0 bg-gradient-to-r from-black/45 via-black/10 to-transparent"
+          aria-hidden
+        />
+
+        <div className="relative z-10 mx-auto max-w-6xl px-4 py-14 sm:px-6 md:py-20">
           <p
             className="text-xs font-bold uppercase tracking-[0.2em]"
             style={{ color: isExec ? '#f5b301' : 'rgba(255,255,255,0.85)' }}
