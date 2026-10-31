@@ -147,6 +147,50 @@ export async function resolveLidToPhone(lidChatId: string): Promise<string | nul
 }
 
 /**
+ * Derniers messages d'une discussion, côté WAHA (reprise d'historique).
+ * Endpoint vérifié : GET /api/{session}/chats/{chatId}/messages
+ * (limit, downloadMedia). Retourne [] en cas d'erreur.
+ */
+export async function fetchChatMessages(chatId: string, limit = 100): Promise<unknown[]> {
+  const config = getConfig()
+  if (!config) return []
+  const params = new URLSearchParams({ limit: String(limit), downloadMedia: 'true' })
+  try {
+    const res = await fetch(
+      `${config.baseUrl}/api/${encodeURIComponent(config.session)}/chats/${encodeURIComponent(chatId)}/messages?${params}`,
+      {
+        headers: { Accept: 'application/json', 'X-Api-Key': config.apiKey },
+        signal: AbortSignal.timeout(60_000),
+      },
+    )
+    if (!res.ok) return []
+    const data = (await res.json()) as unknown
+    return Array.isArray(data) ? data : []
+  } catch {
+    return []
+  }
+}
+
+/**
+ * Récupère un fichier média stocké par WAHA (chemin /api/files/...), avec la
+ * clé serveur. Le navigateur ne voit jamais la clé : la route de relais
+ * renvoie ce flux.
+ */
+export async function fetchWahaFile(path: string): Promise<Response | null> {
+  const config = getConfig()
+  if (!config || !path.startsWith('/api/files/') || path.includes('..')) return null
+  try {
+    const res = await fetch(`${config.baseUrl}${path}`, {
+      headers: { 'X-Api-Key': config.apiKey },
+      signal: AbortSignal.timeout(60_000),
+    })
+    return res.ok ? res : null
+  } catch {
+    return null
+  }
+}
+
+/**
  * Marque une discussion comme lue (double coche bleue). Recommandé par WAHA
  * avant de répondre à un message entrant, pour limiter le risque de blocage.
  */
