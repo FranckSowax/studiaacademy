@@ -41,9 +41,11 @@ Chaque étape est une écriture sur un système distant : **accord explicite req
    - laissés vides à la demande : `NEXT_PUBLIC_SITE_URL` / `NEXT_PUBLIC_APP_URL` (liens clients vers
      `https://www.studia-academy.ga` par défaut), `NEXT_PUBLIC_AIRTEL_MONEY`, `NEXT_PUBLIC_MOOV_MONEY` ;
    - `WHAPI_TOKEN` / `WHAPI_CHANNEL_ID` à supprimer une fois WAHA confirmé en prod.
-4. **Tâches planifiées** (cron Railway), en-tête `Authorization: Bearer $INBOX_CRON_SECRET` :
-   - `POST /api/inbox/jobs/analyze` — toutes les 15 min ;
-   - `POST /api/inbox/jobs/daily-report` — une fois par jour, en fin de journée (fuseau Africa/Libreville).
+4. ⏳ **Tâches planifiées** — préparées le 2026-10-31, EN ATTENTE (staged) jusqu'au déploiement de l'app :
+   - services cron `inbox-analyze` (`*/15 * * * *`) et `inbox-daily-report` (`30 23 * * *` UTC = 00:30 à Libreville,
+     bilan de la veille), image `curlimages/curl:8.11.1`, redémarrage `NEVER` ;
+   - `INBOX_CRON_SECRET=${{studiaacademy.INBOX_CRON_SECRET}}` (référence) et `JOB_URL` vers `https://studia.academy/api/inbox/jobs/…` ;
+   - seuls les codes HTTP sont journalisés (`-o /dev/null`), jamais le contenu des bilans.
 5. **Déploiement de l'app**, puis appairage WhatsApp (QR ou code) du numéro de l'équipe.
 6. **Accès** : passer `inbox_access = true` sur les profils des collaborateurs concernés.
 7. **Recette prod** : un message depuis le numéro de test uniquement → visible dans l'inbox → réponse reçue.
