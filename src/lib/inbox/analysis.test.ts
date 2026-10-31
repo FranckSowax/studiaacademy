@@ -6,6 +6,7 @@ import {
   computeAnalysisCost,
   dayRangeUtc,
   DEFAULT_ANALYSIS,
+  extractModelJson,
   factStageFromInscriptions,
   maskPersonalData,
   parseModelAnalysis,
@@ -47,6 +48,13 @@ describe('validation de l’analyse', () => {
 
   it('les moyens de paiement viennent de la configuration', () => {
     expect(validateAnalysis({ payment_mentioned: 'airtel_money' }).payment_mentioned).toBe('airtel_money')
+  })
+
+  it('extrait le JSON entouré de balises de code ; null si inexploitable', () => {
+    expect(extractModelJson('```json\n{ "intent_score": 95 }\n```')).toEqual({ intent_score: 95 })
+    expect(extractModelJson('')).toBeNull()
+    expect(extractModelJson('{"intent_score": 9')).toBeNull()
+    expect(extractModelJson('[1,2]')).toBeNull()
   })
 
   it('JSON cassé ou entouré de texte → analyse quand même', () => {

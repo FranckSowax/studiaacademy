@@ -26,6 +26,7 @@ import {
   INTENTS,
   NEXT_ACTIONS,
   OBJECTIONS,
+  extractModelJson,
   parseModelAnalysis,
   paymentMentionValues,
   PREFERRED_FORMATS,
@@ -35,6 +36,7 @@ import {
   SENTIMENTS,
   shouldAnalyze,
   URGENCIES,
+  validateAnalysis,
   type AnalysisPricing,
   type ConversationAnalysis,
   type DailyReport,
@@ -76,6 +78,9 @@ export function analysisSettings() {
   return {
     provider,
     model,
+    // Les modèles qui « raisonnent » consomment des centaines de tokens avant
+    // d'écrire le JSON : un plafond trop bas coupe la réponse.
+    maxTokens: envNumber('INBOX_ANALYSIS_MAX_TOKENS') ?? 3000,
     dailyCap: envNumber('INBOX_ANALYSIS_DAILY_CAP') ?? 200,
     batchSize: envNumber('INBOX_ANALYSIS_BATCH') ?? 10,
     pricing,
@@ -99,6 +104,18 @@ async function analysesToday(): Promise<number> {
 
 const list = (o: Record<string, string>) => Object.keys(o).join(' | ')
 
+/** Ce que chaque action déclenche réellement dans la messagerie (pour guider le modèle). */
+const NEXT_ACTIONS_GUIDE: Record<keyof typeof NEXT_ACTIONS, string> = {
+  send_cart: "le client veut s'inscrire ou payer : lui envoyer son inscription et le lien de paiement",
+  send_media: 'lui envoyer un visuel, une brochure ou un programme',
+  send_quick_reply: 'question courante à laquelle une réponse type suffit',
+  answer_question: 'question précise qui demande une réponse rédigée',
+  follow_up: 'le client hésite ou reviendra plus tard : prévoir une relance',
+  handover: "demande hors du périmètre de la personne : passer la main",
+  close: 'échange terminé, rien à ajouter',
+  none: 'aucune action utile',
+}
+
 function systemPrompt(): string {
   const { brand } = getAppConfig()
   return `Tu analyses une conversation WhatsApp entre un client et l'équipe de ${brand.name} (formations professionnelles, notamment à l'intelligence artificielle).
@@ -113,7 +130,10 @@ Réponds UNIQUEMENT par un objet JSON avec exactement ces clés, valeurs prises 
 - preferred_format : ${list(PREFERRED_FORMATS)}
 - payment_mentioned : ${list(paymentMentionValues())}
 - abandon_risk : ${list(ABANDON_RISKS)}
-- next_best_action : ${list(NEXT_ACTIONS)}
+- next_best_action : une valeur parmi (signification entre parenthèses) :
+${Object.entries(NEXT_ACTIONS_GUIDE)
+  .map(([k, v]) => `    ${k} (${v})`)
+  .join('\n')}
 - next_action_detail : une phrase concrète pour l'équipe (français, 200 caractères max)
 - need_summary : le besoin du client en une phrase (français, 280 caractères max)
 - open_questions : questions du client restées sans réponse de l'équipe (français, 5 max)
@@ -187,7 +207,7 @@ export async function analyzeConversation(conversationId: string, options: { for
   let providerCost: { amount: number | null; currency: string | null } | null = null
   try {
     if (settings.provider === 'openrouter') {
-      const res = await openRouterChat({ model: settings.model, messages: prompt, temperature: 0.1, maxTokens: 700 })
+      const res = await openRouterChat({ model: settings.model, messages: prompt, temperature: 0.1, maxTokens: settings.maxTokens })
       content = res.content
       usage = res.usage
       if (res.cost !== null) providerCost = { amount: res.cost, currency: OPENROUTER_COST_UNIT }
@@ -195,7 +215,7 @@ export async function analyzeConversation(conversationId: string, options: { for
       const res = await mistralChatWithUsage({
         model: settings.model as MistralModel,
         temperature: 0.1,
-        maxTokens: 700,
+        maxTokens: settings.maxTokens,
         jsonMode: true,
         messages: prompt,
       })
@@ -207,7 +227,31 @@ export async function analyzeConversation(conversationId: string, options: { for
     return { status: 'skipped', reason: 'modèle indisponible' }
   }
 
-  const analysis = parseModelAnalysis(content)
+  const lastMessageId = (thread[0]?.id as string | undefined) ?? null
+  const raw = extractModelJson(content)
+  if (!raw) {
+    // WHY: une réponse coupée ou hors JSON donnerait une analyse « par défaut »
+    // trompeuse. On trace la tentative (coût, plafond du jour) sans toucher au
+    // stade de la conversation, et on la date pour ne pas repayer en boucle.
+    const failedCost = providerCost ?? computeAnalysisCost(usage, settings.pricing)
+    await admin.from('wa_conversation_analyses').insert({
+      conversation_id: conversationId,
+      analyzed_message_id: lastMessageId,
+      model: `${settings.provider}:${settings.model}`,
+      result: { error: 'réponse inexploitable' },
+      input_tokens: usage?.promptTokens ?? null,
+      output_tokens: usage?.completionTokens ?? null,
+      cost_amount: failedCost.amount,
+      cost_currency: failedCost.currency,
+    })
+    await admin
+      .from('wa_conversations')
+      .update({ analyzed_at: new Date().toISOString(), analyzed_message_id: lastMessageId })
+      .eq('id', conversationId)
+    console.warn('[inbox-analyze] réponse du modèle inexploitable (coupée ou hors JSON)')
+    return { status: 'skipped', reason: 'réponse du modèle inexploitable (augmentez INBOX_ANALYSIS_MAX_TOKENS ou changez de modèle)' }
+  }
+  const analysis = validateAnalysis(raw)
 
   // Les faits corrigent le modèle : inscriptions réelles du même numéro.
   let factStage: PurchaseStage | null = null
@@ -220,7 +264,6 @@ export async function analyzeConversation(conversationId: string, options: { for
   }
   const finalStage = retainedStage(analysis.purchase_stage, factStage)
   const cost = providerCost ?? computeAnalysisCost(usage, settings.pricing)
-  const lastMessageId = (thread[0]?.id as string | undefined) ?? null
 
   const { error: insertError } = await admin.from('wa_conversation_analyses').insert({
     conversation_id: conversationId,
@@ -271,6 +314,8 @@ export async function getLatestAnalysis(conversationId: string): Promise<LatestA
     .from('wa_conversation_analyses')
     .select('*')
     .eq('conversation_id', conversationId)
+    // Les tentatives inexploitables (sans stade retenu) ne s'affichent pas comme des analyses.
+    .not('final_stage', 'is', null)
     .order('created_at', { ascending: false })
     .limit(1)
     .maybeSingle()

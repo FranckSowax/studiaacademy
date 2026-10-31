@@ -166,21 +166,28 @@ export function validateAnalysis(raw: unknown): ConversationAnalysis {
   }
 }
 
+/**
+ * Extrait l'objet JSON de la réponse du modèle (texte autour, balises ```json
+ * tolérés). null si aucune donnée exploitable : la réponse a été coupée ou
+ * le modèle n'a pas répondu en JSON.
+ */
+export function extractModelJson(content: string): Record<string, unknown> | null {
+  const candidates = [content, content.match(/\{[\s\S]*\}/)?.[0] ?? '']
+  for (const candidate of candidates) {
+    if (!candidate.trim()) continue
+    try {
+      const parsed: unknown = JSON.parse(candidate)
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) return parsed as Record<string, unknown>
+    } catch {
+      // candidat suivant
+    }
+  }
+  return null
+}
+
 /** Analyse JSON brute du modèle (texte) → analyse validée, même si le JSON est cassé. */
 export function parseModelAnalysis(content: string): ConversationAnalysis {
-  try {
-    return validateAnalysis(JSON.parse(content))
-  } catch {
-    const match = content.match(/\{[\s\S]*\}/)
-    if (match) {
-      try {
-        return validateAnalysis(JSON.parse(match[0]))
-      } catch {
-        // on tombe sur les valeurs par défaut
-      }
-    }
-    return validateAnalysis(null)
-  }
+  return validateAnalysis(extractModelJson(content))
 }
 
 // ── Les faits corrigent le modèle ──────────
