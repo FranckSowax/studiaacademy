@@ -146,6 +146,68 @@ export async function resolveLidToPhone(lidChatId: string): Promise<string | nul
   }
 }
 
+/** Erreur d'envoi WAHA, avec un message affichable à l'équipe. */
+export class WahaSendError extends Error {
+  constructor(
+    message: string,
+    readonly status: number | null,
+  ) {
+    super(message)
+    this.name = 'WahaSendError'
+  }
+}
+
+async function postAndReturnMessage(path: string, body: Record<string, unknown>, timeoutMs: number): Promise<unknown> {
+  const config = getConfig()
+  if (!config) throw new WahaSendError('WhatsApp non configuré (WAHA_BASE_URL / WAHA_API_KEY)', null)
+  let res: Response
+  try {
+    res = await fetch(`${config.baseUrl}${path}`, {
+      method: 'POST',
+      headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-Api-Key': config.apiKey },
+      body: JSON.stringify({ session: config.session, ...body }),
+      signal: AbortSignal.timeout(timeoutMs),
+    })
+  } catch {
+    throw new WahaSendError('Service WhatsApp injoignable', null)
+  }
+  if (!res.ok) throw new WahaSendError(`Envoi refusé par WhatsApp (code ${res.status})`, res.status)
+  return res.json().catch(() => null)
+}
+
+/**
+ * Envoie un texte dans une discussion existante (chatId @lid ou @c.us) et
+ * renvoie le message WAHA créé (identifiant, horodatage, accusé).
+ * Endpoint vérifié : POST /api/sendText.
+ */
+export async function sendTextToChat(chatId: string, text: string): Promise<unknown> {
+  return postAndReturnMessage('/api/sendText', { chatId, text }, REQUEST_TIMEOUT_MS)
+}
+
+export type OutgoingMediaKind = 'image' | 'video' | 'document'
+
+/**
+ * Envoie un fichier (base64) dans une discussion. Endpoints vérifiés :
+ * POST /api/sendImage, /api/sendVideo, /api/sendFile — file: { mimetype, filename, data }.
+ */
+export async function sendMediaToChat(
+  chatId: string,
+  kind: OutgoingMediaKind,
+  file: { mimetype: string; filename: string; base64: string },
+  caption?: string,
+): Promise<unknown> {
+  const path = kind === 'image' ? '/api/sendImage' : kind === 'video' ? '/api/sendVideo' : '/api/sendFile'
+  return postAndReturnMessage(
+    path,
+    {
+      chatId,
+      caption: caption || undefined,
+      file: { mimetype: file.mimetype, filename: file.filename, data: file.base64 },
+    },
+    120_000,
+  )
+}
+
 /**
  * Derniers messages d'une discussion, côté WAHA (reprise d'historique).
  * Endpoint vérifié : GET /api/{session}/chats/{chatId}/messages

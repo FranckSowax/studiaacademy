@@ -21,6 +21,8 @@ export interface PaymentMethodConfig {
 export interface AppConfig {
   brand: {
     name: string
+    /** URL publique du site (liens envoyés aux clients). */
+    siteUrl: string
   }
   country: {
     /** Code ISO 3166-1 alpha-2. */
@@ -53,6 +55,7 @@ function buildConfig(): AppConfig {
   return {
     brand: {
       name: env('APP_BRAND_NAME') ?? 'Studia Academy',
+      siteUrl: (env('NEXT_PUBLIC_SITE_URL') ?? 'https://www.studia-academy.ga').replace(/\/+$/, ''),
     },
     country: {
       code: env('APP_COUNTRY_CODE') ?? 'GA',
