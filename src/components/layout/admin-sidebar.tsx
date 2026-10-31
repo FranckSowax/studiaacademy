@@ -15,7 +15,9 @@ import {
   Inbox,
   FlaskConical,
   Building2,
+  MessageCircle,
 } from 'lucide-react'
+import { InboxNavBadge } from '@/components/inbox/InboxNavBadge'
 
 interface AdminSidebarProps extends React.HTMLAttributes<HTMLDivElement> {}
 
@@ -37,6 +39,11 @@ export function AdminSidebar({ className }: AdminSidebarProps) {
       title: 'Services',
       href: '/admin/services',
       icon: Briefcase,
+    },
+    {
+      title: 'Messagerie',
+      href: '/messagerie',
+      icon: MessageCircle,
     },
     {
       title: 'Formations en ligne',
@@ -93,6 +100,7 @@ export function AdminSidebar({ className }: AdminSidebarProps) {
                 <Link href={item.href}>
                   <item.icon className="mr-2 h-4 w-4" />
                   {item.title}
+                  {item.href === '/messagerie' && <InboxNavBadge />}
                 </Link>
               </Button>
             ))}
