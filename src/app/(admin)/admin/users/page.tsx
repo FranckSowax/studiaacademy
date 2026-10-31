@@ -1,14 +1,12 @@
 export const dynamic = 'force-dynamic'
 
-import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { requireAdmin } from '@/lib/auth/require-admin'
 import { AdminUsersTable, type AdminUserRow } from '@/components/admin/AdminUsersTable'
 
 export default async function AdminUsersPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  const { data: me } = user ? await supabase.from('profiles').select('role').eq('id', user.id).maybeSingle() : { data: null }
-  const isSuperAdmin = me?.role === 'super_admin'
+  const { role } = await requireAdmin()
+  const isSuperAdmin = role === 'super_admin'
 
   const admin = createAdminClient()
   const { data: profiles } = await admin

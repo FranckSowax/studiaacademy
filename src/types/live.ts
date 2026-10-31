@@ -16,6 +16,8 @@ export interface LiveGame {
   status: LiveStatus
   current_index: number
   question_started_at: string | null
+  /** Bonne réponse de la question courante, renseignée uniquement en phase « reveal ». */
+  revealed_answer?: number | null
   created_at: string
   updated_at: string
 }

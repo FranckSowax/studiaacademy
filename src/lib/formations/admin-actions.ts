@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
-import { sendWhatsApp } from '@/lib/whapi'
+import { sendWhatsApp } from '@/lib/whatsapp'
 import type { LessonType } from '@/types/formation'
 
 async function assertAdmin() {

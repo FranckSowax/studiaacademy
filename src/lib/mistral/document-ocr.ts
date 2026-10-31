@@ -5,6 +5,7 @@
 
 import { PDFDocument } from 'pdf-lib'
 import { mistralDocumentOCR, mistralOCR } from './client'
+import { assertProjectStorageUrl, fetchProjectStorageFile } from '@/lib/security/safe-fetch'
 
 export interface OcrFile {
   url: string // URL signée Supabase (téléchargeable)
@@ -58,12 +59,16 @@ async function ocrLargePdf(bytes: Uint8Array): Promise<string> {
  * OCR d'un seul fichier (PDF ou image) avec stratégie adaptée.
  */
 async function ocrSingleFile(file: OcrFile): Promise<string> {
+  // WHY: l'URL vient du client ; seule une URL du Storage du projet est
+  // acceptée (anti-SSRF côté serveur et côté Mistral).
+  assertProjectStorageUrl(file.url)
+
   // ── PDF ──
   if (isPdf(file.mime, file.name)) {
     // Télécharger pour connaître le nombre de pages
-    const res = await fetch(file.url)
+    const res = await fetchProjectStorageFile(file.url)
     if (!res.ok) throw new Error(`Téléchargement PDF échoué (${res.status})`)
-    const bytes = new Uint8Array(await res.arrayBuffer())
+    const bytes = res.bytes
 
     let pageCount = 0
     try {

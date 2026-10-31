@@ -6,6 +6,7 @@
 import mammoth from 'mammoth'
 import { ocrDocuments } from '@/lib/mistral/document-ocr'
 import { mistralTranscribe } from '@/lib/mistral/client'
+import { fetchProjectStorageFile, safeFetch, UnsafeUrlError } from '@/lib/security/safe-fetch'
 import type { SourceType } from '@/types/generation'
 
 export interface SourceInput {
@@ -21,10 +22,9 @@ export interface SourceInput {
  * En-têtes navigateur réalistes pour maximiser la compatibilité.
  */
 async function extractUrl(url: string): Promise<string> {
-  let res: Response
+  let res: Awaited<ReturnType<typeof safeFetch>>
   try {
-    res = await fetch(url, {
-      redirect: 'follow',
+    res = await safeFetch(url, {
       headers: {
         'User-Agent':
           'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
@@ -32,7 +32,8 @@ async function extractUrl(url: string): Promise<string> {
         'Accept-Language': 'fr-FR,fr;q=0.9,en;q=0.8',
       },
     })
-  } catch {
+  } catch (e) {
+    if (e instanceof UnsafeUrlError) throw e
     throw new Error("Impossible de joindre la page. Vérifiez l'URL.")
   }
 
@@ -42,7 +43,7 @@ async function extractUrl(url: string): Promise<string> {
     )
   }
 
-  const html = await res.text()
+  const html = res.text()
   const text = html
     .replace(/<script[\s\S]*?<\/script>/gi, '')
     .replace(/<style[\s\S]*?<\/style>/gi, '')
@@ -66,9 +67,9 @@ async function extractUrl(url: string): Promise<string> {
  * Extrait le texte d'un .docx via mammoth.
  */
 async function extractDocx(url: string): Promise<string> {
-  const res = await fetch(url)
+  const res = await fetchProjectStorageFile(url)
   if (!res.ok) throw new Error('Document inaccessible')
-  const buffer = Buffer.from(await res.arrayBuffer())
+  const buffer = Buffer.from(res.bytes)
   const result = await mammoth.extractRawText({ buffer })
   return result.value.trim()
 }
@@ -77,9 +78,9 @@ async function extractDocx(url: string): Promise<string> {
  * Transcrit un fichier audio via Mistral Voxtral.
  */
 async function extractAudio(url: string, name: string): Promise<string> {
-  const res = await fetch(url)
+  const res = await fetchProjectStorageFile(url)
   if (!res.ok) throw new Error('Audio inaccessible')
-  const bytes = new Uint8Array(await res.arrayBuffer())
+  const bytes = res.bytes
   return mistralTranscribe(bytes, name)
 }
 

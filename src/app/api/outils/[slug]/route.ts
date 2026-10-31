@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { mistralChat } from '@/lib/mistral/client'
 import { getServiceBySlug } from '@/lib/ai-services/definitions'
+import { consumeRateLimit, RATE_LIMITS } from '@/lib/security/rate-limit'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 300
@@ -52,34 +53,26 @@ export async function POST(
   const admin = createAdminClient()
   let creditsApres: number | null = null
   if (service.prixCredits > 0) {
-    const { data: wallet } = await admin
-      .from('wallets')
-      .select('id, balance, total_spent')
-      .eq('user_id', user.id)
-      .maybeSingle()
-
-    if (wallet) {
-      if (wallet.balance < service.prixCredits) {
-        return NextResponse.json(
-          { error: `Crédits insuffisants (${wallet.balance}/${service.prixCredits}). Rechargez votre solde.`, needCredits: true },
-          { status: 402 }
-        )
-      }
-      creditsApres = wallet.balance - service.prixCredits
-      await admin
-        .from('wallets')
-        .update({ balance: creditsApres, total_spent: (wallet.total_spent ?? 0) + service.prixCredits })
-        .eq('id', wallet.id)
-      await admin.from('transactions').insert({
-        user_id: user.id,
-        wallet_id: wallet.id,
-        type: 'service_payment',
-        status: 'completed',
-        amount: service.prixCredits,
-        credits: service.prixCredits,
-        description: `Outil IA : ${service.titre}`,
-      })
+    // WHY: débit atomique en base (solde vérifié et décrémenté en une requête).
+    // Un wallet absent n'est plus synonyme de gratuité.
+    const { data: newBalance, error: debitError } = await admin.rpc('consume_credits', {
+      p_user_id: user.id,
+      p_amount: service.prixCredits,
+      p_description: `Outil IA : ${service.titre}`,
+    })
+    if (debitError) {
+      return NextResponse.json({ error: 'Service de crédits indisponible' }, { status: 503 })
     }
+    if (newBalance === null) {
+      return NextResponse.json(
+        { error: `Crédits insuffisants (${service.prixCredits} requis). Rechargez votre solde.`, needCredits: true },
+        { status: 402 }
+      )
+    }
+    creditsApres = newBalance as number
+  } else if (!(await consumeRateLimit(`ai:${user.id}`, RATE_LIMITS.aiPerUser))) {
+    // Outils gratuits : quota horaire pour protéger le budget Mistral.
+    return NextResponse.json({ error: 'Trop de requêtes. Réessayez dans une heure.' }, { status: 429 })
   }
 
   // ── Génération Mistral ──
@@ -117,15 +110,16 @@ export async function POST(
   } catch (e) {
     // En cas d'échec, rembourser les crédits débités
     if (service.prixCredits > 0 && creditsApres !== null) {
-      const { data: w } = await admin.from('wallets').select('id, balance, total_spent').eq('user_id', user.id).maybeSingle()
-      if (w) {
-        await admin.from('wallets').update({
-          balance: w.balance + service.prixCredits,
-          total_spent: Math.max(0, (w.total_spent ?? 0) - service.prixCredits),
-        }).eq('id', w.id)
-      }
+      await admin.rpc('refund_credits', {
+        p_user_id: user.id,
+        p_amount: service.prixCredits,
+        p_description: `Remboursement (échec) : ${service.titre}`,
+      })
     }
-    const message = e instanceof Error ? e.message : 'Erreur de génération'
-    return NextResponse.json({ error: message }, { status: 200 })
+    console.error('[outils] génération échouée:', e instanceof Error ? e.message : e)
+    return NextResponse.json(
+      { error: 'La génération a échoué. Vos crédits ont été remboursés.' },
+      { status: 200 }
+    )
   }
 }

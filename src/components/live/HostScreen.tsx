@@ -10,7 +10,7 @@ import {
   Copy, Check, ArrowRight, Loader2, Medal, RotateCcw, LogOut,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { hostNextQuestion, hostReveal, hostEndGame, createLiveGameFromQuestions } from '@/lib/live/actions'
+import { hostNextQuestion, hostReveal, hostEndGame, relaunchLiveGame } from '@/lib/live/actions'
 import type { LiveGame, LivePlayer } from '@/types/live'
 
 const TIME_PER_Q = 20
@@ -137,10 +137,10 @@ export function HostScreen({
 
   const relaunch = useCallback(async () => {
     setBusy(true)
-    const r = await createLiveGameFromQuestions({ titre: game.titre ?? 'Kahoot', questions })
+    const r = await relaunchLiveGame(game.id)
     if (r.success && r.code) router.push(`/live/${r.code}/host`)
     else setBusy(false)
-  }, [game.titre, questions, router])
+  }, [game.id, router])
 
   const ranked = [...players].sort((a, b) => b.score - a.score)
 
@@ -290,7 +290,9 @@ export function HostScreen({
         {q?.options.map((opt, i) => {
           const tile = TILES[i % 4]
           const TileIcon = tile.icon
-          const correct = i === q.reponse_correcte
+          // Les réponses ne sont plus stockées dans live_games.questions :
+          // revealed_answer est publié à la révélation (repli : anciennes parties).
+          const correct = i === (game.revealed_answer ?? q.reponse_correcte)
           const dim = isReveal && !correct ? 'opacity-35' : 'opacity-100'
           const ring = isReveal && correct ? 'ring-4 ring-white scale-[1.02]' : ''
           return (

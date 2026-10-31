@@ -42,3 +42,9 @@ next-env.d.ts
 
 # OpenMemory - IDE/Assistant specific rules
 .windsurf/rules/openmemory.md
+
+# Exemple de configuration (sans secrets)
+!.env.example
+
+# WAHA : session WhatsApp locale (équivaut à un accès au compte)
+/.waha/

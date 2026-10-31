@@ -1,11 +1,13 @@
 export const dynamic = 'force-dynamic'
 
 import { createAdminClient } from '@/lib/supabase/admin'
+import { requireAdmin } from '@/lib/auth/require-admin'
 import { Building2, Users, FileBarChart, Package, Send, Image as ImageIcon } from 'lucide-react'
 
 const fcfa = (n: number) => (n ?? 0).toLocaleString('fr-FR') + ' FCFA'
 
 export default async function AdminEntreprisePage() {
+  await requireAdmin()
   const admin = createAdminClient()
 
   const [{ data: companies }, { data: assessments }, { data: proposals }] = await Promise.all([
