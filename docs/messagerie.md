@@ -30,8 +30,10 @@ Chaque étape est une écriture sur un système distant : **accord explicite req
    - méthode : `npx supabase db query --linked -f <fichier>` puis `npx supabase migration repair --status applied <version> --linked`.
      `db push` est refusé tant que les 19 migrations de juin 2026 (présentes en prod) ne sont pas dans le dépôt ;
      les 4 `legacy_*` ne doivent jamais être rejouées en prod.
-2. **Service WAHA sur Railway** — voir `docs/whatsapp-waha.md` §3 (image épinglée, volume `/app/.sessions`,
-   webhook vers `https://<domaine-app>/api/whatsapp/webhook`, événements `message.any,message.ack,session.status`).
+2. ✅ **Service WAHA sur Railway** — fait le 2026-10-31 : service `waha`, image `devlikeapro/waha:latest-2026.10.1`
+   (WEBJS), volume `waha-sessions` sur `/app/.sessions`, aucun domaine public (joignable sur
+   `http://waha.railway.internal:3000`), webhook vers `https://studia.academy/api/whatsapp/webhook`.
+   Secrets générés localement (`.env.waha.prod`, ignoré par git) et collés par l'utilisateur.
 3. **Variables du service app** (Railway) :
    - `WAHA_BASE_URL`, `WAHA_API_KEY`, `WAHA_SESSION=default`, `WAHA_WEBHOOK_HMAC_KEY`, `STUDIA_TEAM_PHONE` ;
    - `OPENROUTER_API_KEY` (déjà posée), `INBOX_ANALYSIS_MODEL`, éventuellement `INBOX_ANALYSIS_DAILY_CAP` / `INBOX_ANALYSIS_BATCH` ;
