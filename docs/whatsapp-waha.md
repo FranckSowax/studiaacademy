@@ -51,7 +51,7 @@ curl -X POST http://localhost:3001/api/sendText \
      `WHATSAPP_SWAGGER_USERNAME`, `WHATSAPP_SWAGGER_PASSWORD`
    - `WHATSAPP_DEFAULT_ENGINE` : `WEBJS` (navigateur embarqué, ~0,5–1 Go RAM) ou `NOWEB`/`GOWS` (sans navigateur, plus léger)
    - `WHATSAPP_HOOK_URL=https://<domaine-app>/api/whatsapp/webhook`
-   - `WHATSAPP_HOOK_EVENTS=message`
+   - `WHATSAPP_HOOK_EVENTS=message.any,message.ack,session.status`
    - `WHATSAPP_HOOK_HMAC_KEY=<secret partagé>`
    - `TZ=Africa/Libreville`
 4. **Réseau** : l'app appelle WAHA par le réseau privé Railway :
@@ -59,7 +59,8 @@ curl -X POST http://localhost:3001/api/sendText \
    Ne générer un domaine public pour WAHA que le temps de scanner le QR dans le dashboard, puis le retirer.
 5. **Variables du service app** : `WAHA_BASE_URL`, `WAHA_API_KEY`, `WAHA_SESSION=default`,
    `WAHA_WEBHOOK_HMAC_KEY`, `STUDIA_TEAM_PHONE`. Supprimer `WHAPI_TOKEN`.
-6. Exécuter `supabase/security-p1.sql` (table `whatsapp_inbound_messages`, quotas) **avant** de déployer l'app.
+6. Exécuter `supabase/security-p1.sql` et les migrations de la messagerie **avant** de déployer l'app
+   (check-list complète : `docs/messagerie.md`).
 
 Supervision : surveiller l'événement `session.status` (dashboard WAHA) — si la session passe en
 `FAILED`/`SCAN_QR`, plus aucun message ne part (l'app journalise `[waha] Erreur envoi`).
@@ -74,7 +75,7 @@ Supervision : surveiller l'événement `session.status` (dashboard WAHA) — si 
 | Demande formation en ligne | Élève connecté | Alerte équipe |
 | Inscriptions (admin) | Validation admin | Messages élève / équipe |
 | Pack entreprise | Demande de pack | Alerte équipe |
-| **Nouveau** : messages entrants | Webhook WAHA signé | Stockés dans `whatsapp_inbound_messages`, marqués lus |
+| Messages entrants et sortants | Webhook WAHA signé | Boîte de réception `/messagerie` (tables `wa_*`, voir `docs/messagerie.md`) |
 
 ## 5. Cas d'usage possibles avec WAHA
 
