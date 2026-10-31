@@ -1,7 +1,7 @@
 import { createHmac } from 'node:crypto'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { isValidPhone, normalizePhone, sendWhatsApp, toChatId } from './index'
-import { parseInboundMessage, verifyWahaSignature } from './webhook'
+import { isFreshEvent, verifyWahaSignature } from './webhook'
 
 describe('normalizePhone / isValidPhone', () => {
   it.each([
@@ -90,37 +90,16 @@ describe('verifyWahaSignature', () => {
   })
 })
 
-describe('parseInboundMessage', () => {
+describe('isFreshEvent', () => {
   const now = 1_760_000_000_000
-  const base = {
-    id: 'evt_01',
-    timestamp: now,
-    event: 'message',
-    session: 'default',
-    payload: {
-      id: 'false_24177123456@c.us_AAA',
-      timestamp: now / 1000,
-      from: '24177123456@c.us',
-      fromMe: false,
-      body: 'Bonjour',
-      hasMedia: false,
-    },
-  }
-
-  it('extrait un message entrant individuel', () => {
-    expect(parseInboundMessage(base, now)).toMatchObject({
-      eventId: 'evt_01',
-      from: '24177123456@c.us',
-      body: 'Bonjour',
-    })
+  it('accepte un événement récent', () => {
+    expect(isFreshEvent({ timestamp: now - 60_000 }, now)).toBe(true)
   })
-
-  it.each([
-    ['nos propres messages', { ...base, payload: { ...base.payload, fromMe: true } }],
-    ['les groupes', { ...base, payload: { ...base.payload, from: '1203@g.us' } }],
-    ['les autres événements', { ...base, event: 'session.status' }],
-    ['les événements rejoués trop vieux', { ...base, timestamp: now - 10 * 60 * 1000 }],
-  ])('ignore %s', (_label, event) => {
-    expect(parseInboundMessage(event, now)).toBeNull()
+  it('refuse un événement rejoué trop tard ou daté du futur', () => {
+    expect(isFreshEvent({ timestamp: now - 10 * 60_000 }, now)).toBe(false)
+    expect(isFreshEvent({ timestamp: now + 10 * 60_000 }, now)).toBe(false)
+  })
+  it('refuse un corps qui n’est pas un objet', () => {
+    expect(isFreshEvent(null, now)).toBe(false)
   })
 })

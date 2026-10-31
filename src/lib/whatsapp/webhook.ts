@@ -1,5 +1,5 @@
 // ============================================
-// Webhooks WAHA — vérification de signature et parsing
+// Webhooks WAHA — vérification de signature et fraîcheur
 // (serveur uniquement)
 // ============================================
 
@@ -7,16 +7,6 @@ import { createHmac, timingSafeEqual } from 'node:crypto'
 
 /** Fenêtre d'acceptation d'un événement (anti-rejeu). */
 const MAX_EVENT_AGE_MS = 5 * 60 * 1000
-
-export interface WahaInboundMessage {
-  eventId: string
-  session: string
-  messageId: string
-  from: string
-  body: string
-  hasMedia: boolean
-  timestamp: number
-}
 
 /**
  * Vérifie l'en-tête `X-Webhook-Hmac` (HMAC-SHA512 hex du corps brut)
@@ -40,35 +30,13 @@ export function verifyWahaSignature(
 }
 
 /**
- * Extrait un message entrant exploitable d'un événement WAHA.
- * Ignore : autres événements, messages envoyés par nous, groupes,
- * statuts, événements trop anciens.
+ * Un événement signé mais trop ancien (ou daté du futur) est refusé :
+ * une requête capturée ne peut pas être rejouée plus tard.
+ * L'horodatage `timestamp` de l'enveloppe WAHA est en millisecondes.
  */
-export function parseInboundMessage(
-  event: unknown,
-  now: number = Date.now(),
-): WahaInboundMessage | null {
-  if (!event || typeof event !== 'object') return null
-  const e = event as Record<string, unknown>
-  if (e.event !== 'message') return null
-
-  const ts = typeof e.timestamp === 'number' ? e.timestamp : null
-  if (ts !== null && Math.abs(now - ts) > MAX_EVENT_AGE_MS) return null
-
-  const p = e.payload as Record<string, unknown> | undefined
-  if (!p || p.fromMe === true) return null
-  const from = typeof p.from === 'string' ? p.from : ''
-  // Contacts individuels uniquement (pas de groupes @g.us ni status@broadcast)
-  if (!from.endsWith('@c.us')) return null
-  if (typeof p.id !== 'string' || typeof e.id !== 'string') return null
-
-  return {
-    eventId: e.id,
-    session: typeof e.session === 'string' ? e.session : 'default',
-    messageId: p.id,
-    from,
-    body: typeof p.body === 'string' ? p.body.slice(0, 4000) : '',
-    hasMedia: p.hasMedia === true,
-    timestamp: typeof p.timestamp === 'number' ? p.timestamp : Math.floor(now / 1000),
-  }
+export function isFreshEvent(event: unknown, now: number = Date.now()): boolean {
+  if (!event || typeof event !== 'object') return false
+  const ts = (event as { timestamp?: unknown }).timestamp
+  if (typeof ts !== 'number') return true // enveloppe sans horodatage : on s'appuie sur la signature
+  return Math.abs(now - ts) <= MAX_EVENT_AGE_MS
 }

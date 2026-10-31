@@ -27,7 +27,9 @@ services:
       # --- Webhook vers l'app (messages entrants) ---
       # En local, l'app tourne sur la machine hôte :
       WHATSAPP_HOOK_URL: ${WHATSAPP_HOOK_URL:-http://host.docker.internal:3000/api/whatsapp/webhook}
-      WHATSAPP_HOOK_EVENTS: message
+      # message.any : les deux sens (y compris les réponses envoyées depuis le téléphone)
+      # message.ack : accusés de réception (coches)
+      WHATSAPP_HOOK_EVENTS: message.any,message.ack,session.status
       WHATSAPP_HOOK_HMAC_KEY: ${WAHA_WEBHOOK_HMAC_KEY:?WAHA_WEBHOOK_HMAC_KEY requis}
       WHATSAPP_HOOK_RETRIES_POLICY: exponential
       WHATSAPP_HOOK_RETRIES_DELAY_SECONDS: "2"

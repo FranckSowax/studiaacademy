@@ -1,16 +1,22 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { createAdminClient } from '@/lib/supabase/admin'
-import { markChatSeen } from '@/lib/whatsapp'
-import { parseInboundMessage, verifyWahaSignature } from '@/lib/whatsapp/webhook'
+import { after, NextRequest, NextResponse } from 'next/server'
+import { describeWahaMessage } from '@/lib/inbox/waha-message'
+import { applyAck, ingestMessage, InboxMigrationMissingError } from '@/lib/inbox/ingest'
+import { isFreshEvent, verifyWahaSignature } from '@/lib/whatsapp/webhook'
 
 export const dynamic = 'force-dynamic'
 
-const MAX_BODY_BYTES = 256 * 1024
+const MAX_BODY_BYTES = 512 * 1024
 
 /**
- * Réception des événements WAHA (messages WhatsApp entrants).
- * Signature HMAC-SHA512 obligatoire (WAHA_WEBHOOK_HMAC_KEY côté app
- * = WHATSAPP_HOOK_HMAC_KEY côté WAHA).
+ * Réception des événements WAHA.
+ *
+ * - Signature HMAC-SHA512 obligatoire (WAHA_WEBHOOK_HMAC_KEY côté app
+ *   = WHATSAPP_HOOK_HMAC_KEY côté WAHA). Sans clé configurée : refus total.
+ * - Réponse 200 immédiate ; le traitement se fait après la réponse et ne
+ *   lève jamais (sinon WAHA réessaie et le même message arrive dix fois).
+ *
+ * Événements traités : message, message.any (deux sens, y compris les
+ * messages envoyés depuis le téléphone), message.ack (coches).
  */
 export async function POST(request: NextRequest) {
   const key = process.env.WAHA_WEBHOOK_HMAC_KEY
@@ -29,35 +35,50 @@ export async function POST(request: NextRequest) {
   )
   if (!valid) return NextResponse.json({ error: 'Signature invalide' }, { status: 401 })
 
-  let event: unknown
+  let event: { event?: unknown; payload?: unknown }
   try {
     event = JSON.parse(raw)
   } catch {
     return NextResponse.json({ error: 'JSON invalide' }, { status: 400 })
   }
+  if (!isFreshEvent(event)) return NextResponse.json({ ok: true, ignored: 'événement périmé' })
 
-  const msg = parseInboundMessage(event)
-  if (!msg) return NextResponse.json({ ok: true, ignored: true })
-
-  const admin = createAdminClient()
-  // WHY: event_id unique → les retries WAHA ne créent pas de doublon.
-  const { error } = await admin.from('whatsapp_inbound_messages').upsert(
-    {
-      event_id: msg.eventId,
-      session: msg.session,
-      message_id: msg.messageId,
-      from_chat_id: msg.from,
-      body: msg.body,
-      has_media: msg.hasMedia,
-      received_at: new Date(msg.timestamp * 1000).toISOString(),
-    },
-    { onConflict: 'event_id', ignoreDuplicates: true },
-  )
-  if (error) {
-    console.error('[waha-webhook] insert échoué:', error.code)
-    return NextResponse.json({ error: 'Stockage indisponible' }, { status: 500 })
-  }
-
-  await markChatSeen(msg.from)
+  after(() => processEvent(event))
   return NextResponse.json({ ok: true })
+}
+
+async function processEvent(event: { event?: unknown; payload?: unknown }): Promise<void> {
+  const name = typeof event.event === 'string' ? event.event : 'inconnu'
+  try {
+    switch (name) {
+      case 'message':
+      case 'message.any': {
+        const described = describeWahaMessage(event.payload)
+        if (described.kind === 'ignored') return
+        if (described.message.type === 'unknown') {
+          // C'est ainsi qu'on découvre les types que WAHA envoie.
+          console.warn('[waha-webhook] type de message inconnu:', described.message.rawType)
+        }
+        await ingestMessage(described.message)
+        return
+      }
+      case 'message.ack':
+        await applyAck(event.payload)
+        return
+      case 'session.status': {
+        const status = (event.payload as { status?: unknown } | undefined)?.status
+        console.info('[waha-webhook] session:', typeof status === 'string' ? status : 'inconnu')
+        return
+      }
+      default:
+        console.info('[waha-webhook] événement non traité:', name)
+    }
+  } catch (error) {
+    if (error instanceof InboxMigrationMissingError) {
+      console.error('[waha-webhook]', error.message)
+      return
+    }
+    // Jamais de détail de message dans les journaux (données personnelles).
+    console.error(`[waha-webhook] échec ${name}:`, error instanceof Error ? error.message : 'erreur')
+  }
 }
