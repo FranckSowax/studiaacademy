@@ -1,7 +1,8 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { FileText, ImageIcon, Link2, Loader2, Plus, Send, Smile, Trash2, Upload, Video, X, Zap } from 'lucide-react'
+import { FileText, ImageIcon, Link2, Loader2, Plus, Send, ShoppingCart, Smile, Trash2, Upload, Video, X, Zap } from 'lucide-react'
+import { CartPanel } from './CartPanel'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -9,7 +10,7 @@ import { cn } from '@/lib/utils'
 import { fillTemplate } from '@/lib/inbox/templates'
 import type { ThreadMessageDto } from '@/lib/inbox/dto'
 
-type Panel = 'emoji' | 'links' | 'quick' | 'media' | null
+type Panel = 'emoji' | 'links' | 'quick' | 'media' | 'cart' | null
 
 interface QuickReply {
   id: string
@@ -120,13 +121,19 @@ export function InboxComposer({ conversationId, contact, onSent }: InboxComposer
   return (
     <div className="border-t bg-white dark:bg-slate-900">
       {panel && (
-        <div className="max-h-72 overflow-y-auto border-b bg-slate-50 p-3 dark:bg-slate-950">
+        <div
+          className={cn(
+            'overflow-y-auto border-b bg-slate-50 p-3 dark:bg-slate-950',
+            panel === 'cart' ? 'max-h-[60vh]' : 'max-h-72',
+          )}
+        >
           <div className="mb-2 flex items-center justify-between">
             <p className="text-xs font-semibold text-slate-600">
               {panel === 'emoji' && 'Émojis'}
               {panel === 'links' && 'Insérer un lien'}
               {panel === 'quick' && 'Phrases rapides — insérées dans le brouillon, à relire avant envoi'}
               {panel === 'media' && 'Médiathèque'}
+              {panel === 'cart' && 'Panier client — inscriptions aux formations, prix calculés par le site'}
             </p>
             <Button variant="ghost" size="icon-sm" onClick={() => setPanel(null)} aria-label="Fermer le panneau">
               <X />
@@ -143,6 +150,7 @@ export function InboxComposer({ conversationId, contact, onSent }: InboxComposer
           )}
           {panel === 'links' && <LinksPanel onPick={(url) => insert(url)} />}
           {panel === 'quick' && <QuickRepliesPanel onPick={(t) => insert(fillTemplate(t, contact))} />}
+          {panel === 'cart' && <CartPanel conversationId={conversationId} contact={contact} onSent={() => onSent(null)} />}
           {panel === 'media' && (
             <MediaPanel
               sending={sending}
@@ -169,6 +177,9 @@ export function InboxComposer({ conversationId, contact, onSent }: InboxComposer
           </ToolButton>
           <ToolButton active={panel === 'media'} onClick={() => toggle('media')} label="Médiathèque">
             <ImageIcon />
+          </ToolButton>
+          <ToolButton active={panel === 'cart'} onClick={() => toggle('cart')} label="Panier client">
+            <ShoppingCart />
           </ToolButton>
         </div>
         <Textarea
