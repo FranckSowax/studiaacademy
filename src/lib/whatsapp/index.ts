@@ -4,6 +4,8 @@
 // https://waha.devlike.pro — remplace Whapi.
 // Variables : WAHA_BASE_URL, WAHA_API_KEY, WAHA_SESSION (défaut "default").
 
+import { getAppConfig } from '@/lib/config/app-config'
+
 const DEFAULT_SESSION = 'default'
 const REQUEST_TIMEOUT_MS = 15_000
 
@@ -33,15 +35,16 @@ function getConfig(): WahaConfig | null {
  * et envoyait au mauvais destinataire (24177670158).
  */
 export function normalizePhone(phone: string): string {
+  const { dialCode, keepsLeadingZero } = getAppConfig().country
   let cleaned = phone.replace(/[\s\-().+]/g, '')
   // Retirer le préfixe international 00
   if (cleaned.startsWith('00')) cleaned = cleaned.slice(2)
-  // Déjà au format international gabonais
-  if (cleaned.startsWith('241')) return cleaned
-  // Numéro local gabonais : on garde le 0 et on ajoute l'indicatif
-  if (cleaned.startsWith('0')) return '241' + cleaned
-  // Numéro local court sans 0 (saisie incomplète) → indicatif gabonais
-  if (cleaned.length <= 8) return '241' + cleaned
+  // Déjà au format international du pays configuré
+  if (cleaned.startsWith(dialCode)) return cleaned
+  // Numéro local (commence par 0) : on ajoute l'indicatif, en gardant le 0 si le pays le conserve
+  if (cleaned.startsWith('0')) return dialCode + (keepsLeadingZero ? cleaned : cleaned.slice(1))
+  // Numéro local court sans 0 (saisie incomplète) → indicatif du pays
+  if (cleaned.length <= 8) return dialCode + cleaned
   // Sinon : numéro étranger déjà préfixé de son indicatif
   return cleaned
 }
@@ -114,6 +117,32 @@ export async function sendWhatsApp(phone: string, message: string): Promise<bool
   } catch (error) {
     console.error('[waha] Exception envoi:', error instanceof Error ? error.name : 'unknown')
     return false
+  }
+}
+
+/**
+ * Numéro de téléphone (chiffres, sans « + ») associé à un identifiant
+ * WhatsApp « xxx@lid ». Retourne null si inconnu ou WAHA injoignable.
+ * Endpoint vérifié : GET /api/{session}/lids/{lid} → { lid, pn: "241…@c.us" }.
+ */
+export async function resolveLidToPhone(lidChatId: string): Promise<string | null> {
+  const config = getConfig()
+  if (!config || !lidChatId.endsWith('@lid')) return null
+  const lid = lidChatId.slice(0, -'@lid'.length)
+  try {
+    const res = await fetch(
+      `${config.baseUrl}/api/${encodeURIComponent(config.session)}/lids/${encodeURIComponent(lid)}`,
+      {
+        headers: { Accept: 'application/json', 'X-Api-Key': config.apiKey },
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      },
+    )
+    if (!res.ok) return null
+    const data = (await res.json()) as { pn?: unknown }
+    const pn = typeof data.pn === 'string' ? data.pn.split('@')[0].replace(/\D/g, '') : ''
+    return pn || null
+  } catch {
+    return null
   }
 }
 
