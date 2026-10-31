@@ -7,7 +7,16 @@ export function generateMetadata(): Metadata {
   return { title: `Messagerie — ${getAppConfig().brand.name}`, robots: { index: false } }
 }
 
-export default async function MessageriePage() {
-  const me = await getInboxIdentity()
-  return <InboxApp brandName={getAppConfig().brand.name} isAdmin={me?.role === 'admin'} />
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+/** ?c=<uuid> ouvre directement une conversation (identifiant opaque, aucune donnée personnelle). */
+export default async function MessageriePage({ searchParams }: { searchParams: Promise<{ c?: string }> }) {
+  const [me, { c }] = await Promise.all([getInboxIdentity(), searchParams])
+  return (
+    <InboxApp
+      brandName={getAppConfig().brand.name}
+      isAdmin={me?.role === 'admin'}
+      initialConversationId={c && UUID_RE.test(c) ? c : null}
+    />
+  )
 }

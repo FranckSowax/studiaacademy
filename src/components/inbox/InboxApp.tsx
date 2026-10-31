@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { LayoutDashboard, Loader2, MessageCircle, Pin, Search } from 'lucide-react'
+import { ClipboardList, LayoutDashboard, Loader2, MessageCircle, Pin, Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import {
@@ -23,16 +23,17 @@ const SEARCH_DEBOUNCE_MS = 300
 interface InboxAppProps {
   brandName: string
   isAdmin: boolean
+  initialConversationId?: string | null
 }
 
-export function InboxApp({ brandName, isAdmin }: InboxAppProps) {
+export function InboxApp({ brandName, isAdmin, initialConversationId = null }: InboxAppProps) {
   const [filter, setFilter] = useState<InboxFilter>('to_reply')
   const [query, setQuery] = useState('')
   const [debouncedQuery, setDebouncedQuery] = useState('')
   const [items, setItems] = useState<ConversationListItem[]>([])
   const [counts, setCounts] = useState<InboxCounts | null>(null)
   const [me, setMe] = useState<{ id: string; name: string } | null>(null)
-  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [selectedId, setSelectedId] = useState<string | null>(initialConversationId)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -89,6 +90,13 @@ export function InboxApp({ brandName, isAdmin }: InboxAppProps) {
           <span title="Vos épingles (personnelles)">
             📌 <strong>{counts?.pinned ?? '…'}</strong>
           </span>
+          <Link
+            href="/messagerie/recherches"
+            className="flex items-center gap-1 text-slate-500 hover:text-slate-900"
+            title="Recherches clients"
+          >
+            <ClipboardList className="size-4" /> <span className="hidden sm:inline">Recherches</span>
+          </Link>
           {isAdmin && (
             <Link href="/admin" className="hidden items-center gap-1 text-slate-500 hover:text-slate-900 sm:flex">
               <LayoutDashboard className="size-4" /> Admin
