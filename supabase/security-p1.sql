@@ -45,7 +45,7 @@ BEGIN
   RETURN v_count <= p_limit;
 END;
 $$;
-REVOKE ALL ON FUNCTION public.check_rate_limit(TEXT, INTEGER, INTEGER) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.check_rate_limit(TEXT, INTEGER, INTEGER) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.check_rate_limit(TEXT, INTEGER, INTEGER) TO service_role;
 
 -- Purge (à planifier via pg_cron si activé) :
@@ -129,8 +129,8 @@ BEGIN
 END;
 $$;
 
-REVOKE ALL ON FUNCTION public.consume_credits(UUID, INTEGER, TEXT) FROM PUBLIC;
-REVOKE ALL ON FUNCTION public.refund_credits(UUID, INTEGER, TEXT) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.consume_credits(UUID, INTEGER, TEXT) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.refund_credits(UUID, INTEGER, TEXT) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.consume_credits(UUID, INTEGER, TEXT) TO service_role;
 GRANT EXECUTE ON FUNCTION public.refund_credits(UUID, INTEGER, TEXT) TO service_role;
 
@@ -219,7 +219,7 @@ SET search_path = public
 AS $$
   UPDATE public.live_players SET score = COALESCE(score, 0) + p_points WHERE id = p_player_id;
 $$;
-REVOKE ALL ON FUNCTION public.increment_live_score(UUID, INTEGER) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.increment_live_score(UUID, INTEGER) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.increment_live_score(UUID, INTEGER) TO service_role;
 
 -- Les parties créées AVANT ce script gardent leurs réponses dans
@@ -244,7 +244,7 @@ BEGIN
   RETURN v_id IS NOT NULL;
 END;
 $$;
-REVOKE ALL ON FUNCTION public.reserve_presentiel_seat(UUID) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.reserve_presentiel_seat(UUID) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.reserve_presentiel_seat(UUID) TO service_role;
 
 CREATE OR REPLACE FUNCTION public.release_presentiel_seat(p_session_id UUID)
@@ -257,7 +257,7 @@ AS $$
   SET places_reservees = GREATEST(0, places_reservees - 1)
   WHERE id = p_session_id;
 $$;
-REVOKE ALL ON FUNCTION public.release_presentiel_seat(UUID) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.release_presentiel_seat(UUID) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.release_presentiel_seat(UUID) TO service_role;
 
 -- 7. (retiré) La table des messages WhatsApp entrants est remplacée par les
