@@ -2,7 +2,10 @@
 // Qualification par modèle de langage (serveur uniquement)
 // ============================================
 // Variables d'environnement :
-//   INBOX_ANALYSIS_MODEL                 mistral-small-latest (défaut) | mistral-large-latest
+//   INBOX_ANALYSIS_PROVIDER              openrouter | mistral (défaut : openrouter si OPENROUTER_API_KEY)
+//   OPENROUTER_API_KEY                   clé OpenRouter (coût exact renvoyé par l'API)
+//   INBOX_ANALYSIS_MODEL                 OpenRouter : identifiant du modèle (OBLIGATOIRE)
+//                                        Mistral : mistral-small-latest (défaut) | mistral-large-latest
 //   INBOX_ANALYSIS_DAILY_CAP             analyses max par jour (défaut 200)
 //   INBOX_ANALYSIS_BATCH                 analyses max par passage planifié (défaut 10)
 //   INBOX_ANALYSIS_PRICE_INPUT_PER_MTOK  tarif / million de tokens d'entrée (sinon coût inconnu)
@@ -11,6 +14,7 @@
 
 import { getAppConfig } from '@/lib/config/app-config'
 import { mistralChatWithUsage, type MistralModel } from '@/lib/mistral/client'
+import { OPENROUTER_COST_UNIT, openRouterChat } from '@/lib/ai/openrouter'
 import { createAdminClient } from '@/lib/supabase/admin'
 import {
   ABANDON_RISKS,
@@ -46,15 +50,32 @@ function envNumber(name: string): number | null {
   return Number.isFinite(n) && n >= 0 ? n : null
 }
 
+export type AnalysisProvider = 'openrouter' | 'mistral'
+
 export function analysisSettings() {
-  const model = process.env.INBOX_ANALYSIS_MODEL as MistralModel | undefined
+  const configured = process.env.INBOX_ANALYSIS_MODEL?.trim() || null
+  const provider: AnalysisProvider =
+    process.env.INBOX_ANALYSIS_PROVIDER === 'mistral'
+      ? 'mistral'
+      : process.env.INBOX_ANALYSIS_PROVIDER === 'openrouter' || process.env.OPENROUTER_API_KEY
+        ? 'openrouter'
+        : 'mistral'
   const pricing: AnalysisPricing = {
     inputPerMillion: envNumber('INBOX_ANALYSIS_PRICE_INPUT_PER_MTOK'),
     outputPerMillion: envNumber('INBOX_ANALYSIS_PRICE_OUTPUT_PER_MTOK'),
     currency: process.env.INBOX_ANALYSIS_PRICE_CURRENCY?.trim() || null,
   }
+  // OpenRouter : le modèle est OBLIGATOIRE (identifiant choisi sur openrouter.ai/models,
+  // jamais deviné). Mistral direct : liste fermée, mistral-small-latest par défaut.
+  const model =
+    provider === 'openrouter'
+      ? configured
+      : configured && ALLOWED_MODELS.includes(configured as MistralModel)
+        ? configured
+        : 'mistral-small-latest'
   return {
-    model: model && ALLOWED_MODELS.includes(model) ? model : ('mistral-small-latest' as MistralModel),
+    provider,
+    model,
     dailyCap: envNumber('INBOX_ANALYSIS_DAILY_CAP') ?? 200,
     batchSize: envNumber('INBOX_ANALYSIS_BATCH') ?? 10,
     pricing,
@@ -154,21 +175,33 @@ export async function analyzeConversation(conversationId: string, options: { for
     })),
   )
 
+  if (!settings.model) return { status: 'skipped', reason: 'modèle non configuré (INBOX_ANALYSIS_MODEL)' }
+
+  const prompt = [
+    { role: 'system' as const, content: systemPrompt() },
+    { role: 'user' as const, content: dialogue },
+  ]
   let content: string
   let usage: { promptTokens: number; completionTokens: number } | null
+  // Coût exact fourni par le fournisseur (OpenRouter), sinon calculé depuis les tarifs configurés.
+  let providerCost: { amount: number | null; currency: string | null } | null = null
   try {
-    const res = await mistralChatWithUsage({
-      model: settings.model,
-      temperature: 0.1,
-      maxTokens: 700,
-      jsonMode: true,
-      messages: [
-        { role: 'system', content: systemPrompt() },
-        { role: 'user', content: dialogue },
-      ],
-    })
-    content = res.content
-    usage = res.usage
+    if (settings.provider === 'openrouter') {
+      const res = await openRouterChat({ model: settings.model, messages: prompt, temperature: 0.1, maxTokens: 700 })
+      content = res.content
+      usage = res.usage
+      if (res.cost !== null) providerCost = { amount: res.cost, currency: OPENROUTER_COST_UNIT }
+    } else {
+      const res = await mistralChatWithUsage({
+        model: settings.model as MistralModel,
+        temperature: 0.1,
+        maxTokens: 700,
+        jsonMode: true,
+        messages: prompt,
+      })
+      content = res.content
+      usage = res.usage
+    }
   } catch (error) {
     console.error('[inbox-analyze] appel modèle échoué:', error instanceof Error ? error.message.slice(0, 120) : 'erreur')
     return { status: 'skipped', reason: 'modèle indisponible' }
@@ -186,13 +219,13 @@ export async function analyzeConversation(conversationId: string, options: { for
     factStage = factStageFromInscriptions((inscriptions ?? []).map((i) => i.statut as string))
   }
   const finalStage = retainedStage(analysis.purchase_stage, factStage)
-  const cost = computeAnalysisCost(usage, settings.pricing)
+  const cost = providerCost ?? computeAnalysisCost(usage, settings.pricing)
   const lastMessageId = (thread[0]?.id as string | undefined) ?? null
 
   const { error: insertError } = await admin.from('wa_conversation_analyses').insert({
     conversation_id: conversationId,
     analyzed_message_id: lastMessageId,
-    model: settings.model,
+    model: `${settings.provider}:${settings.model}`,
     result: analysis,
     model_stage: analysis.purchase_stage,
     fact_stage: factStage,
