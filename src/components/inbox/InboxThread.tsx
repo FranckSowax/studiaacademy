@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   AlertTriangle,
   ArrowLeft,
@@ -244,6 +244,15 @@ export function InboxThread({ conversationId, meId, onChanged, onBack }: InboxTh
     }
   }
 
+  const threadImages = useMemo(
+    () =>
+      messages
+        .filter((m) => m.mediaKind === 'image' && m.mediaUrl)
+        .map((m) => ({ ref: m.ref, url: m.mediaUrl as string, fromMe: m.fromMe }))
+        .reverse(),
+    [messages],
+  )
+
   if (!detail) {
     return (
       <div className="flex h-full items-center justify-center text-slate-500">
@@ -379,6 +388,7 @@ export function InboxThread({ conversationId, meId, onChanged, onBack }: InboxTh
       <InboxComposer
         conversationId={conversationId}
         contact={{ name: detail.name, phone: detail.phoneDisplay || null }}
+        threadImages={threadImages}
         onSent={() => {
           void load()
           onChanged()

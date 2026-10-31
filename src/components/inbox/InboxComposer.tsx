@@ -1,10 +1,11 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { FileText, ImageIcon, Link2, Loader2, Plus, Send, ShoppingCart, Smile, Sparkles, Trash2, Upload, Video, X, Zap } from 'lucide-react'
+import { ClipboardList, FileText, ImageIcon, Link2, Loader2, Plus, Send, ShoppingCart, Smile, Sparkles, Trash2, Upload, Video, X, Zap } from 'lucide-react'
 import type { NextAction } from '@/lib/inbox/analysis'
 import { AnalysisPanel } from './AnalysisPanel'
 import { CartPanel } from './CartPanel'
+import { RequestPanel, type ThreadImage } from './RequestPanel'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -12,7 +13,7 @@ import { cn } from '@/lib/utils'
 import { fillTemplate } from '@/lib/inbox/templates'
 import type { ThreadMessageDto } from '@/lib/inbox/dto'
 
-type Panel = 'emoji' | 'links' | 'quick' | 'media' | 'cart' | 'analysis' | null
+type Panel = 'emoji' | 'links' | 'quick' | 'media' | 'cart' | 'request' | 'analysis' | null
 
 /** Actions proposées par l'analyse qui se réalisent dans l'en-tête du fil. */
 export type ThreadAction = 'follow_up' | 'handover' | 'close'
@@ -49,11 +50,13 @@ const drafts = new Map<string, string>()
 interface InboxComposerProps {
   conversationId: string
   contact: { name: string | null; phone: string | null }
+  /** Images du fil, proposables comme photos d'une recherche client. */
+  threadImages: ThreadImage[]
   onSent: (message: ThreadMessageDto | null) => void
   onThreadAction: (action: ThreadAction) => void
 }
 
-export function InboxComposer({ conversationId, contact, onSent, onThreadAction }: InboxComposerProps) {
+export function InboxComposer({ conversationId, contact, threadImages, onSent, onThreadAction }: InboxComposerProps) {
   const [text, setText] = useState(() => drafts.get(conversationId) ?? '')
   const [panel, setPanel] = useState<Panel>(null)
   const [sending, setSending] = useState(false)
@@ -152,7 +155,7 @@ export function InboxComposer({ conversationId, contact, onSent, onThreadAction 
         <div
           className={cn(
             'overflow-y-auto border-b bg-slate-50 p-3 dark:bg-slate-950',
-            panel === 'cart' ? 'max-h-[60vh]' : 'max-h-72',
+            panel === 'cart' || panel === 'request' ? 'max-h-[60vh]' : 'max-h-72',
           )}
         >
           <div className="mb-2 flex items-center justify-between">
@@ -162,6 +165,7 @@ export function InboxComposer({ conversationId, contact, onSent, onThreadAction 
               {panel === 'quick' && 'Phrases rapides — insérées dans le brouillon, à relire avant envoi'}
               {panel === 'media' && 'Médiathèque'}
               {panel === 'cart' && 'Panier client — inscriptions aux formations, prix calculés par le site'}
+              {panel === 'request' && 'Recherche client — demande hors catalogue, suivie par l’équipe'}
               {panel === 'analysis' && 'Analyse de la conversation'}
             </p>
             <Button variant="ghost" size="icon-sm" onClick={() => setPanel(null)} aria-label="Fermer le panneau">
@@ -181,6 +185,7 @@ export function InboxComposer({ conversationId, contact, onSent, onThreadAction 
           {panel === 'quick' && <QuickRepliesPanel onPick={(t) => insert(fillTemplate(t, contact))} />}
           {panel === 'analysis' && <AnalysisPanel conversationId={conversationId} onAction={runAction} />}
           {panel === 'cart' && <CartPanel conversationId={conversationId} contact={contact} onSent={() => onSent(null)} />}
+          {panel === 'request' && <RequestPanel conversationId={conversationId} threadImages={threadImages} />}
           {panel === 'media' && (
             <MediaPanel
               sending={sending}
@@ -210,6 +215,9 @@ export function InboxComposer({ conversationId, contact, onSent, onThreadAction 
           </ToolButton>
           <ToolButton active={panel === 'cart'} onClick={() => toggle('cart')} label="Panier client">
             <ShoppingCart />
+          </ToolButton>
+          <ToolButton active={panel === 'request'} onClick={() => toggle('request')} label="Recherche client">
+            <ClipboardList />
           </ToolButton>
           <ToolButton active={panel === 'analysis'} onClick={() => toggle('analysis')} label="Analyse">
             <Sparkles />
