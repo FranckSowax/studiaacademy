@@ -42,7 +42,7 @@ Chaque étape est une écriture sur un système distant : **accord explicite req
      `https://www.studia-academy.ga` par défaut), `NEXT_PUBLIC_AIRTEL_MONEY`, `NEXT_PUBLIC_MOOV_MONEY` ;
    - `WHAPI_TOKEN` / `WHAPI_CHANNEL_ID` à supprimer une fois WAHA confirmé en prod.
 4. ⏳ **Tâches planifiées** — préparées le 2026-10-31, EN ATTENTE (staged) jusqu'au déploiement de l'app :
-   - services cron `inbox-analyze` (`*/15 * * * *`) et `inbox-daily-report` (`30 23 * * *` UTC = 00:30 à Libreville,
+   - services cron `inbox-analyze` (`0 * * * *`, toutes les heures depuis le 2026-10-31) et `inbox-daily-report` (`30 23 * * *` UTC = 00:30 à Libreville,
      bilan de la veille), image `curlimages/curl:8.11.1`, redémarrage `NEVER` ;
    - `INBOX_CRON_SECRET=${{studiaacademy.INBOX_CRON_SECRET}}` (référence) et `JOB_URL` vers `https://studia.academy/api/inbox/jobs/…` ;
    - seuls les codes HTTP sont journalisés (`-o /dev/null`), jamais le contenu des bilans.
