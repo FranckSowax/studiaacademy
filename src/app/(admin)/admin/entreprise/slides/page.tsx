@@ -3,9 +3,11 @@ export const dynamic = 'force-dynamic'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { requireAdmin } from '@/lib/auth/require-admin'
 import { SlidesManager, type SlideRow } from '@/components/admin/SlidesManager'
 
 export default async function AdminSlidesPage() {
+  await requireAdmin()
   const admin = createAdminClient()
   const { data } = await admin
     .from('entreprise_slides')

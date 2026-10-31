@@ -6,7 +6,7 @@ import { buildQuestionSet, DOMAINES } from './competences'
 import { catalogueForPrompt, getCatalogueByRef } from './catalogue'
 import { niveauFromPct, NIVEAU_LABELS } from './scoring'
 import { analyserEffectifsRH } from '@/lib/mistral'
-import { sendWhatsApp } from '@/lib/whapi'
+import { sendWhatsApp } from '@/lib/whatsapp'
 import type { CompanyProfile, DomainScore } from '@/types/entreprise'
 
 function genCode(): string {

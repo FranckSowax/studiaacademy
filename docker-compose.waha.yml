@@ -1,0 +1,40 @@
+# WAHA — WhatsApp HTTP API auto-hébergée pour Studia Academy
+# Développement local :  docker compose -f docker-compose.waha.yml --env-file .env.waha up -d
+# Dashboard : http://localhost:3001/dashboard  (identifiants : WAHA_DASHBOARD_*)
+# Production : voir docs/whatsapp-waha.md (service Railway dédié, même image).
+services:
+  waha:
+    # Épingler une version précise en production (générée sur
+    # https://portal.devlike.pro/docker-image) plutôt que "latest".
+    # Mac Apple Silicon : devlikeapro/waha:arm
+    image: ${WAHA_IMAGE:-devlikeapro/waha:latest}
+    restart: always
+    ports:
+      # 3001 en local pour ne pas entrer en conflit avec Next.js (3000)
+      - "127.0.0.1:3001:3000"
+    volumes:
+      # Session WhatsApp persistée : sans volume, il faut rescanner le QR à chaque redémarrage
+      - ./.waha/sessions:/app/.sessions
+    environment:
+      # --- Accès (valeurs longues et aléatoires, ex. UUIDv4) ---
+      WAHA_API_KEY: ${WAHA_API_KEY:?WAHA_API_KEY requis}
+      WAHA_DASHBOARD_USERNAME: ${WAHA_DASHBOARD_USERNAME:-admin}
+      WAHA_DASHBOARD_PASSWORD: ${WAHA_DASHBOARD_PASSWORD:?WAHA_DASHBOARD_PASSWORD requis}
+      WHATSAPP_SWAGGER_USERNAME: ${WAHA_DASHBOARD_USERNAME:-admin}
+      WHATSAPP_SWAGGER_PASSWORD: ${WAHA_DASHBOARD_PASSWORD:?WAHA_DASHBOARD_PASSWORD requis}
+      # --- Moteur ---
+      WHATSAPP_DEFAULT_ENGINE: ${WHATSAPP_DEFAULT_ENGINE:-WEBJS}
+      # --- Webhook vers l'app (messages entrants) ---
+      # En local, l'app tourne sur la machine hôte :
+      WHATSAPP_HOOK_URL: ${WHATSAPP_HOOK_URL:-http://host.docker.internal:3000/api/whatsapp/webhook}
+      # message.any : les deux sens (y compris les réponses envoyées depuis le téléphone)
+      # message.ack : accusés de réception (coches)
+      WHATSAPP_HOOK_EVENTS: message.any,message.ack,session.status
+      WHATSAPP_HOOK_HMAC_KEY: ${WAHA_WEBHOOK_HMAC_KEY:?WAHA_WEBHOOK_HMAC_KEY requis}
+      WHATSAPP_HOOK_RETRIES_POLICY: exponential
+      WHATSAPP_HOOK_RETRIES_DELAY_SECONDS: "2"
+      WHATSAPP_HOOK_RETRIES_ATTEMPTS: "5"
+      # --- Divers ---
+      TZ: Africa/Libreville
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

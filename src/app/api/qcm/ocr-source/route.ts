@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { consumeRateLimit, RATE_LIMITS } from '@/lib/security/rate-limit'
 import { ocrDocuments, type OcrFile } from '@/lib/mistral/document-ocr'
 
 export const dynamic = 'force-dynamic'
@@ -18,6 +19,9 @@ export async function POST(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+  if (!(await consumeRateLimit(`ai:${user.id}`, RATE_LIMITS.aiPerUser))) {
+    return NextResponse.json({ error: 'Trop de requêtes. Réessayez dans une heure.' }, { status: 429 })
+  }
 
   const body = (await request.json()) as {
     files?: OcrFile[]

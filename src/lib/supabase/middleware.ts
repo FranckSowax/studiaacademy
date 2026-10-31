@@ -59,16 +59,20 @@ export async function updateSession(request: NextRequest) {
     }
   }
 
-  // Admin protection
+  // Admin protection : rôle vérifié en base (premier rempart ; chaque page
+  // admin appelle aussi requireAdmin() côté serveur).
   if (user && request.nextUrl.pathname.startsWith('/admin')) {
-    // In a real application, you would check the user's role in the database
-    // const { data: profile } = await supabase.from('users').select('role').eq('id', user.id).single()
-    // if (profile?.role !== 'admin') {
-    //   return NextResponse.redirect(new URL('/dashboard', request.url))
-    // }
-    
-    // For this demo/implementation phase, we'll allow access but strictly you should implement RBAC here
-    // checking specific emails or metadata
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .maybeSingle()
+    if (profile?.role !== 'admin' && profile?.role !== 'super_admin') {
+      const url = request.nextUrl.clone()
+      url.pathname = '/dashboard'
+      url.search = ''
+      return NextResponse.redirect(url)
+    }
   }
 
   return supabaseResponse

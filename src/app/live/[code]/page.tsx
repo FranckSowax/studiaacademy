@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { notFound } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { stripLiveAnswers } from '@/lib/live/questions'
 import { PlayerScreen } from '@/components/live/PlayerScreen'
 import type { LiveGame } from '@/types/live'
 
@@ -21,5 +22,9 @@ export default async function LivePlayerPage({
 
   if (!game) notFound()
 
-  return <PlayerScreen game={game as LiveGame} />
+  // WHY: ne jamais envoyer les bonnes réponses au navigateur du joueur
+  // (couvre aussi les parties créées avant la séparation des réponses).
+  const safeGame = { ...game, questions: stripLiveAnswers(game.questions) } as unknown as LiveGame
+
+  return <PlayerScreen game={safeGame} />
 }

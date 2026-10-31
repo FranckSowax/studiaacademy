@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { sendWhatsApp, messageRapportEleve, messageParent } from '@/lib/whapi'
+import { sendWhatsApp, messageRapportEleve, messageParent, normalizePhone } from '@/lib/whatsapp'
+import { consumeRateLimit, RATE_LIMITS } from '@/lib/security/rate-limit'
 import type { CorrectionResult } from '@/types/teacher'
 
 export const dynamic = 'force-dynamic'
@@ -43,10 +44,16 @@ export async function POST(
     .single()
   const nomProf = profile?.full_name ?? 'Votre professeur'
 
+  if (!(await consumeRateLimit(`teacher-send:${user.id}`, RATE_LIMITS.teacherSendPerUser))) {
+    return NextResponse.json({ error: "Limite d'envois quotidienne atteinte" }, { status: 429 })
+  }
+  const canSendTo = (phone: string) =>
+    consumeRateLimit(`wa:to:${normalizePhone(phone)}`, RATE_LIMITS.whatsappPerRecipient)
+
   let sent = false
 
   // Envoi élève
-  if (job.eleve_phone) {
+  if (job.eleve_phone && (await canSendTo(job.eleve_phone))) {
     sent = await sendWhatsApp(
       job.eleve_phone,
       messageRapportEleve({
@@ -62,7 +69,7 @@ export async function POST(
   }
 
   // Envoi parent (optionnel)
-  if (job.parent_phone) {
+  if (job.parent_phone && (await canSendTo(job.parent_phone))) {
     await sendWhatsApp(
       job.parent_phone,
       messageParent({

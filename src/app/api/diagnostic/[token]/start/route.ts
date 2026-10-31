@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { clientIpFrom, consumeRateLimit, RATE_LIMITS } from '@/lib/security/rate-limit'
 import type { AssessmentQuestion } from '@/types/entreprise'
 
 export const dynamic = 'force-dynamic'
+
+function clip(value: unknown, max: number): string | null {
+  return typeof value === 'string' && value.trim() ? value.trim().slice(0, max) : null
+}
 
 /** Un salarié démarre le test : crée une soumission, renvoie les questions sans la bonne réponse. */
 export async function POST(
@@ -10,6 +15,10 @@ export async function POST(
   { params }: { params: Promise<{ token: string }> }
 ) {
   const { token } = await params
+  const ip = clientIpFrom(request.headers)
+  if (!(await consumeRateLimit(`diag-start:ip:${ip}`, RATE_LIMITS.diagnosticStartPerIp))) {
+    return NextResponse.json({ error: 'Trop de tentatives. Réessayez plus tard.' }, { status: 429 })
+  }
   const admin = createAdminClient()
 
   const { data: assessment } = await admin
@@ -25,15 +34,15 @@ export async function POST(
     .from('assessment_submissions')
     .insert({
       assessment_id: assessment.id,
-      prenom: body.prenom ?? null,
-      nom: body.nom ?? null,
-      departement: body.departement ?? null,
-      poste: body.poste ?? null,
-      email: body.email ?? null,
+      prenom: clip(body.prenom, 80),
+      nom: clip(body.nom, 80),
+      departement: clip(body.departement, 120),
+      poste: clip(body.poste, 120),
+      email: clip(body.email, 200),
     })
     .select('respondent_token')
     .single()
-  if (error) return NextResponse.json({ error: error.message }, { status: 200 })
+  if (error) return NextResponse.json({ error: 'Impossible de démarrer le test' }, { status: 200 })
 
   // Questions publiques : on retire la bonne réponse
   const publicQuestions = (assessment.questions as AssessmentQuestion[]).map(

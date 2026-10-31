@@ -2,12 +2,15 @@ export const dynamic = 'force-dynamic'
 
 import { AdminHeader } from '@/components/layout/admin-header'
 import { AdminSidebar } from '@/components/layout/admin-sidebar'
+import { requireAdmin } from '@/lib/auth/require-admin'
 
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  await requireAdmin()
+
   return (
     <div className="flex min-h-screen flex-col">
       <AdminHeader />

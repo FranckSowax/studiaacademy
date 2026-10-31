@@ -3,7 +3,8 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { sendWhatsApp } from '@/lib/whapi'
+import { isValidPhone, normalizePhone, sendWhatsApp } from '@/lib/whatsapp'
+import { consumeRateLimit, currentClientIp, RATE_LIMITS } from '@/lib/security/rate-limit'
 
 // ── Côté élève ──────────────────────────────
 
@@ -180,6 +181,16 @@ export async function reserveSession(input: {
   email?: string
   phone: string
 }): Promise<{ success: boolean; error?: string }> {
+  const prenom = String(input.prenom ?? '').trim().slice(0, 60)
+  const nom = String(input.nom ?? '').trim().slice(0, 60)
+  const phone = normalizePhone(String(input.phone ?? ''))
+  if (!prenom || !nom) return { success: false, error: 'Nom et prénom requis' }
+  if (!isValidPhone(phone)) return { success: false, error: 'Numéro de téléphone invalide' }
+
+  if (!(await consumeRateLimit(`reserve:ip:${await currentClientIp()}`, RATE_LIMITS.reservationPerIp))) {
+    return { success: false, error: 'Trop de réservations. Réessayez plus tard.' }
+  }
+
   const supabase = await createClient()
   const {
     data: { user },
@@ -187,43 +198,47 @@ export async function reserveSession(input: {
   // Réservation possible sans compte → client admin (RLS contournée côté serveur)
   const admin = createAdminClient()
 
-  // Vérifier places disponibles
   const { data: session } = await admin
     .from('presentiel_sessions')
-    .select('titre, places_total, places_reservees, date_debut, lieu')
+    .select('titre, date_debut, lieu')
     .eq('id', input.session_id)
     .single()
   if (!session) return { success: false, error: 'Session introuvable' }
-  if (session.places_reservees >= session.places_total) {
-    return { success: false, error: 'Session complète' }
-  }
+
+  // WHY: décrément atomique — deux réservations simultanées ne peuvent pas
+  // dépasser places_total.
+  const { data: seatOk, error: seatError } = await admin.rpc('reserve_presentiel_seat', {
+    p_session_id: input.session_id,
+  })
+  if (seatError) return { success: false, error: 'Réservation indisponible' }
+  if (seatOk !== true) return { success: false, error: 'Session complète' }
 
   const { error } = await admin.from('presentiel_reservations').insert({
     session_id: input.session_id,
     user_id: user?.id ?? null,
-    prenom: input.prenom,
-    nom: input.nom,
-    email: input.email ?? null,
-    phone: input.phone,
+    prenom,
+    nom,
+    email: input.email ? String(input.email).slice(0, 200) : null,
+    phone,
     status: 'reserved',
   })
-  if (error) return { success: false, error: error.message }
+  if (error) {
+    await admin.rpc('release_presentiel_seat', { p_session_id: input.session_id })
+    return { success: false, error: 'Réservation impossible' }
+  }
 
-  await admin
-    .from('presentiel_sessions')
-    .update({ places_reservees: session.places_reservees + 1 })
-    .eq('id', input.session_id)
-
-  // Confirmation WhatsApp à l'élève + notif équipe
-  await sendWhatsApp(
-    input.phone,
-    `✅ Réservation confirmée !\n*${session.titre}*\n📅 ${new Date(session.date_debut).toLocaleDateString('fr-FR', { dateStyle: 'long' })}\n📍 ${session.lieu ?? 'Libreville'}\nÀ bientôt chez Studia Academy 🎓`
-  )
+  // Confirmation WhatsApp à l'élève (quota par destinataire) + notif équipe
+  if (await consumeRateLimit(`wa:to:${phone}`, RATE_LIMITS.whatsappPerRecipient)) {
+    await sendWhatsApp(
+      phone,
+      `✅ Réservation confirmée !\n*${session.titre}*\n📅 ${new Date(session.date_debut).toLocaleDateString('fr-FR', { dateStyle: 'long' })}\n📍 ${session.lieu ?? 'Libreville'}\nÀ bientôt chez Studia Academy 🎓`
+    )
+  }
   const studiaPhone = process.env.STUDIA_TEAM_PHONE
   if (studiaPhone) {
     await sendWhatsApp(
       studiaPhone,
-      `🎟️ Nouvelle réservation présentiel\n*${session.titre}*\n👤 ${input.prenom} ${input.nom}\n📱 ${input.phone}`
+      `🎟️ Nouvelle réservation présentiel\n*${session.titre}*\n👤 ${prenom} ${nom}\n📱 +${phone}`
     )
   }
 

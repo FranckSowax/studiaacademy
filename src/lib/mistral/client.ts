@@ -59,6 +59,22 @@ function getApiKey(): string {
  * Appel générique à l'API Mistral chat completions.
  */
 export async function mistralChat(options: MistralChatOptions): Promise<string> {
+  return (await mistralChatWithUsage(options)).content
+}
+
+export interface MistralUsage {
+  promptTokens: number
+  completionTokens: number
+}
+
+/**
+ * Comme mistralChat, mais renvoie aussi la consommation de tokens (pour
+ * calculer et enregistrer le coût d'un appel). usage = null si l'API ne
+ * l'a pas fournie.
+ */
+export async function mistralChatWithUsage(
+  options: MistralChatOptions,
+): Promise<{ content: string; usage: MistralUsage | null }> {
   const { model, messages, temperature = 0.3, maxTokens = 4096, jsonMode = false } = options
 
   const body: Record<string, unknown> = {
@@ -103,7 +119,11 @@ export async function mistralChat(options: MistralChatOptions): Promise<string> 
   }
 
   const data = (await response.json()) as MistralResponse
-  return data.choices[0]?.message?.content ?? ''
+  const usage =
+    data.usage && typeof data.usage.prompt_tokens === 'number' && typeof data.usage.completion_tokens === 'number'
+      ? { promptTokens: data.usage.prompt_tokens, completionTokens: data.usage.completion_tokens }
+      : null
+  return { content: data.choices[0]?.message?.content ?? '', usage }
 }
 
 /**

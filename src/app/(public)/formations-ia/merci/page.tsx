@@ -9,6 +9,8 @@ import {
   formatDateFr,
   getFormation,
 } from '@/lib/formations-ia'
+import { computeFiaLine, normalizeParticipants } from '@/lib/formations-ia-pricing'
+import { createClient } from '@/lib/supabase/server'
 
 export const metadata: Metadata = {
   title: 'Inscription enregistrée — Formations IA | Studia Academy',
@@ -28,14 +30,22 @@ export default async function MerciPage({
 }) {
   const { code, f: slug, d: date, type, nb } = await searchParams
   const formation = slug ? getFormation(slug) : undefined
-  const nbParticipants = Math.max(parseInt(nb ?? '1', 10) || 1, 1)
-  const groupe = type === 'entreprise' && nbParticipants >= 3
-  const prixUnitaire = formation
-    ? groupe
-      ? formation.prixGroupeFcfa ?? formation.prixFcfa
-      : formation.prixFcfa
+
+  // WHY: tarifs lus en base et calculés par la fonction unique partagée avec
+  // le panier de la messagerie — un seul code de prix (formations-ia-pricing).
+  const supabase = await createClient()
+  const { data: tarif } = slug
+    ? await supabase.from('fia_formations').select('prix_fcfa, prix_groupe_fcfa').eq('slug', slug).maybeSingle()
+    : { data: null }
+  const ligne = tarif
+    ? computeFiaLine(
+        { prixFcfa: tarif.prix_fcfa, prixGroupeFcfa: tarif.prix_groupe_fcfa },
+        type === 'entreprise' ? 'entreprise' : 'individuel',
+        nb,
+      )
     : null
-  const montant = prixUnitaire != null ? prixUnitaire * nbParticipants : null
+  const nbParticipants = ligne?.participants ?? normalizeParticipants(nb)
+  const montant = ligne?.total ?? null
 
   const waText = encodeURIComponent(
     `Bonjour Studia Academy, je viens de m'inscrire à la formation ${formation?.titre ?? ''}${date ? ` du ${formatDateFr(date)}` : ''}. Mon code d'inscription : ${code ?? '—'}. Je vous envoie la preuve de paiement Mobile Money.`
