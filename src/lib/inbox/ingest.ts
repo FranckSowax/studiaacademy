@@ -110,54 +110,76 @@ export interface IngestResult {
  * (écho de nos envois) ne voit ni son auteur ni son contenu écrasés ; seul son
  * accusé progresse.
  */
+/**
+ * Message déjà connu : on ne fait que compléter (auteur revendiqué par
+ * l'interface, accusé qui progresse, média manquant). Rien n'est écrasé.
+ */
+async function mergeIntoExisting(admin: Admin, msg: DescribedMessage, options: IngestOptions): Promise<void> {
+  const { data: existing, error } = await admin
+    .from('wa_messages')
+    .select('id, status, media_url, sent_by')
+    .eq('id', msg.id)
+    .maybeSingle()
+  check(error, 'lecture message')
+  if (!existing) return
+
+  const update: Record<string, unknown> = {}
+  // WHY: l'écho du webhook peut arriver AVANT (ou en même temps que) la route
+  // d'envoi. L'envoi depuis l'interface revendique alors l'auteur ; un écho
+  // (sans auteur) ne remplace jamais un auteur déjà connu.
+  if (options.sentBy && !existing.sent_by) {
+    update.sent_by = options.sentBy
+    update.sender_name = options.senderName ?? null
+  }
+  const merged = mergeStatus(existing.status as MessageStatus | null, msg.status)
+  if (merged !== existing.status) {
+    update.status = merged
+    update.status_at = new Date().toISOString()
+  }
+  if (!existing.media_url && msg.mediaPath) update.media_url = msg.mediaPath
+  if (Object.keys(update).length > 0) {
+    const { error: updateError } = await admin.from('wa_messages').update(update).eq('id', msg.id)
+    check(updateError, 'mise à jour message')
+  }
+}
+
 export async function ingestMessage(msg: DescribedMessage, options: IngestOptions = {}): Promise<IngestResult> {
   const admin = createAdminClient()
   const conv = await findOrCreateConversation(admin, msg.chatId, msg.fromMe ? null : msg.senderName)
 
-  const { data: existing, error: existingError } = await admin
+  // .select() après un upsert ignoreDuplicates ne renvoie que les lignes
+  // réellement créées : c'est ce qui départage deux traitements simultanés
+  // (route d'envoi et écho du webhook, ou webhook rejoué).
+  const { data: inserted, error: insertError } = await admin
     .from('wa_messages')
-    .select('id, status, media_url')
-    .eq('id', msg.id)
-    .maybeSingle()
-  check(existingError, 'lecture message')
+    .upsert(
+      {
+        id: msg.id,
+        conversation_id: conv.id,
+        chat_id: msg.chatId,
+        from_me: msg.fromMe,
+        type: msg.type,
+        text: msg.text,
+        media_url: msg.mediaPath,
+        media_kind: msg.mediaKind,
+        media_mimetype: msg.mediaMimetype,
+        filename: msg.filename,
+        sender_name: options.senderName ?? msg.senderName,
+        sent_by: options.sentBy ?? null,
+        sent_at: msg.sentAt.toISOString(),
+        status: msg.status,
+        status_at: msg.status ? new Date().toISOString() : null,
+        context: msg.context,
+      },
+      { onConflict: 'id', ignoreDuplicates: true },
+    )
+    .select('id')
+  check(insertError, 'insertion message')
 
-  if (existing) {
-    const update: Record<string, unknown> = {}
-    const merged = mergeStatus(existing.status as MessageStatus | null, msg.status)
-    if (merged !== existing.status) {
-      update.status = merged
-      update.status_at = new Date().toISOString()
-    }
-    if (!existing.media_url && msg.mediaPath) update.media_url = msg.mediaPath
-    if (Object.keys(update).length > 0) {
-      const { error } = await admin.from('wa_messages').update(update).eq('id', msg.id)
-      check(error, 'mise à jour message')
-    }
+  if (!inserted || inserted.length === 0) {
+    await mergeIntoExisting(admin, msg, options)
     return { conversationId: conv.id, duplicate: true }
   }
-
-  const { error: insertError } = await admin.from('wa_messages').upsert(
-    {
-      id: msg.id,
-      conversation_id: conv.id,
-      chat_id: msg.chatId,
-      from_me: msg.fromMe,
-      type: msg.type,
-      text: msg.text,
-      media_url: msg.mediaPath,
-      media_kind: msg.mediaKind,
-      media_mimetype: msg.mediaMimetype,
-      filename: msg.filename,
-      sender_name: options.senderName ?? msg.senderName,
-      sent_by: options.sentBy ?? null,
-      sent_at: msg.sentAt.toISOString(),
-      status: msg.status,
-      status_at: msg.status ? new Date().toISOString() : null,
-      context: msg.context,
-    },
-    { onConflict: 'id', ignoreDuplicates: true },
-  )
-  check(insertError, 'insertion message')
 
   const patch: Record<string, unknown> = { ...applyMessage(conv, msg) }
   if (!msg.fromMe && msg.context.ad) patch.source = { type: 'ad', ad: msg.context.ad }
