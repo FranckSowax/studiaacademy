@@ -19,6 +19,8 @@ export const RATE_LIMITS = {
   whatsappPerRecipient: { limit: 5, windowSeconds: 3600 },
   /** Réservations présentiel depuis une même IP. */
   reservationPerIp: { limit: 5, windowSeconds: 3600 },
+  /** Demandes publiques du site (contact, partenariat, devis, accusés) depuis une même IP. */
+  siteRequestPerIp: { limit: 5, windowSeconds: 3600 },
   /** Démarrages de devoir QCM depuis une même IP (anti-force brute du code classe). */
   qcmStartPerIp: { limit: 30, windowSeconds: 600 },
   /** Notifications parent déclenchées depuis une même IP. */
