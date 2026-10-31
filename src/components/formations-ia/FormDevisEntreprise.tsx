@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { CheckCircle, Send } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
+import { submitDevisRequest } from '@/lib/site-requests/actions'
 import { PHONE_REGEX, normalizePhone, WHATSAPP_NUMBER } from '@/lib/formations-ia'
 
 const formationsChoix = [
@@ -48,20 +48,21 @@ export function FormDevisEntreprise({
     }
     setLoading(true)
     try {
-      const supabase = createClient()
-      const { error: insertError } = await supabase
-        .from('fia_leads_entreprises')
-        .insert({
-          societe: societe.trim(),
-          contact: contact.trim(),
-          fonction: fonction.trim() || null,
-          telephone: tel,
-          effectif: effectif || null,
-          formations: isF4 ? ['F4'] : selection,
-          message:
-            (isF4 ? "Demande d'entretien F4 Executive. " : '') + message.trim(),
-        })
-      if (insertError) throw insertError
+      // Enregistrement + accusé WhatsApp : la demande apparaît dans /messagerie
+      const res = await submitDevisRequest({
+        societe,
+        contact,
+        fonction,
+        telephone: tel,
+        effectif,
+        formations: isF4 ? ['F4'] : selection,
+        message: (isF4 ? "Demande d'entretien F4 Executive. " : '') + message.trim(),
+        page: window.location.pathname,
+      })
+      if (!res.success) {
+        setError(res.error ?? 'Envoi momentanément indisponible — contactez-nous directement sur WhatsApp.')
+        return
+      }
       setSent(true)
     } catch {
       setError(

@@ -43,7 +43,7 @@ export interface FormationIA {
 }
 
 export const WHATSAPP_NUMBER =
-  process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '24100000000'
+  process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '24107670158'
 
 export const AIRTEL_MONEY_NUMBER =
   process.env.NEXT_PUBLIC_AIRTEL_MONEY ?? '+241 0X XX XX XX'

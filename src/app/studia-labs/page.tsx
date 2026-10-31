@@ -11,6 +11,7 @@ import {
   ArrowRight, ArrowUpRight, FlaskConical, CheckCircle, ExternalLink, MessageCircle,
 } from 'lucide-react'
 import type { LabsSolution } from '@/types/labs'
+import { WHATSAPP_NUMBER } from '@/lib/formations-ia'
 
 const serviceIcons: Record<string, React.ComponentType<{ className?: string; style?: React.CSSProperties }>> = {
   Brain, Code2, Workflow, BarChart3, Cloud, Lightbulb, MessageCircle,
@@ -208,7 +209,7 @@ export default async function StudiaLabsPage() {
               <Link href="/contact" className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-[#e97e42] to-[#d56a2e] text-white px-8 py-3.5 rounded-xl font-semibold hover:shadow-lg transition-all">
                 Nous contacter <ArrowRight className="w-4 h-4" />
               </Link>
-              <a href="https://wa.me/24100000000?text=Bonjour%20Studia%20Labs%2C%20j%27ai%20un%20projet" target="_blank" rel="noopener noreferrer"
+              <a href={`https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%20Studia%20Labs%2C%20j%27ai%20un%20projet`} target="_blank" rel="noopener noreferrer"
                 className="inline-flex items-center justify-center gap-2 bg-white/10 border border-white/20 text-white px-8 py-3.5 rounded-xl font-semibold hover:bg-white/20 transition-all">
                 <ExternalLink className="w-4 h-4" /> WhatsApp
               </a>

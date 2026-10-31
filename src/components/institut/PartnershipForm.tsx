@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
+import { WHATSAPP_NUMBER } from '@/lib/formations-ia'
+import { submitContactRequest } from '@/lib/site-requests/actions'
 
 const publics = [
   'Équipe & staff interne',
@@ -26,12 +28,28 @@ export function PartnershipForm() {
     message: '',
   })
 
+  const [error, setError] = useState<string | null>(null)
+
+  // La demande arrive dans /messagerie : accusé WhatsApp envoyé au contact.
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError(null)
     setLoading(true)
-    await new Promise((r) => setTimeout(r, 1000))
-    setSubmitted(true)
+    const res = await submitContactRequest({
+      kind: 'partenariat',
+      nom: form.nom,
+      telephone: form.telephone,
+      email: form.email,
+      sujet: [form.organisation, form.publicCible].filter(Boolean).join(' — '),
+      message: form.message,
+      page: window.location.pathname,
+    }).catch(() => ({ success: false, error: undefined }))
     setLoading(false)
+    if (!res.success) {
+      setError(res.error ?? 'Envoi impossible. Écrivez-nous directement sur WhatsApp.')
+      return
+    }
+    setSubmitted(true)
   }
 
   const whatsappText = encodeURIComponent(
@@ -62,7 +80,7 @@ export function PartnershipForm() {
             Merci. Notre équipe partenariats vous recontacte sous 24h pour cadrer le programme.
           </p>
           <a
-            href={`https://wa.me/24100000000?text=${whatsappText}`}
+            href={`https://wa.me/${WHATSAPP_NUMBER}?text=${whatsappText}`}
             target="_blank"
             rel="noopener noreferrer"
             className="mt-6 inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-xl font-semibold transition-colors"
@@ -96,8 +114,8 @@ export function PartnershipForm() {
                 className="border-white/15 bg-white/10 text-white placeholder:text-white/40 focus:border-[#e97e42] focus:ring-[#e97e42]/20 rounded-xl" />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="telephone" className="text-sm font-medium text-white/80">Téléphone (+241)</Label>
-              <Input id="telephone" placeholder="+241 06 XX XX XX" value={form.telephone}
+              <Label htmlFor="telephone" className="text-sm font-medium text-white/80">WhatsApp (+241) *</Label>
+              <Input id="telephone" type="tel" required placeholder="+241 06 XX XX XX" value={form.telephone}
                 onChange={(e) => setForm({ ...form, telephone: e.target.value })}
                 className="border-white/15 bg-white/10 text-white placeholder:text-white/40 rounded-xl" />
             </div>
@@ -124,13 +142,19 @@ export function PartnershipForm() {
               className="border-white/15 bg-white/10 text-white placeholder:text-white/40 focus:border-[#e97e42] focus:ring-[#e97e42]/20 rounded-xl resize-none" />
           </div>
 
+          {error && (
+            <p role="alert" className="text-sm text-red-300">
+              {error}
+            </p>
+          )}
+
           <div className="flex flex-col sm:flex-row gap-3">
             <Button type="submit" disabled={loading}
               className="flex-1 bg-gradient-to-r from-[#e97e42] to-[#d56a2e] hover:from-[#d56a2e] hover:to-[#c45a20] text-white py-5 rounded-xl font-semibold">
               {loading ? 'Envoi...' : 'Envoyer la demande'}
               <Send className="ml-2 w-4 h-4" />
             </Button>
-            <a href={`https://wa.me/24100000000?text=${whatsappText}`} target="_blank" rel="noopener noreferrer" className="flex-1">
+            <a href={`https://wa.me/${WHATSAPP_NUMBER}?text=${whatsappText}`} target="_blank" rel="noopener noreferrer" className="flex-1">
               <Button type="button" variant="outline"
                 className="w-full border-2 border-green-500 text-green-400 hover:bg-green-500/10 py-5 rounded-xl font-semibold">
                 <MessageCircle className="mr-2 w-4 h-4" /> WhatsApp (immédiat)

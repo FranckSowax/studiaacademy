@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
 import { createClient } from '@/lib/supabase/server'
+import { WHATSAPP_NUMBER } from '@/lib/formations-ia'
 import {
   Monitor, MapPin, ArrowRight, CheckCircle, Clock, Award,
   Users, Sparkles, PlayCircle, CalendarDays,
@@ -163,7 +164,7 @@ export default async function FormationsLandingPage() {
                 Être conseillé <ArrowRight className="w-4 h-4" />
               </Link>
               <a
-                href="https://wa.me/24100000000?text=Bonjour%2C%20je%20souhaite%20des%20conseils%20sur%20vos%20formations"
+                href={`https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%2C%20je%20souhaite%20des%20conseils%20sur%20vos%20formations`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center gap-2 bg-white border-2 border-green-500 text-green-600 px-8 py-3.5 rounded-xl font-semibold hover:bg-green-50 transition-all"

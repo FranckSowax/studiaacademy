@@ -278,6 +278,11 @@ export function InboxThread({ conversationId, meId, onChanged, onBack }: InboxTh
             {detail.source?.type === 'ad' && (
               <span className="ml-2 text-amber-700">· venu de la publicité {detail.source.title ? `« ${detail.source.title} »` : ''}</span>
             )}
+            {detail.source?.type === 'site' && (
+              <span className="ml-2 text-sky-700" title={detail.source.url ?? undefined}>
+                · venu du site ({detail.source.label}){detail.source.title ? ` « ${detail.source.title} »` : ''}
+              </span>
+            )}
             {detail.assignedName && (
               <span className="ml-2">· suivi par {detail.assignedTo === meId ? 'vous' : detail.assignedName}</span>
             )}

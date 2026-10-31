@@ -7,6 +7,7 @@
 import type { MessageStatus } from './acks'
 import type { ConversationStatus } from './conversation-rules'
 import { formatPhone } from './list'
+import { isSiteRequestKind, SITE_KIND_SHORT } from './site-request-rules'
 
 export interface ConversationListItem {
   id: string
@@ -28,7 +29,8 @@ export interface ConversationListItem {
 export interface ConversationDetail extends ConversationListItem {
   note: string | null
   assignedAt: string | null
-  source: { type: 'ad' | 'direct'; title: string | null; url: string | null } | null
+  /** Origine : publicité, page du site (title = objet, url = chemin) ou contact direct. */
+  source: { type: 'ad' | 'site' | 'direct'; title: string | null; url: string | null; label?: string | null } | null
   historySyncedAt: string | null
 }
 
@@ -89,11 +91,16 @@ function adFrom(value: unknown): { title: string | null; body: string | null; ur
 export function toDetail(row: Row, meId: string, pins: Set<string>): ConversationDetail {
   const source = row.source && typeof row.source === 'object' ? (row.source as Row) : null
   const ad = source?.type === 'ad' ? adFrom(source.ad) : null
+  const siteKind = source?.type === 'site' && isSiteRequestKind(source.kind) ? source.kind : null
   return {
     ...toListItem(row, meId, pins),
     note: s(row.note),
     assignedAt: s(row.assigned_at),
-    source: source ? { type: ad ? 'ad' : 'direct', title: ad?.title ?? null, url: ad?.url ?? null } : null,
+    source: siteKind
+      ? { type: 'site', title: s(source?.title), url: s(source?.page), label: SITE_KIND_SHORT[siteKind] }
+      : source
+        ? { type: ad ? 'ad' : 'direct', title: ad?.title ?? null, url: ad?.url ?? null }
+        : null,
     historySyncedAt: s(row.history_synced_at),
   }
 }

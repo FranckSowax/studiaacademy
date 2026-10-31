@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { MessageCircle, Send } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { acknowledgeFiaInscription } from '@/lib/site-requests/actions'
 import {
   PHONE_REGEX,
   WHATSAPP_NUMBER,
@@ -115,6 +116,8 @@ export function FormInscription({
       if (rpcError) throw rpcError
 
       const code = Array.isArray(data) ? data[0]?.code_public : undefined
+      // Accusé WhatsApp : l'inscription apparaît dans /messagerie. Un échec ne bloque pas.
+      if (code) await acknowledgeFiaInscription(code).catch(() => null)
       const params = new URLSearchParams({
         code: code ?? '',
         f: slug,
