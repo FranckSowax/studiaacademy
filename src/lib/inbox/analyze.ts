@@ -109,6 +109,7 @@ const NEXT_ACTIONS_GUIDE: Record<keyof typeof NEXT_ACTIONS, string> = {
   send_cart: "le client veut s'inscrire ou payer : lui envoyer son inscription et le lien de paiement",
   send_media: 'lui envoyer un visuel, une brochure ou un programme',
   send_quick_reply: 'question courante à laquelle une réponse type suffit',
+  note_request: "le client cherche une formation, un thème ou un format absent du catalogue : noter sa demande pour que l'équipe la recherche",
   answer_question: 'question précise qui demande une réponse rédigée',
   follow_up: 'le client hésite ou reviendra plus tard : prévoir une relance',
   handover: "demande hors du périmètre de la personne : passer la main",

@@ -46,6 +46,10 @@ describe('validation de l’analyse', () => {
     expect(a.open_questions).toHaveLength(5)
   })
 
+  it('« noter une recherche » fait partie des actions reconnues', () => {
+    expect(validateAnalysis({ next_best_action: 'note_request' }).next_best_action).toBe('note_request')
+  })
+
   it('les moyens de paiement viennent de la configuration', () => {
     expect(validateAnalysis({ payment_mentioned: 'airtel_money' }).payment_mentioned).toBe('airtel_money')
   })

@@ -60,6 +60,7 @@ export const NEXT_ACTIONS = {
   send_cart: 'Composer et envoyer un panier',
   send_media: 'Envoyer un visuel ou une brochure',
   send_quick_reply: 'Répondre avec une phrase rapide',
+  note_request: 'Noter une recherche hors catalogue',
   answer_question: 'Répondre à sa question',
   follow_up: 'Relancer plus tard (noter un rappel)',
   handover: 'Passer la main à un collègue',

@@ -136,6 +136,8 @@ export function InboxComposer({ conversationId, contact, threadImages, onSent, o
         return setPanel('media')
       case 'send_quick_reply':
         return setPanel('quick')
+      case 'note_request':
+        return setPanel('request')
       case 'answer_question':
         setPanel(null)
         return requestAnimationFrame(() => textareaRef.current?.focus())
