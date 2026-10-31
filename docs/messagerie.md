@@ -34,11 +34,13 @@ Chaque étape est une écriture sur un système distant : **accord explicite req
    (WEBJS), volume `waha-sessions` sur `/app/.sessions`, aucun domaine public (joignable sur
    `http://waha.railway.internal:3000`), webhook vers `https://studia.academy/api/whatsapp/webhook`.
    Secrets générés localement (`.env.waha.prod`, ignoré par git) et collés par l'utilisateur.
-3. **Variables du service app** (Railway) :
-   - `WAHA_BASE_URL`, `WAHA_API_KEY`, `WAHA_SESSION=default`, `WAHA_WEBHOOK_HMAC_KEY`, `STUDIA_TEAM_PHONE` ;
-   - `OPENROUTER_API_KEY` (déjà posée), `INBOX_ANALYSIS_MODEL`, éventuellement `INBOX_ANALYSIS_DAILY_CAP` / `INBOX_ANALYSIS_BATCH` ;
-   - `INBOX_CRON_SECRET` (≥ 16 caractères, généré, jamais affiché) ;
-   - `NEXT_PUBLIC_SITE_URL` = domaine de prod (les liens envoyés aux clients en dépendent).
+3. ✅ **Variables du service app** — fait le 2026-10-31 :
+   - `WAHA_BASE_URL=http://${{waha.RAILWAY_PRIVATE_DOMAIN}}:3000`, `WAHA_API_KEY=${{waha.WAHA_API_KEY}}`,
+     `WAHA_WEBHOOK_HMAC_KEY=${{waha.WHATSAPP_HOOK_HMAC_KEY}}` (références : aucun secret recopié), `WAHA_SESSION=default` ;
+   - `STUDIA_TEAM_PHONE` et `NEXT_PUBLIC_WHATSAPP_NUMBER` = 24107670158 ; `INBOX_CRON_SECRET` collé par l'utilisateur ;
+   - laissés vides à la demande : `NEXT_PUBLIC_SITE_URL` / `NEXT_PUBLIC_APP_URL` (liens clients vers
+     `https://www.studia-academy.ga` par défaut), `NEXT_PUBLIC_AIRTEL_MONEY`, `NEXT_PUBLIC_MOOV_MONEY` ;
+   - `WHAPI_TOKEN` / `WHAPI_CHANNEL_ID` à supprimer une fois WAHA confirmé en prod.
 4. **Tâches planifiées** (cron Railway), en-tête `Authorization: Bearer $INBOX_CRON_SECRET` :
    - `POST /api/inbox/jobs/analyze` — toutes les 15 min ;
    - `POST /api/inbox/jobs/daily-report` — une fois par jour, en fin de journée (fuseau Africa/Libreville).
