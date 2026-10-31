@@ -21,6 +21,7 @@ import { modules, getModuleBySlug } from '@/lib/modules'
 import { ChinaPassDetail } from '@/components/sections/ChinaPassDetail'
 import { AuditIADetail } from '@/components/sections/AuditIADetail'
 import type { Metadata } from 'next'
+import { WHATSAPP_NUMBER } from '@/lib/formations-ia'
 
 const iconMap: Record<string, React.ComponentType<{ className?: string; style?: React.CSSProperties }>> = {
   GraduationCap,
@@ -116,7 +117,7 @@ export default async function ModulePage({ params }: Props) {
                   </Button>
                 </Link>
                 <a
-                  href={`https://wa.me/24100000000?text=${whatsappText}`}
+                  href={`https://wa.me/${WHATSAPP_NUMBER}?text=${whatsappText}`}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
