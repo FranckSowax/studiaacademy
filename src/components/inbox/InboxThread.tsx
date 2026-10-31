@@ -24,6 +24,7 @@ import { cn } from '@/lib/utils'
 import { formatRelativeTime } from '@/lib/inbox/list'
 import type { ConversationDetail, ThreadMessageDto } from '@/lib/inbox/dto'
 import type { MessageStatus } from '@/lib/inbox/acks'
+import { InboxComposer } from './InboxComposer'
 
 const THREAD_POLL_MS = 6_000
 
@@ -374,12 +375,20 @@ export function InboxThread({ conversationId, meId, onChanged, onBack }: InboxTh
         ))}
       </div>
 
-      {/* Zone de réponse : jalon 3 */}
-      <footer className="border-t bg-white px-3 py-3 text-center text-xs text-slate-500 dark:bg-slate-900">
-        La réponse depuis cet écran arrive au jalon 3. En attendant, répondez depuis le téléphone :
-        vos messages apparaîtront ici, marqués « Depuis le téléphone ».
-        {detail.lastMessageAt && <span className="ml-1">Dernier message : {formatRelativeTime(detail.lastMessageAt)}.</span>}
-      </footer>
+      {/* Zone de réponse (jamais la note interne : elle a son propre panneau ambre) */}
+      <InboxComposer
+        conversationId={conversationId}
+        contact={{ name: detail.name, phone: detail.phoneDisplay || null }}
+        onSent={() => {
+          void load()
+          onChanged()
+        }}
+      />
+      {detail.lastMessageAt && (
+        <p className="bg-white px-3 pb-1 text-right text-[10px] text-slate-400 dark:bg-slate-900">
+          Dernier message : {formatRelativeTime(detail.lastMessageAt)}
+        </p>
+      )}
     </div>
   )
 }
