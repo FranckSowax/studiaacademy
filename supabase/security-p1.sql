@@ -260,27 +260,5 @@ $$;
 REVOKE ALL ON FUNCTION public.release_presentiel_seat(UUID) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.release_presentiel_seat(UUID) TO service_role;
 
--- ------------------------------------------------------------
--- 7. WAHA : messages WhatsApp entrants (webhook /api/whatsapp/webhook)
--- ------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS public.whatsapp_inbound_messages (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  event_id TEXT NOT NULL UNIQUE,
-  session TEXT NOT NULL DEFAULT 'default',
-  message_id TEXT NOT NULL,
-  from_chat_id TEXT NOT NULL,
-  body TEXT NOT NULL DEFAULT '',
-  has_media BOOLEAN NOT NULL DEFAULT FALSE,
-  handled BOOLEAN NOT NULL DEFAULT FALSE,
-  received_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-CREATE INDEX IF NOT EXISTS whatsapp_inbound_from_idx
-  ON public.whatsapp_inbound_messages (from_chat_id, received_at DESC);
-ALTER TABLE public.whatsapp_inbound_messages ENABLE ROW LEVEL SECURITY;
-REVOKE ALL ON public.whatsapp_inbound_messages FROM anon;
-
-DROP POLICY IF EXISTS "Admins read whatsapp inbound" ON public.whatsapp_inbound_messages;
-CREATE POLICY "Admins read whatsapp inbound" ON public.whatsapp_inbound_messages
-  FOR SELECT TO authenticated
-  USING (public.is_admin());
+-- 7. (retiré) La table des messages WhatsApp entrants est remplacée par les
+--    tables wa_* : supabase/migrations/20261031120000_wa_inbox.sql
