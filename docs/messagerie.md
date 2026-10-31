@@ -22,11 +22,14 @@ Le navigateur ne lit jamais la base : tout passe par `/api/inbox/*` (clé servic
 
 Chaque étape est une écriture sur un système distant : **accord explicite requis avant chacune**.
 
-1. **Base Supabase prod** — appliquer, dans l'ordre :
-   - `supabase/security-p0.sql` (si pas déjà fait, y compris la suppression de « Public read active qcm » et la section kahoot) ;
-   - `supabase/security-p1.sql` ;
-   - les migrations `supabase/migrations/20261031120000_wa_inbox.sql` → `20261031160000_inbox_customer_requests.sql`
-     (les 4 migrations `legacy_*` décrivent l'existant : **ne pas** les rejouer en prod).
+1. ✅ **Base Supabase prod** — fait le 2026-10-31 (projet STUDIA ACADEMY) :
+   - `security-p0` et `security-p1` étaient déjà en place ; deux correctifs appliqués par migration :
+     `20261031170000` (fonctions serveur retirées à `anon`/`authenticated` — elles étaient appelables
+     avec la clé publique) et `20261031171000` (résultats Kahoot solo fermés au public) ;
+   - les 5 migrations `wa_*` appliquées une par une, RLS active, aucun accès `anon`/`authenticated` ;
+   - méthode : `npx supabase db query --linked -f <fichier>` puis `npx supabase migration repair --status applied <version> --linked`.
+     `db push` est refusé tant que les 19 migrations de juin 2026 (présentes en prod) ne sont pas dans le dépôt ;
+     les 4 `legacy_*` ne doivent jamais être rejouées en prod.
 2. **Service WAHA sur Railway** — voir `docs/whatsapp-waha.md` §3 (image épinglée, volume `/app/.sessions`,
    webhook vers `https://<domaine-app>/api/whatsapp/webhook`, événements `message.any,message.ack,session.status`).
 3. **Variables du service app** (Railway) :
