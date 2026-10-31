@@ -383,6 +383,16 @@ export function InboxThread({ conversationId, meId, onChanged, onBack }: InboxTh
           void load()
           onChanged()
         }}
+        onThreadAction={(action) => {
+          if (action === 'follow_up') {
+            setNoteDraft(detail.note ?? '')
+            setNoteOpen(true)
+          } else if (action === 'handover') {
+            void act('release')
+          } else {
+            void act('close')
+          }
+        }}
       />
       {detail.lastMessageAt && (
         <p className="bg-white px-3 pb-1 text-right text-[10px] text-slate-400 dark:bg-slate-900">

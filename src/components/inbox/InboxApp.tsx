@@ -14,6 +14,7 @@ import {
   type InboxFilter,
 } from '@/lib/inbox/list'
 import type { ConversationListItem, InboxCounts } from '@/lib/inbox/dto'
+import { PURCHASE_STAGES } from '@/lib/inbox/analysis'
 import { InboxThread, StatusTicks } from './InboxThread'
 
 const LIST_POLL_MS = 10_000
@@ -187,6 +188,11 @@ export function InboxApp({ brandName, isAdmin }: InboxAppProps) {
                           )}
                         >
                           {c.mine ? 'Moi' : c.assignedName}
+                        </span>
+                      )}
+                      {c.purchaseStage && c.purchaseStage in PURCHASE_STAGES && (
+                        <span className="rounded bg-sky-50 px-1.5 text-[10px] font-medium text-sky-800">
+                          {PURCHASE_STAGES[c.purchaseStage as keyof typeof PURCHASE_STAGES]}
                         </span>
                       )}
                       {c.intent !== null && c.intent >= HOT_INTENT_THRESHOLD && (

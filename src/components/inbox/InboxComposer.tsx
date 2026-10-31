@@ -1,7 +1,9 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { FileText, ImageIcon, Link2, Loader2, Plus, Send, ShoppingCart, Smile, Trash2, Upload, Video, X, Zap } from 'lucide-react'
+import { FileText, ImageIcon, Link2, Loader2, Plus, Send, ShoppingCart, Smile, Sparkles, Trash2, Upload, Video, X, Zap } from 'lucide-react'
+import type { NextAction } from '@/lib/inbox/analysis'
+import { AnalysisPanel } from './AnalysisPanel'
 import { CartPanel } from './CartPanel'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -10,7 +12,10 @@ import { cn } from '@/lib/utils'
 import { fillTemplate } from '@/lib/inbox/templates'
 import type { ThreadMessageDto } from '@/lib/inbox/dto'
 
-type Panel = 'emoji' | 'links' | 'quick' | 'media' | 'cart' | null
+type Panel = 'emoji' | 'links' | 'quick' | 'media' | 'cart' | 'analysis' | null
+
+/** Actions proposées par l'analyse qui se réalisent dans l'en-tête du fil. */
+export type ThreadAction = 'follow_up' | 'handover' | 'close'
 
 interface QuickReply {
   id: string
@@ -45,9 +50,10 @@ interface InboxComposerProps {
   conversationId: string
   contact: { name: string | null; phone: string | null }
   onSent: (message: ThreadMessageDto | null) => void
+  onThreadAction: (action: ThreadAction) => void
 }
 
-export function InboxComposer({ conversationId, contact, onSent }: InboxComposerProps) {
+export function InboxComposer({ conversationId, contact, onSent, onThreadAction }: InboxComposerProps) {
   const [text, setText] = useState(() => drafts.get(conversationId) ?? '')
   const [panel, setPanel] = useState<Panel>(null)
   const [sending, setSending] = useState(false)
@@ -118,6 +124,28 @@ export function InboxComposer({ conversationId, contact, onSent }: InboxComposer
 
   const toggle = (p: Panel) => setPanel((current) => (current === p ? null : p))
 
+  /** « Faire » depuis l'analyse : ouvre l'outil qui réalise l'action. */
+  const runAction = (action: NextAction) => {
+    switch (action) {
+      case 'send_cart':
+        return setPanel('cart')
+      case 'send_media':
+        return setPanel('media')
+      case 'send_quick_reply':
+        return setPanel('quick')
+      case 'answer_question':
+        setPanel(null)
+        return requestAnimationFrame(() => textareaRef.current?.focus())
+      case 'follow_up':
+      case 'handover':
+      case 'close':
+        setPanel(null)
+        return onThreadAction(action)
+      default:
+        return undefined
+    }
+  }
+
   return (
     <div className="border-t bg-white dark:bg-slate-900">
       {panel && (
@@ -134,6 +162,7 @@ export function InboxComposer({ conversationId, contact, onSent }: InboxComposer
               {panel === 'quick' && 'Phrases rapides — insérées dans le brouillon, à relire avant envoi'}
               {panel === 'media' && 'Médiathèque'}
               {panel === 'cart' && 'Panier client — inscriptions aux formations, prix calculés par le site'}
+              {panel === 'analysis' && 'Analyse de la conversation'}
             </p>
             <Button variant="ghost" size="icon-sm" onClick={() => setPanel(null)} aria-label="Fermer le panneau">
               <X />
@@ -150,6 +179,7 @@ export function InboxComposer({ conversationId, contact, onSent }: InboxComposer
           )}
           {panel === 'links' && <LinksPanel onPick={(url) => insert(url)} />}
           {panel === 'quick' && <QuickRepliesPanel onPick={(t) => insert(fillTemplate(t, contact))} />}
+          {panel === 'analysis' && <AnalysisPanel conversationId={conversationId} onAction={runAction} />}
           {panel === 'cart' && <CartPanel conversationId={conversationId} contact={contact} onSent={() => onSent(null)} />}
           {panel === 'media' && (
             <MediaPanel
@@ -180,6 +210,9 @@ export function InboxComposer({ conversationId, contact, onSent }: InboxComposer
           </ToolButton>
           <ToolButton active={panel === 'cart'} onClick={() => toggle('cart')} label="Panier client">
             <ShoppingCart />
+          </ToolButton>
+          <ToolButton active={panel === 'analysis'} onClick={() => toggle('analysis')} label="Analyse">
+            <Sparkles />
           </ToolButton>
         </div>
         <Textarea
