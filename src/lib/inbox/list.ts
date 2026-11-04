@@ -86,7 +86,11 @@ export function formatRelativeTime(iso: string | null | undefined, now: Date = n
 export function initials(name: string | null | undefined, phone?: string | null): string {
   const n = (name ?? '').trim()
   if (n) {
-    const parts = n.split(/\s+/).filter(Boolean)
+    // Ponctuation de tête ignorée : « Paul (collab) » → « PC ».
+    const parts = n
+      .split(/\s+/)
+      .map((p) => p.replace(/^[^\p{L}\p{N}]+/u, ''))
+      .filter(Boolean)
     return ((parts[0]?.[0] ?? '') + (parts[1]?.[0] ?? '')).toUpperCase() || '?'
   }
   const d = (phone ?? '').replace(/\D/g, '')

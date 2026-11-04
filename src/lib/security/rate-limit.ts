@@ -29,6 +29,12 @@ export const RATE_LIMITS = {
   diagnosticStartPerIp: { limit: 20, windowSeconds: 3600 },
   /** Appels IA coûteux (OCR, extraction d'URL, génération) par utilisateur. */
   aiPerUser: { limit: 30, windowSeconds: 3600 },
+  /** Demandes de code de connexion équipe depuis une même IP. */
+  staffOtpRequestPerIp: { limit: 10, windowSeconds: 900 },
+  /** Demandes de code pour un même identifiant (email / numéro). */
+  staffOtpRequestPerIdentifier: { limit: 3, windowSeconds: 900 },
+  /** Saisies de code depuis une même IP (anti-force brute, en plus du plafond par code). */
+  staffOtpVerifyPerIp: { limit: 20, windowSeconds: 900 },
   /** Envois de rapports WhatsApp par professeur. */
   teacherSendPerUser: { limit: 200, windowSeconds: 86_400 },
 } as const satisfies Record<string, RateLimitRule>

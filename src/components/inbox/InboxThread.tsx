@@ -21,7 +21,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
-import { formatRelativeTime } from '@/lib/inbox/list'
+import { formatRelativeTime, initials } from '@/lib/inbox/list'
 import type { ConversationDetail, ThreadMessageDto } from '@/lib/inbox/dto'
 import type { MessageStatus } from '@/lib/inbox/acks'
 import { InboxComposer } from './InboxComposer'
@@ -89,7 +89,19 @@ function MessageBubble({ m }: { m: ThreadMessageDto }) {
             : 'bg-white text-slate-900 rounded-bl-sm dark:bg-slate-800 dark:text-slate-100',
         )}
       >
-        {m.fromMe && m.author && <p className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 mb-0.5">{m.author}</p>}
+        {m.fromMe && m.author && (
+          <p className="mb-0.5 flex items-center gap-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">
+            {m.authorId && (
+              <span
+                aria-hidden
+                className="flex size-4 items-center justify-center rounded-full bg-emerald-600 text-[8px] font-bold text-white"
+              >
+                {initials(m.author)}
+              </span>
+            )}
+            <span title={m.authorId ? `Envoyé depuis la messagerie par ${m.author}` : undefined}>{m.author}</span>
+          </p>
+        )}
 
         {m.ad && (
           <div className="mb-2 rounded-lg border border-amber-200 bg-amber-50 p-2 text-xs dark:border-amber-900 dark:bg-amber-950">

@@ -15,29 +15,35 @@ export const dynamic = 'force-dynamic'
 
 const LIST_LIMIT = 100
 const MIGRATION_MISSING = 'Migration 20261031120000_wa_inbox non appliquée'
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+/** Conversations récentes examinées pour le filtre « répondu par ». */
+const BY_SCAN_LIMIT = 1000
 
 /**
  * Liste des conversations de la messagerie.
  * - GET ?filter=to_reply|mine|pinned|hot|all|closed
  * - GET ?only=counts : compteurs seuls (pastille du menu), sans charger la liste
- * - POST { filter, q } : même liste avec recherche — la recherche peut
+ * - POST { filter, q, by } : même liste avec recherche — la recherche peut
  *   contenir un nom ou un numéro, elle ne passe donc jamais par l'URL.
+ *   `by` (uuid de compte) : seulement les conversations où ce collaborateur
+ *   a répondu depuis la messagerie.
  */
 export async function GET(request: NextRequest) {
   const params = request.nextUrl.searchParams
-  return listConversations(params.get('filter'), null, params.get('only') === 'counts')
+  return listConversations(params.get('filter'), null, params.get('only') === 'counts', null)
 }
 
 export async function POST(request: NextRequest) {
-  const body = (await request.json().catch(() => null)) as { filter?: unknown; q?: unknown } | null
+  const body = (await request.json().catch(() => null)) as { filter?: unknown; q?: unknown; by?: unknown } | null
   return listConversations(
     typeof body?.filter === 'string' ? body.filter : null,
     typeof body?.q === 'string' ? body.q : null,
     false,
+    typeof body?.by === 'string' && UUID_RE.test(body.by) ? body.by : null,
   )
 }
 
-async function listConversations(filterRaw: string | null, q: string | null, onlyCounts: boolean) {
+async function listConversations(filterRaw: string | null, q: string | null, onlyCounts: boolean, by: string | null) {
   const me = await getInboxIdentity()
   if (!me) return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
 
@@ -90,6 +96,20 @@ async function listConversations(filterRaw: string | null, q: string | null, onl
     case 'closed':
       query = query.eq('status', 'closed')
       break
+  }
+
+  if (by) {
+    const { data: sent } = await admin
+      .from('wa_messages')
+      .select('conversation_id')
+      .eq('sent_by', by)
+      .order('sent_at', { ascending: false })
+      .limit(BY_SCAN_LIMIT)
+    const byIds = [...new Set((sent ?? []).map((m) => m.conversation_id as string))]
+    if (byIds.length === 0) {
+      return NextResponse.json({ items: [], counts: await counts(), me: { id: me.id, name: me.name } })
+    }
+    query = query.in('id', byIds)
   }
 
   const search = normalizeSearch(q)

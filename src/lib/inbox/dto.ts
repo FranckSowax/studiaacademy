@@ -44,6 +44,8 @@ export interface ThreadMessageDto {
   filename: string | null
   /** Auteur affiché pour nos messages ; null pour les messages du client. */
   author: string | null
+  /** Compte du collaborateur qui a envoyé depuis la messagerie (null : téléphone, client). */
+  authorId: string | null
   sentAt: string
   status: MessageStatus | null
   quoted: string | null
@@ -119,6 +121,7 @@ export function toThreadMessage(row: Row): ThreadMessageDto {
     mediaUrl: hasMedia ? `/api/inbox/media/${encodeURIComponent(String(row.public_ref))}` : null,
     filename: s(row.filename),
     author: fromMe ? (s(row.sender_name) ?? (s(row.sent_by) ? 'Équipe' : 'Depuis le téléphone')) : null,
+    authorId: fromMe ? s(row.sent_by) : null,
     sentAt: String(row.sent_at),
     status: s(row.status) as MessageStatus | null,
     quoted,

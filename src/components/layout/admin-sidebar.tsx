@@ -16,6 +16,7 @@ import {
   FlaskConical,
   Building2,
   MessageCircle,
+  UserCog,
 } from 'lucide-react'
 import { InboxNavBadge } from '@/components/inbox/InboxNavBadge'
 
@@ -44,6 +45,11 @@ export function AdminSidebar({ className }: AdminSidebarProps) {
       title: 'Messagerie',
       href: '/messagerie',
       icon: MessageCircle,
+    },
+    {
+      title: 'Collaborateurs',
+      href: '/admin/collaborateurs',
+      icon: UserCog,
     },
     {
       title: 'Formations en ligne',
