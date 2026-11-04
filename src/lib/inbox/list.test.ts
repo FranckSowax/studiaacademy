@@ -15,14 +15,16 @@ const B = '22222222-2222-4222-8222-222222222222'
 const C = '33333333-3333-4333-8333-333333333333'
 
 describe('identité', () => {
-  it('admin et super_admin ont accès', () => {
-    expect(resolveIdentity({ id: A, role: 'admin', full_name: 'Awa Ndong' })).toEqual({ id: A, name: 'Awa Ndong', role: 'admin' })
-    expect(resolveIdentity({ id: A, role: 'super_admin' })?.role).toBe('admin')
+  it('admin et super_admin ont les droits admin de la messagerie', () => {
+    expect(resolveIdentity({ id: A, staffRole: 'admin', full_name: 'Awa Ndong' })).toEqual({ id: A, name: 'Awa Ndong', role: 'admin' })
+    expect(resolveIdentity({ id: A, staffRole: 'super_admin' })?.role).toBe('admin')
   })
-  it('un collaborateur seulement avec inbox_access', () => {
-    expect(resolveIdentity({ id: B, role: 'user', inbox_access: true, email: 'paul@x.ga' })).toEqual({ id: B, name: 'paul', role: 'collab' })
-    expect(resolveIdentity({ id: B, role: 'user', inbox_access: false })).toBeNull()
-    expect(resolveIdentity({ id: B, role: 'user' })).toBeNull()
+  it('un agent est collaborateur ; le nom de la fiche prime sur le profil', () => {
+    expect(resolveIdentity({ id: B, staffRole: 'agent', email: 'paul@x.ga' })).toEqual({ id: B, name: 'paul', role: 'collab' })
+    expect(resolveIdentity({ id: B, staffRole: 'agent', collaboratorName: 'Paul M.', full_name: 'Paul' })?.name).toBe('Paul M.')
+  })
+  it('sans rôle d\'équipe (client, fiche désactivée) : aucun accès', () => {
+    expect(resolveIdentity({ id: B, staffRole: null, full_name: 'Paul' })).toBeNull()
     expect(resolveIdentity(null)).toBeNull()
   })
 })
@@ -78,6 +80,7 @@ describe('liste', () => {
   })
   it('initiales', () => {
     expect(initials('Marie Nguema')).toBe('MN')
+    expect(initials('Paul (collab test)')).toBe('PC')
     expect(initials(null, '24107670158')).toBe('58')
   })
 })

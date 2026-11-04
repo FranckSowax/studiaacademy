@@ -1,9 +1,12 @@
 // ============================================
 // Identité dans la messagerie : « qui écrit ? » (serveur uniquement)
 // ============================================
-// Appelée par TOUTES les routes de la messagerie. Une seule source de vérité.
+// Appelée par TOUTES les routes de la messagerie. Une seule source de vérité :
+// le rôle effectif en base (public.current_staff_role), le nom de la fiche
+// collaborateur à défaut du profil.
 
 import { createClient } from '@/lib/supabase/server'
+import { parseStaffRole, type StaffRole } from '@/lib/collaborators/roles'
 
 export type InboxRole = 'admin' | 'collab'
 
@@ -15,36 +18,32 @@ export interface InboxIdentity {
   role: InboxRole
 }
 
-/** Rôles qui donnent toujours accès à la messagerie. */
-export const INBOX_ADMIN_ROLES = ['admin', 'super_admin'] as const
-
-interface ProfileLike {
+interface IdentityInput {
   id: string
-  role?: unknown
+  staffRole: StaffRole | null
+  collaboratorName?: unknown
   full_name?: unknown
   email?: unknown
-  inbox_access?: unknown
+}
+
+function text(v: unknown): string | null {
+  return typeof v === 'string' && v.trim() ? v.trim() : null
 }
 
 /**
- * Règle d'accès (pure) : admin / super_admin, ou collaborateur avec
- * `inbox_access = true`. Sinon null.
+ * Règle d'accès (pure) : toute l'équipe active (admin, super_admin, agent).
+ * Les admins gardent les droits d'équipe (phrases rapides, reprise, bilans).
  *
  * @example
- * resolveIdentity({ id, role: 'user', inbox_access: true, full_name: 'Awa' })
+ * resolveIdentity({ id, staffRole: 'agent', collaboratorName: 'Awa' })
  * // { id, name: 'Awa', role: 'collab' }
  */
-export function resolveIdentity(profile: ProfileLike | null): InboxIdentity | null {
-  if (!profile?.id) return null
+export function resolveIdentity(input: IdentityInput | null): InboxIdentity | null {
+  if (!input?.id || !input.staffRole) return null
+  const email = text(input.email)
   const name =
-    (typeof profile.full_name === 'string' && profile.full_name.trim()) ||
-    (typeof profile.email === 'string' && profile.email.split('@')[0]) ||
-    'Collaborateur'
-  if ((INBOX_ADMIN_ROLES as readonly unknown[]).includes(profile.role)) {
-    return { id: profile.id, name, role: 'admin' }
-  }
-  if (profile.inbox_access === true) return { id: profile.id, name, role: 'collab' }
-  return null
+    text(input.collaboratorName) ?? text(input.full_name) ?? (email ? email.split('@')[0] : null) ?? 'Collaborateur'
+  return { id: input.id, name, role: input.staffRole === 'agent' ? 'collab' : 'admin' }
 }
 
 /**
@@ -61,7 +60,23 @@ export async function getInboxIdentity(): Promise<InboxIdentity | null> {
   } = await supabase.auth.getUser()
   if (!user) return null
 
-  // select('*') : tolère une base où la colonne inbox_access n'existe pas encore.
-  const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle()
-  return resolveIdentity(profile as ProfileLike | null)
+  const { data: role, error } = await supabase.rpc('current_staff_role')
+  if (error) {
+    console.error('[inbox] current_staff_role indisponible:', error.code)
+    return null
+  }
+  const staffRole = parseStaffRole(role)
+  if (!staffRole) return null
+
+  const [{ data: collab }, { data: profile }] = await Promise.all([
+    supabase.from('collaborators').select('full_name').eq('user_id', user.id).maybeSingle(),
+    supabase.from('profiles').select('full_name, email').eq('id', user.id).maybeSingle(),
+  ])
+  return resolveIdentity({
+    id: user.id,
+    staffRole,
+    collaboratorName: collab?.full_name,
+    full_name: profile?.full_name,
+    email: profile?.email ?? user.email,
+  })
 }

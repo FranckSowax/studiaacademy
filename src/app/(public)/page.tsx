@@ -31,6 +31,7 @@ import { SecteursSection } from '@/components/sections/SecteursSection'
 import { PersonaHighlight } from '@/components/sections/PersonaHighlight'
 import { HeroVideo } from '@/components/hero/HeroVideo'
 import { modules } from '@/lib/modules'
+import { WHATSAPP_NUMBER } from '@/lib/formations-ia'
 
 const iconMap: Record<string, React.ComponentType<{ className?: string; style?: React.CSSProperties }>> = {
   GraduationCap,
@@ -489,7 +490,7 @@ export default function HomePage() {
               </Button>
             </Link>
             <a
-              href="https://wa.me/24100000000?text=Bonjour%2C%20je%20souhaite%20en%20savoir%20plus%20sur%20Studia%20Academy"
+              href={`https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%2C%20je%20souhaite%20en%20savoir%20plus%20sur%20Studia%20Academy`}
               target="_blank"
               rel="noopener noreferrer"
             >

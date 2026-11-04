@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { canAccessAdmin, canAccessInbox, parseStaffRole } from '@/lib/collaborators/roles'
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -39,37 +40,43 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
+  const path = request.nextUrl.pathname
+  const isStaffArea = path.startsWith('/admin') || path.startsWith('/messagerie')
+
   if (
     !user &&
-    !request.nextUrl.pathname.startsWith('/login') &&
-    !request.nextUrl.pathname.startsWith('/signup') &&
-    !request.nextUrl.pathname.startsWith('/auth')
+    !path.startsWith('/login') &&
+    !path.startsWith('/signup') &&
+    !path.startsWith('/auth') &&
+    !path.startsWith('/equipe')
   ) {
-    // no user, potentially redirect to login
-    // For now, allowing public access to /, but maybe protect /dashboard later
-    // The PRD says public pages are /, /services, etc.
-    // Dashboard is protected.
-    
-    if (request.nextUrl.pathname.startsWith('/dashboard') || 
-        request.nextUrl.pathname.startsWith('/admin') ||
-        request.nextUrl.pathname.match(/\/services\/.*\/start/)) {
-        const url = request.nextUrl.clone()
-        url.pathname = '/login'
-        return NextResponse.redirect(url)
+    // Espaces équipe : connexion par code (WhatsApp / email).
+    if (isStaffArea) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/equipe/connexion'
+      url.search = ''
+      url.searchParams.set('next', path)
+      return NextResponse.redirect(url)
+    }
+    // Dashboard et démarrage de service : connexion classique.
+    if (path.startsWith('/dashboard') || path.match(/\/services\/.*\/start/)) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/login'
+      return NextResponse.redirect(url)
     }
   }
 
-  // Admin protection : rôle vérifié en base (premier rempart ; chaque page
-  // admin appelle aussi requireAdmin() côté serveur).
-  if (user && request.nextUrl.pathname.startsWith('/admin')) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .maybeSingle()
-    if (profile?.role !== 'admin' && profile?.role !== 'super_admin') {
+  // Espaces équipe : rôle effectif vérifié en base (premier rempart ; chaque
+  // page et route refait la vérification côté serveur).
+  // Règle unique : public.current_staff_role() — une fiche collaborateur
+  // désactivée coupe l'accès, un agent n'a que la messagerie.
+  if (user && isStaffArea) {
+    const { data: role } = await supabase.rpc('current_staff_role')
+    const staffRole = parseStaffRole(role)
+    const allowed = path.startsWith('/admin') ? canAccessAdmin(staffRole) : canAccessInbox(staffRole)
+    if (!allowed) {
       const url = request.nextUrl.clone()
-      url.pathname = '/dashboard'
+      url.pathname = canAccessInbox(staffRole) ? '/messagerie' : '/dashboard'
       url.search = ''
       return NextResponse.redirect(url)
     }

@@ -3,8 +3,9 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { isValidPhone, normalizePhone, sendWhatsApp } from '@/lib/whatsapp'
+import { isValidPhone, normalizePhone } from '@/lib/whatsapp'
 import { consumeRateLimit, currentClientIp, RATE_LIMITS } from '@/lib/security/rate-limit'
+import { acknowledgeSiteRequest } from '@/lib/inbox/site-request'
 
 // ── Côté élève ──────────────────────────────
 
@@ -41,19 +42,18 @@ export async function requestEnrollment(input: {
   )
   if (error) return { success: false, error: error.message }
 
-  // Notifier l'équipe (numéro Studia)
-  const studiaPhone = process.env.STUDIA_TEAM_PHONE
-  if (studiaPhone) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('full_name, email')
-      .eq('id', user.id)
-      .single()
-    await sendWhatsApp(
-      studiaPhone,
-      `📚 Nouvelle demande de formation\n*${formation?.titre ?? ''}*\n👤 ${profile?.full_name ?? profile?.email}\n📱 ${input.phone}\n${input.message ? `💬 ${input.message}` : ''}`
-    )
-  }
+  // Accusé WhatsApp au client : la demande apparaît dans /messagerie
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('full_name')
+    .eq('id', user.id)
+    .single()
+  await acknowledgeSiteRequest(input.phone, {
+    kind: 'formation',
+    name: profile?.full_name,
+    title: formation?.titre,
+    details: input.message,
+  })
 
   revalidatePath('/dashboard/formations')
   return { success: true }
@@ -227,20 +227,13 @@ export async function reserveSession(input: {
     return { success: false, error: 'Réservation impossible' }
   }
 
-  // Confirmation WhatsApp à l'élève (quota par destinataire) + notif équipe
-  if (await consumeRateLimit(`wa:to:${phone}`, RATE_LIMITS.whatsappPerRecipient)) {
-    await sendWhatsApp(
-      phone,
-      `✅ Réservation confirmée !\n*${session.titre}*\n📅 ${new Date(session.date_debut).toLocaleDateString('fr-FR', { dateStyle: 'long' })}\n📍 ${session.lieu ?? 'Libreville'}\nÀ bientôt chez Studia Academy 🎓`
-    )
-  }
-  const studiaPhone = process.env.STUDIA_TEAM_PHONE
-  if (studiaPhone) {
-    await sendWhatsApp(
-      studiaPhone,
-      `🎟️ Nouvelle réservation présentiel\n*${session.titre}*\n👤 ${prenom} ${nom}\n📱 +${phone}`
-    )
-  }
+  // Confirmation WhatsApp à l'élève : la réservation apparaît dans /messagerie
+  const date = new Date(session.date_debut).toLocaleDateString('fr-FR', { dateStyle: 'long' })
+  await acknowledgeSiteRequest(phone, {
+    kind: 'presentiel',
+    name: `${prenom} ${nom}`,
+    title: `${session.titre} — ${date}, ${session.lieu ?? 'Libreville'}`,
+  })
 
   revalidatePath('/formations/presentiel')
   return { success: true }

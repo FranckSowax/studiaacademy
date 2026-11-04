@@ -24,9 +24,11 @@ interface InboxAppProps {
   brandName: string
   isAdmin: boolean
   initialConversationId?: string | null
+  /** Filtre « répondu par » au chargement (uuid de compte). */
+  initialBy?: string | null
 }
 
-export function InboxApp({ brandName, isAdmin, initialConversationId = null }: InboxAppProps) {
+export function InboxApp({ brandName, isAdmin, initialConversationId = null, initialBy = null }: InboxAppProps) {
   const [filter, setFilter] = useState<InboxFilter>('to_reply')
   const [query, setQuery] = useState('')
   const [debouncedQuery, setDebouncedQuery] = useState('')
@@ -36,6 +38,16 @@ export function InboxApp({ brandName, isAdmin, initialConversationId = null }: I
   const [selectedId, setSelectedId] = useState<string | null>(initialConversationId)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  // Filtre « répondu par » : historique des réponses d'un collaborateur.
+  const [by, setBy] = useState(initialBy ?? '')
+  const [team, setTeam] = useState<{ id: string; name: string; active: boolean }[]>([])
+
+  useEffect(() => {
+    fetch('/api/inbox/collaborators', { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : { items: [] }))
+      .then((d) => setTeam(Array.isArray(d.items) ? d.items : []))
+      .catch(() => setTeam([]))
+  }, [])
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedQuery(query.trim()), SEARCH_DEBOUNCE_MS)
@@ -48,7 +60,7 @@ export function InboxApp({ brandName, isAdmin, initialConversationId = null }: I
       const res = await fetch('/api/inbox/conversations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filter, q: debouncedQuery }),
+        body: JSON.stringify({ filter, q: debouncedQuery, by: by || undefined }),
         cache: 'no-store',
       })
       const data = await res.json()
@@ -62,7 +74,7 @@ export function InboxApp({ brandName, isAdmin, initialConversationId = null }: I
     } finally {
       setLoading(false)
     }
-  }, [filter, debouncedQuery])
+  }, [filter, debouncedQuery, by])
 
   useEffect(() => {
     setLoading(true)
@@ -144,6 +156,22 @@ export function InboxApp({ brandName, isAdmin, initialConversationId = null }: I
                 </button>
               ))}
             </div>
+            {team.length > 0 && (
+              <select
+                value={by}
+                onChange={(e) => setBy(e.target.value)}
+                aria-label="Répondu par"
+                className="w-full rounded-md border bg-white px-2 py-1 text-xs text-slate-700 dark:bg-slate-900 dark:text-slate-200"
+              >
+                <option value="">Répondu par : toute l&apos;équipe</option>
+                {team.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    Répondu par : {t.id === me?.id ? `${t.name} (moi)` : t.name}
+                    {t.active ? '' : ' — désactivé'}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
 
           {error && <p className="bg-red-50 px-3 py-2 text-xs text-red-700">{error}</p>}

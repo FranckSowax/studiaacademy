@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { modules } from '@/lib/modules'
+import { WHATSAPP_NUMBER } from '@/lib/formations-ia'
+import { submitContactRequest } from '@/lib/site-requests/actions'
 
 export default function ContactPage() {
   const [submitted, setSubmitted] = useState(false)
@@ -19,12 +21,28 @@ export default function ContactPage() {
     message: '',
   })
 
+  const [error, setError] = useState<string | null>(null)
+
+  // La demande arrive dans /messagerie : accusé WhatsApp envoyé au visiteur.
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError(null)
     setLoading(true)
-    await new Promise((r) => setTimeout(r, 1000))
-    setSubmitted(true)
+    const res = await submitContactRequest({
+      kind: 'contact',
+      nom: form.nom,
+      telephone: form.telephone,
+      email: form.email,
+      sujet: form.module,
+      message: form.message,
+      page: '/contact',
+    }).catch(() => ({ success: false, error: undefined }))
     setLoading(false)
+    if (!res.success) {
+      setError(res.error ?? 'Envoi impossible. Écrivez-nous directement sur WhatsApp.')
+      return
+    }
+    setSubmitted(true)
   }
 
   const whatsappText = encodeURIComponent(
@@ -63,7 +81,7 @@ export default function ContactPage() {
                   une réponse immédiate.
                 </p>
                 <a
-                  href={`https://wa.me/24100000000?text=${whatsappText}`}
+                  href={`https://wa.me/${WHATSAPP_NUMBER}?text=${whatsappText}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="mt-6 inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-xl font-semibold transition-colors"
@@ -110,10 +128,12 @@ export default function ContactPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   <div className="space-y-1.5">
                     <Label htmlFor="telephone" className="text-sm font-medium text-gray-700">
-                      Téléphone (+241)
+                      WhatsApp (+241) *
                     </Label>
                     <Input
                       id="telephone"
+                      type="tel"
+                      required
                       placeholder="+241 06 XX XX XX"
                       value={form.telephone}
                       onChange={(e) => setForm({ ...form, telephone: e.target.value })}
@@ -155,6 +175,12 @@ export default function ContactPage() {
                   />
                 </div>
 
+                {error && (
+                  <p role="alert" className="text-sm text-red-600">
+                    {error}
+                  </p>
+                )}
+
                 <div className="flex flex-col sm:flex-row gap-3">
                   <Button
                     type="submit"
@@ -165,7 +191,7 @@ export default function ContactPage() {
                     <Send className="ml-2 w-4 h-4" />
                   </Button>
                   <a
-                    href={`https://wa.me/24100000000?text=${whatsappText}`}
+                    href={`https://wa.me/${WHATSAPP_NUMBER}?text=${whatsappText}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex-1"
@@ -227,7 +253,7 @@ export default function ContactPage() {
 
             {/* WhatsApp CTA prominent */}
             <a
-              href={`https://wa.me/24100000000?text=${encodeURIComponent('Bonjour Studia Academy, je souhaite en savoir plus sur vos programmes.')}`}
+              href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Bonjour Studia Academy, je souhaite en savoir plus sur vos programmes.')}`}
               target="_blank"
               rel="noopener noreferrer"
               className="block bg-gradient-to-r from-green-500 to-green-600 rounded-3xl p-6 text-white hover:from-green-600 hover:to-green-700 transition-all shadow-lg shadow-green-500/20"
