@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuthContext } from '@/contexts/AuthContext'
 import { DashboardFormations } from '@/components/dashboard/DashboardFormations'
+import { DashboardLiveSessions } from '@/components/dashboard/DashboardLiveSessions'
 import { getUserStudiaStats, type UserStudiaStats } from '@/lib/dashboard/stats'
 import {
   Clock,
@@ -193,6 +194,9 @@ export default function DashboardPage() {
         <div className="lg:col-span-2 space-y-4 sm:space-y-6 order-1 lg:order-2">
           {/* Mes formations — covers en cours ou suggestions */}
           <DashboardFormations />
+
+          {/* Sessions présentielles Studia Live reliées au compte */}
+          <DashboardLiveSessions />
 
           {/* Bottom Row - Study Progress & AI Assistant */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
