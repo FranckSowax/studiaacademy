@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { avertirSiNonConfigure, codeLiveActif, configLancement, urlStudiaLive } from './lancement'
+import { avertirSiNonConfigure } from './demarrage'
+import { codeLiveActif, configLancement, urlStudiaLive } from './lancement'
 
 const SECRET = 'secret-de-test-studia-live-0123456789abcdef'
 

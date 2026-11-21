@@ -111,17 +111,3 @@ export async function demanderTicket(
     return null
   }
 }
-
-/** Avertissement au démarrage si le lancement n'est pas configuré. */
-export function avertirSiNonConfigure(): void {
-  const manquantes = [
-    urlStudiaLive() ? null : 'STUDIA_LIVE_URL',
-    secretLiaison() ? null : 'STUDIA_LINK_SECRET',
-  ].filter(Boolean)
-  if (manquantes.length > 0) {
-    console.warn(
-      `[studia-live] ${manquantes.join(' et ')} absente(s) ou invalide(s) : ` +
-        'toutes les formations gardent le lecteur Academy.'
-    )
-  }
-}
