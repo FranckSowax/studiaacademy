@@ -28,12 +28,13 @@ export function EnrollCTA({ formationId, formationSlug, isLoggedIn, enrollmentSt
   // Accès accordé → bouton commencer
   if (enrollmentStatus === 'active' || enrollmentStatus === 'completed') {
     return (
-      <Link href={`/apprendre/${formationSlug}`}>
-        <Button className="w-full bg-gradient-to-r from-[#e97e42] to-[#d56a2e] text-white rounded-xl py-6 text-base font-semibold">
+      <Button asChild className="w-full bg-gradient-to-r from-[#e97e42] to-[#d56a2e] text-white rounded-xl py-6 text-base font-semibold">
+        {/* <a> et non <Link> : /suivre peut délivrer un ticket Studia Live à usage unique. */}
+        <a href={`/formations/${formationSlug}/suivre`}>
           <PlayCircle className="w-5 h-5 mr-2" />
           Commencer la formation
-        </Button>
-      </Link>
+        </a>
+      </Button>
     )
   }
 
@@ -58,7 +59,7 @@ export function EnrollCTA({ formationId, formationSlug, isLoggedIn, enrollmentSt
       setLoading(true)
       const res = await enrollFree(formationId)
       setLoading(false)
-      if (res.success) router.push(`/apprendre/${formationSlug}`)
+      if (res.success) window.location.assign(`/formations/${formationSlug}/suivre`)
       else alert(res.error || 'Erreur')
     }
     return (

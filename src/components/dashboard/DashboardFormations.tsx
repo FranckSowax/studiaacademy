@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
-import { ChevronRight, ArrowRight, GraduationCap, PlayCircle, Sparkles } from 'lucide-react'
+import { ChevronRight, ArrowRight, Flame, GraduationCap, PlayCircle, Sparkles } from 'lucide-react'
+import { lancementLiveConfigure } from '@/lib/studia-live/etat'
 import type { Formation } from '@/types/formation'
 
 interface EnrolledCard {
@@ -12,6 +13,10 @@ interface EnrolledCard {
   titre: string
   cover_image: string | null
   pct: number
+  commencee: boolean
+  /** Avancement Studia Live (formation avec live_code) ; sinon suivi de leçons. */
+  surLive: boolean
+  live: { points: number; niveau: string; exercices_reussis: number; exercices_total: number; serie_jours: number } | null
 }
 
 export function DashboardFormations() {
@@ -33,14 +38,43 @@ export function DashboardFormations() {
 
       const { data: enrollments } = await supabase
         .from('formation_enrollments')
-        .select('progress, formations(id, slug, titre, cover_image)')
+        .select('progress, formations(*)')
         .eq('user_id', user.id)
         .in('status', ['active', 'completed'])
 
+      // Formations suivies sur Studia Live : avancement lu dans live_progressions
+      const liveConfigure = await lancementLiveConfigure()
+      const { data: lives } = liveConfigure
+        ? await supabase
+            .from('live_progressions')
+            .select('formation_code, points, niveau, exercices_reussis, exercices_total, serie_jours')
+            .eq('user_id', user.id)
+        : { data: null }
+      const liveParCode = new Map(
+        ((lives ?? []) as (NonNullable<EnrolledCard['live']> & { formation_code: string })[]).map((l) => [
+          l.formation_code,
+          l,
+        ])
+      )
+
       const cards: EnrolledCard[] = []
       for (const e of enrollments ?? []) {
-        const f = e.formations as unknown as { id: string; slug: string; titre: string; cover_image: string | null } | null
+        const f = e.formations as unknown as Pick<Formation, 'id' | 'slug' | 'titre' | 'cover_image' | 'live_code'> | null
         if (!f) continue
+        if (liveConfigure && f.live_code) {
+          const live = liveParCode.get(f.live_code) ?? null
+          const totalEx = live?.exercices_total ?? 0
+          cards.push({
+            slug: f.slug,
+            titre: f.titre,
+            cover_image: f.cover_image,
+            pct: totalEx > 0 ? Math.min(100, Math.round(((live?.exercices_reussis ?? 0) / totalEx) * 100)) : 0,
+            commencee: live !== null,
+            surLive: true,
+            live,
+          })
+          continue
+        }
         const { count } = await supabase
           .from('formation_lessons')
           .select('*', { count: 'exact', head: true })
@@ -52,6 +86,9 @@ export function DashboardFormations() {
           titre: f.titre,
           cover_image: f.cover_image,
           pct: totalL ? Math.round((done / totalL) * 100) : 0,
+          commencee: done > 0,
+          surLive: false,
+          live: null,
         })
       }
 
@@ -103,9 +140,10 @@ export function DashboardFormations() {
       {hasEnrolled ? (
         <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide snap-x">
           {enrolled.map((c) => (
-            <Link
+            // <a> et non <Link> : /suivre peut délivrer un ticket Studia Live à usage unique.
+            <a
               key={c.slug}
-              href={`/apprendre/${c.slug}`}
+              href={`/formations/${c.slug}/suivre`}
               className="group bg-white rounded-xl sm:rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all text-gray-800 flex-shrink-0 w-[200px] snap-start"
             >
               <div className="relative h-24 w-full bg-[#fbf8f3]">
@@ -124,13 +162,26 @@ export function DashboardFormations() {
                   <div className="h-full bg-gradient-to-r from-[#e97e42] to-[#d56a2e] rounded-full" style={{ width: `${c.pct}%` }} />
                 </div>
                 <div className="flex items-center justify-between mt-1.5">
-                  <span className="text-[11px] font-semibold text-[#e97e42]">{c.pct}%</span>
+                  <span className="text-[11px] font-semibold text-[#e97e42]">
+                    {c.live ? `${c.live.points.toLocaleString('fr-FR')} pts` : `${c.pct}%`}
+                  </span>
                   <span className="text-[11px] font-semibold text-gray-500 inline-flex items-center gap-0.5">
-                    {c.pct > 0 ? 'Reprendre' : 'Démarrer'} <ArrowRight className="w-3 h-3" />
+                    {c.commencee ? 'Reprendre' : 'Démarrer'} <ArrowRight className="w-3 h-3" />
                   </span>
                 </div>
+                {c.live && (
+                  <p className="mt-1 text-[11px] text-gray-500 flex flex-wrap items-center gap-x-1.5">
+                    <span>{c.live.niveau}</span>
+                    <span>· {c.live.exercices_reussis}/{c.live.exercices_total} exercices</span>
+                    {c.live.serie_jours > 0 && (
+                      <span className="inline-flex items-center gap-0.5 font-semibold text-[#e97e42]" title="Série de jours consécutifs">
+                        <Flame className="w-3 h-3" />{c.live.serie_jours} j
+                      </span>
+                    )}
+                  </p>
+                )}
               </div>
-            </Link>
+            </a>
           ))}
         </div>
       ) : suggestions.length > 0 ? (
