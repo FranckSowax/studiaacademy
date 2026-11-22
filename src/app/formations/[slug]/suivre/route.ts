@@ -26,10 +26,12 @@ function prenomDe(nomComplet: unknown, email: string): string {
  */
 export async function GET(request: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const url = new URL(request.url)
   const chemin = encodeURIComponent(slug)
+  // WHY: Location relative. Derrière le proxy de Railway, request.url
+  // porte l'adresse interne du conteneur (localhost:8080) : une adresse
+  // absolue construite dessus enverrait l'élève hors du site.
   const vers = (cible: string, status = 307) =>
-    NextResponse.redirect(new URL(cible, url.origin), { status, headers: SANS_CACHE })
+    new NextResponse(null, { status, headers: { ...SANS_CACHE, Location: cible } })
 
   // WHY: un ticket ne sert qu'une fois. Le routeur client de Next (clic
   // sur un <Link>, préchargement, router.push) interroge la route par

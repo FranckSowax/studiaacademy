@@ -42,7 +42,7 @@ const fauxFetch = vi.fn()
 const erreurs = vi.fn()
 
 function appeler(slug = 'pc-express-a1b2', entetes: Record<string, string> = {}) {
-  return GET(new Request(`https://academy.test/formations/${slug}/suivre`, { headers: entetes }), {
+  return GET(new Request(`https://localhost:8080/formations/${slug}/suivre`, { headers: entetes }), {
     params: Promise.resolve({ slug }),
   })
 }
@@ -77,7 +77,7 @@ describe('GET /formations/[slug]/suivre', () => {
     const res = await appeler()
     expect(res.status).toBe(307)
     expect(res.headers.get('location')).toBe(
-      'https://academy.test/login?redirect=/formations/pc-express-a1b2/suivre'
+      '/login?redirect=/formations/pc-express-a1b2/suivre'
     )
     expect(fauxFetch).not.toHaveBeenCalled()
   })
@@ -90,7 +90,7 @@ describe('GET /formations/[slug]/suivre', () => {
     etat.inscription = inscription
     const res = await appeler()
     expect(res.status).toBe(307)
-    expect(res.headers.get('location')).toBe('https://academy.test/formations/en-ligne/pc-express-a1b2')
+    expect(res.headers.get('location')).toBe('/formations/en-ligne/pc-express-a1b2')
     expect(fauxFetch).not.toHaveBeenCalled()
   })
 
@@ -108,7 +108,7 @@ describe('GET /formations/[slug]/suivre', () => {
     etat.formation = { id: 'f-2', slug: 'rh-ia-recrutement', live_code: liveCode }
     const res = await appeler('rh-ia-recrutement')
     expect(res.status).toBe(307)
-    expect(res.headers.get('location')).toBe('https://academy.test/apprendre/rh-ia-recrutement')
+    expect(res.headers.get('location')).toBe('/apprendre/rh-ia-recrutement')
     expect(fauxFetch).not.toHaveBeenCalled()
   })
 
@@ -118,7 +118,7 @@ describe('GET /formations/[slug]/suivre', () => {
   ])('%s absente : lecteur actuel même avec un live_code', async (_nom, variable) => {
     vi.stubEnv(variable, '')
     const res = await appeler()
-    expect(res.headers.get('location')).toBe('https://academy.test/apprendre/pc-express-a1b2')
+    expect(res.headers.get('location')).toBe('/apprendre/pc-express-a1b2')
     expect(fauxFetch).not.toHaveBeenCalled()
   })
 
@@ -199,8 +199,9 @@ describe('GET /formations/[slug]/suivre', () => {
     const res = await appeler()
     expect(res.status).toBe(303)
     const cible = res.headers.get('location')
-    expect(cible).toBe('https://academy.test/formations/pc-express-a1b2/suivre/indisponible')
+    expect(cible).toBe('/formations/pc-express-a1b2/suivre/indisponible')
     expect(cible).not.toContain('/apprendre/')
+    expect(cible).not.toContain('localhost')
     expect(res.headers.get('cache-control')).toContain('no-store')
   })
 
