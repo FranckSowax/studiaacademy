@@ -179,10 +179,28 @@ describe('GET /formations/[slug]/suivre', () => {
     }
   })
 
-  it('prénom : repli sur le début de l’e-mail si le profil n’a pas de nom', async () => {
+  it('prénom absent du profil mais présent dans les métadonnées du compte : celui des métadonnées', async () => {
+    etat.profil = { full_name: null }
+    etat.user = { id: ELEVE, email: 'awa.ndong@exemple.ga', user_metadata: { first_name: ' Awa ' } }
+    await appeler()
+    expect(JSON.parse(fauxFetch.mock.calls[0][1].body as string).prenom).toBe('Awa')
+  })
+
+  it('prénom : repli sur le début de l’e-mail, première lettre en majuscule', async () => {
     etat.profil = { full_name: null }
     await appeler()
-    expect(JSON.parse(fauxFetch.mock.calls[0][1].body as string).prenom).toBe('awa.ndong')
+    expect(JSON.parse(fauxFetch.mock.calls[0][1].body as string).prenom).toBe('Awa.ndong')
+  })
+
+  it('compte de démonstration « Utilisateur Démo » : « Utilisateur » n’est jamais envoyé', async () => {
+    etat.user = {
+      id: ELEVE,
+      email: 'demo@studia-academy.com',
+      user_metadata: { full_name: 'Utilisateur Démo', avatar_url: '' },
+    }
+    etat.profil = { full_name: 'Utilisateur Démo' }
+    await appeler()
+    expect(JSON.parse(fauxFetch.mock.calls[0][1].body as string).prenom).toBe('Demo')
   })
 
   it.each([
