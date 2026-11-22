@@ -84,6 +84,76 @@ export async function saveFormation(input: {
   return { success: true, id: data.id }
 }
 
+/**
+ * Modifie une formation existante (écran d'administration). Seuls les
+ * champs fournis changent ; le slug et l'état de publication ne sont
+ * jamais touchés ici.
+ */
+export async function updateFormation(
+  id: string,
+  input: {
+    titre?: string
+    sous_titre?: string
+    description?: string
+    cover_image?: string
+    categorie?: string
+    niveau?: string
+    duree_estimee?: string
+    prix_fcfa?: number
+    objectifs?: string[]
+    prerequis?: string[]
+    formateur_nom?: string
+    formateur_bio?: string
+  }
+): Promise<{ success: boolean; error?: string }> {
+  const { ok, supabase } = await assertAdmin()
+  if (!ok) return { success: false, error: 'Accès admin requis' }
+
+  const texte = (v: string, max: number) => v.trim().slice(0, max) || null
+  const liste = (v: string[]) => v.map((s) => s.trim().slice(0, 300)).filter(Boolean).slice(0, 30)
+  const maj: Record<string, unknown> = {}
+
+  if (input.titre !== undefined) {
+    const titre = input.titre.trim().slice(0, 160)
+    if (!titre) return { success: false, error: 'Le titre est obligatoire.' }
+    maj.titre = titre
+  }
+  if (input.prix_fcfa !== undefined) {
+    if (!Number.isInteger(input.prix_fcfa) || input.prix_fcfa < 0 || input.prix_fcfa > 100_000_000) {
+      return { success: false, error: 'Prix invalide : nombre entier positif attendu.' }
+    }
+    maj.prix_fcfa = input.prix_fcfa
+  }
+  if (input.cover_image !== undefined) {
+    const url = input.cover_image.trim()
+    if (url && !/^https:\/\/\S{1,1000}$/.test(url)) {
+      return { success: false, error: "Adresse d'image invalide : elle doit commencer par https://" }
+    }
+    maj.cover_image = url || null
+  }
+  if (input.sous_titre !== undefined) maj.sous_titre = texte(input.sous_titre, 240)
+  if (input.description !== undefined) maj.description = texte(input.description, 10_000)
+  if (input.categorie !== undefined) maj.categorie = texte(input.categorie, 80)
+  if (input.niveau !== undefined) maj.niveau = texte(input.niveau, 60) ?? 'Tous niveaux'
+  if (input.duree_estimee !== undefined) maj.duree_estimee = texte(input.duree_estimee, 60)
+  if (input.formateur_nom !== undefined) maj.formateur_nom = texte(input.formateur_nom, 120)
+  if (input.formateur_bio !== undefined) maj.formateur_bio = texte(input.formateur_bio, 1000)
+  if (input.objectifs !== undefined) maj.objectifs = liste(input.objectifs)
+  if (input.prerequis !== undefined) maj.prerequis = liste(input.prerequis)
+
+  if (Object.keys(maj).length === 0) return { success: true }
+
+  const { data, error } = await supabase.from('formations').update(maj).eq('id', id).select('slug').maybeSingle()
+  if (error) return { success: false, error: error.message }
+  if (!data) return { success: false, error: 'Formation introuvable' }
+
+  revalidatePath('/admin/formations')
+  revalidatePath(`/admin/formations/${id}`)
+  revalidatePath('/formations/en-ligne')
+  revalidatePath(`/formations/en-ligne/${data.slug}`)
+  return { success: true }
+}
+
 export async function togglePublishFormation(id: string, publish: boolean) {
   const { ok, supabase } = await assertAdmin()
   if (!ok) return { success: false }

@@ -6,13 +6,14 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import {
   ArrowLeft, Plus, Trash2, Loader2, X, Video, FileText, Target, Upload,
-  GripVertical, Eye, EyeOff, Save, Trophy, Sparkles, MonitorPlay,
+  GripVertical, Eye, EyeOff, Save, Trophy, Sparkles, MonitorPlay, Pencil,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { saveLesson, deleteLesson, togglePublishFormation, setFormationLiveCode } from '@/lib/formations/admin-actions'
+import { AdminFormationEditor } from './AdminFormationEditor'
 import type { Formation, FormationLesson, LessonType } from '@/types/formation'
 
 const TYPE_META: Record<LessonType, { label: string; icon: typeof Video }> = {
@@ -36,6 +37,7 @@ export function AdminLessonsManager({
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [genQuiz, setGenQuiz] = useState(false)
+  const [editingFormation, setEditingFormation] = useState(false)
   const [liveCode, setLiveCode] = useState(formation.live_code ?? '')
   const [savingLive, setSavingLive] = useState(false)
   const [liveMessage, setLiveMessage] = useState<{ ok: boolean; texte: string } | null>(null)
@@ -154,6 +156,9 @@ export function AdminLessonsManager({
           <p className="text-sm text-muted-foreground">{lessons.length} leçons · {formation.is_published ? 'Publié' : 'Brouillon'}</p>
         </div>
         <div className="flex gap-2 flex-wrap">
+          <Button variant="outline" onClick={() => setEditingFormation(true)}>
+            <Pencil className="w-4 h-4 mr-1" />Modifier la formation
+          </Button>
           <Button
             variant="outline"
             onClick={rendreInteractif}
@@ -205,6 +210,10 @@ export function AdminLessonsManager({
           </div>
           <p className="text-xs text-[#a84d16]/70 mt-1.5">Ne fermez pas la page — chaque leçon est enregistrée au fur et à mesure.</p>
         </div>
+      )}
+
+      {editingFormation && (
+        <AdminFormationEditor formation={formation} onClose={() => setEditingFormation(false)} />
       )}
 
       {/* Studia Live */}
