@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import { codeLiveActif } from '@/lib/studia-live/lancement'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { KahootQuiz } from '@/components/formations/KahootQuiz'
 import { Trophy, ArrowLeft } from 'lucide-react'
@@ -23,6 +24,9 @@ export default async function QuizFinalPage({
   const { data: formation } = await supabase.from('formations').select('*').eq('slug', slug).single()
   if (!formation) notFound()
   const f = formation as Formation
+
+  // Formation suivie sur Studia Live : l'ancien lecteur renvoie au lancement.
+  if (codeLiveActif(f)) redirect(`/formations/${slug}/suivre`)
 
   // Vérifier l'accès (inscription active)
   const { data: enrollment } = await supabase

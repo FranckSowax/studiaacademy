@@ -26,6 +26,8 @@ export interface Formation {
   ordre: number
   final_quiz: LessonQuizQuestion[]
   final_quiz_generated_at: string | null
+  /** Code de la formation sur Studia Live ; null → lecteur Academy. */
+  live_code: string | null
   created_at: string
   updated_at: string
 }

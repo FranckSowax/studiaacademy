@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { sendWhatsApp } from '@/lib/whatsapp'
+import { LIVE_CODE_FORMAT } from '@/lib/studia-live/lancement'
 import type { LessonType } from '@/types/formation'
 
 async function assertAdmin() {
@@ -92,6 +93,28 @@ export async function togglePublishFormation(id: string, publish: boolean) {
   return { success: true }
 }
 
+/**
+ * Relie (ou délie, code vide) une formation à son parcours Studia Live.
+ * Avec un code, les élèves la suivent sur Studia Live ; sans, sur le
+ * lecteur Academy.
+ */
+export async function setFormationLiveCode(
+  id: string,
+  liveCode: string
+): Promise<{ success: boolean; error?: string }> {
+  const { ok, supabase } = await assertAdmin()
+  if (!ok) return { success: false, error: 'Accès admin requis' }
+  const code = liveCode.trim().toLowerCase()
+  if (code && !LIVE_CODE_FORMAT.test(code)) {
+    return { success: false, error: 'Code invalide : 2 à 60 caractères, minuscules, chiffres et tirets.' }
+  }
+  const { error } = await supabase.from('formations').update({ live_code: code || null }).eq('id', id)
+  if (error) return { success: false, error: error.message }
+  revalidatePath('/admin/formations')
+  revalidatePath(`/admin/formations/${id}`)
+  return { success: true }
+}
+
 export async function deleteFormation(id: string) {
   const { ok, supabase } = await assertAdmin()
   if (!ok) return { success: false }
@@ -177,7 +200,7 @@ export async function decideEnrollment(
     if (decision === 'active') {
       await sendWhatsApp(
         enr.phone,
-        `🎉 Accès accordé !\nVotre formation *${enr.formations?.titre ?? ''}* est disponible.\n▶️ Commencez ici : ${baseUrl}/apprendre/${enr.formations?.slug ?? ''}\n— Studia Academy`
+        `🎉 Accès accordé !\nVotre formation *${enr.formations?.titre ?? ''}* est disponible.\n▶️ Commencez ici : ${baseUrl}/formations/${enr.formations?.slug ?? ''}/suivre\n— Studia Academy`
       )
     } else {
       await sendWhatsApp(

@@ -6,13 +6,13 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import {
   ArrowLeft, Plus, Trash2, Loader2, X, Video, FileText, Target, Upload,
-  GripVertical, Eye, EyeOff, Save, Trophy, Sparkles,
+  GripVertical, Eye, EyeOff, Save, Trophy, Sparkles, MonitorPlay,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { saveLesson, deleteLesson, togglePublishFormation } from '@/lib/formations/admin-actions'
+import { saveLesson, deleteLesson, togglePublishFormation, setFormationLiveCode } from '@/lib/formations/admin-actions'
 import type { Formation, FormationLesson, LessonType } from '@/types/formation'
 
 const TYPE_META: Record<LessonType, { label: string; icon: typeof Video }> = {
@@ -36,6 +36,22 @@ export function AdminLessonsManager({
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [genQuiz, setGenQuiz] = useState(false)
+  const [liveCode, setLiveCode] = useState(formation.live_code ?? '')
+  const [savingLive, setSavingLive] = useState(false)
+  const [liveMessage, setLiveMessage] = useState<{ ok: boolean; texte: string } | null>(null)
+
+  const enregistrerLiveCode = async () => {
+    setSavingLive(true)
+    setLiveMessage(null)
+    const res = await setFormationLiveCode(formation.id, liveCode)
+    setSavingLive(false)
+    setLiveMessage(
+      res.success
+        ? { ok: true, texte: liveCode.trim() ? 'Enregistré : formation suivie sur Studia Live.' : 'Enregistré : lecteur Academy.' }
+        : { ok: false, texte: res.error || 'Erreur' }
+    )
+    if (res.success) router.refresh()
+  }
   const [genInteractif, setGenInteractif] = useState(false)
   const [interProgress, setInterProgress] = useState<{ done: number; total: number } | null>(null)
 
@@ -190,6 +206,42 @@ export function AdminLessonsManager({
           <p className="text-xs text-[#a84d16]/70 mt-1.5">Ne fermez pas la page — chaque leçon est enregistrée au fur et à mesure.</p>
         </div>
       )}
+
+      {/* Studia Live */}
+      <div className="rounded-xl border border-[#f0ebe3] bg-white px-4 py-3">
+        <Label htmlFor="live-code" className="inline-flex items-center gap-1.5 text-sm font-medium">
+          <MonitorPlay className="w-4 h-4 text-[#e97e42]" />Code Studia Live
+        </Label>
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <Input
+            id="live-code"
+            value={liveCode}
+            onChange={(e) => setLiveCode(e.target.value)}
+            placeholder="ex. pc-express"
+            maxLength={60}
+            autoCapitalize="none"
+            spellCheck={false}
+            className="max-w-xs rounded-xl font-mono"
+          />
+          <Button
+            variant="outline"
+            onClick={enregistrerLiveCode}
+            disabled={savingLive || liveCode.trim() === (formation.live_code ?? '')}
+          >
+            {savingLive ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Save className="w-4 h-4 mr-1" />}
+            Enregistrer
+          </Button>
+        </div>
+        <p className="mt-1.5 text-xs text-muted-foreground">
+          Avec un code, les élèves suivent cette formation sur Studia Live et leur avancement en revient.
+          Vide : lecteur Academy et leçons ci-dessous. Minuscules, chiffres et tirets.
+        </p>
+        {liveMessage && (
+          <p className={`mt-1.5 text-xs ${liveMessage.ok ? 'text-green-600' : 'text-red-600'}`} role="status">
+            {liveMessage.texte}
+          </p>
+        )}
+      </div>
 
       {/* Statut quiz final */}
       <div className="flex items-center gap-2 bg-violet-50 border border-violet-100 rounded-xl px-4 py-2.5 text-sm">
