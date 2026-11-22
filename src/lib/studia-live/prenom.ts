@@ -10,7 +10,7 @@
  *  4. partie de l'e-mail avant le @, première lettre en majuscule.
  *
  * WHY: une valeur générique (« Utilisateur », « User »…) n'est pas un
- * prénom. Le compte de démonstration s'appelle « Utilisateur Démo » : le
+ * prénom. Le compte de démonstration s'appelait « Utilisateur Démo » : le
  * premier mot de son nom complet arrivait tel quel chez Studia Live. Un
  * tel candidat est ignoré et la recherche continue.
  */
