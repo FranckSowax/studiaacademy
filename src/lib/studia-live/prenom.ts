@@ -17,7 +17,11 @@
 
 export const PRENOM_MAX = 60
 
-const GENERIQUES = new Set(['utilisateur', 'utilisatrice', 'user', 'eleve', 'apprenant', 'anonyme', 'anonymous'])
+const GENERIQUES = ['utilisateur', 'utilisatrice', 'user', 'eleve', 'apprenant', 'anonyme', 'anonymous']
+
+/** Caractères invisibles (espace de largeur nulle, marque d'ordre…) qui
+ * feraient passer « Utilisateur » pour un autre mot ou un prénom pour non vide. */
+const INVISIBLES = /[\u200B-\u200D\u2060\uFEFF\u00AD]/g
 
 export interface SourcesPrenom {
   /** Ligne `profiles` de l'élève (ou null). */
@@ -31,14 +35,30 @@ function texte(valeur: unknown): string {
   return typeof valeur === 'string' ? valeur.trim() : ''
 }
 
-function generique(mot: string): boolean {
-  const simple = mot.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
-  return GENERIQUES.has(simple)
+/**
+ * Valeur générique, comparée sans tenir compte de la casse, des accents,
+ * des espaces ni d'un suffixe de chiffres ou de ponctuation :
+ * « Utilisateur », « UTILISATEUR », « user_42 », « Élève. »…
+ */
+function generique(valeur: string): boolean {
+  // Premier mot seul : « Utilisateur Démo » saisi dans un champ prénom est générique aussi.
+  const mot = valeur.trim().split(/\s+/)[0] ?? ''
+  const simple = mot
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    // \p{L} : toute lettre, pour ne pas vider un prénom en alphabet non latin
+    .replace(/[^\p{L}]+$/u, '')
+    .replace(/^[^\p{L}]+/u, '')
+  return simple === '' || GENERIQUES.includes(simple)
 }
 
 /** Espaces retirés, 60 caractères au plus (sans couper un caractère). */
 function nettoyer(valeur: string): string {
-  return Array.from(valeur.trim().replace(/\s+/g, ' ')).slice(0, PRENOM_MAX).join('').trim()
+  return Array.from(valeur.replace(INVISIBLES, '').trim().replace(/\s+/g, ' '))
+    .slice(0, PRENOM_MAX)
+    .join('')
+    .trim()
 }
 
 function premier(source: Record<string, unknown> | null | undefined, cles: string[]): string {
