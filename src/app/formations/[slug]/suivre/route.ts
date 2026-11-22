@@ -1,17 +1,12 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { codeLiveActif, configLancement, demanderTicket } from '@/lib/studia-live/lancement'
+import { prenomEleve } from '@/lib/studia-live/prenom'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
 const SANS_CACHE = { 'Cache-Control': 'no-store, max-age=0' }
-
-function prenomDe(nomComplet: unknown, email: string): string {
-  const nom = typeof nomComplet === 'string' ? nomComplet.trim() : ''
-  const prenom = (nom.split(/\s+/)[0] || email.split('@')[0] || 'Élève').slice(0, 60)
-  return prenom
-}
 
 /**
  * GET /formations/<slug>/suivre — lance ou reprend une formation.
@@ -83,7 +78,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
 
   const entree = await demanderTicket(config, {
     email,
-    prenom: prenomDe(profil?.full_name ?? user.user_metadata?.full_name, email),
+    prenom: prenomEleve({ profil, metadonnees: user.user_metadata, email }),
     academyUserId: user.id,
     formationCode: code,
   })
