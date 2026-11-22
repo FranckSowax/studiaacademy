@@ -73,7 +73,8 @@ BEGIN
         NULL,
         NOW(),
         '{"provider": "email", "providers": ["email"]}',
-        '{"full_name": "Utilisateur Démo", "avatar_url": ""}',
+        -- Le premier mot sert de prénom (envoyé à Studia Live) : pas de mot générique.
+        '{"full_name": "Démo Studia", "avatar_url": ""}',
         FALSE,
         NOW(),
         NOW(),
