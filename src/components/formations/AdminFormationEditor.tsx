@@ -1,0 +1,225 @@
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { ImagePlus, Loader2, Save, Trash2, X } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { updateFormation } from '@/lib/formations/admin-actions'
+import type { Formation } from '@/types/formation'
+
+const IMAGE_MAX_OCTETS = 5 * 1024 * 1024
+const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp']
+
+const lignes = (texte: string) =>
+  texte
+    .split('\n')
+    .map((s) => s.trim())
+    .filter(Boolean)
+
+/**
+ * Édition complète d'une formation existante (écran d'administration) :
+ * titre, prix, description, image de couverture, objectifs, formateur…
+ * Le slug (adresse publique) ne change pas, pour ne casser aucun lien.
+ */
+export function AdminFormationEditor({ formation, onClose }: { formation: Formation; onClose: () => void }) {
+  const router = useRouter()
+  const [form, setForm] = useState({
+    titre: formation.titre,
+    sous_titre: formation.sous_titre ?? '',
+    categorie: formation.categorie ?? '',
+    niveau: formation.niveau ?? '',
+    duree_estimee: formation.duree_estimee ?? '',
+    prix_fcfa: String(formation.prix_fcfa ?? 0),
+    cover_image: formation.cover_image ?? '',
+    description: formation.description ?? '',
+    objectifs: (formation.objectifs ?? []).join('\n'),
+    prerequis: (formation.prerequis ?? []).join('\n'),
+    formateur_nom: formation.formateur_nom ?? '',
+    formateur_bio: formation.formateur_bio ?? '',
+  })
+  const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [erreur, setErreur] = useState<string | null>(null)
+
+  const champ = (cle: keyof typeof form) => ({
+    value: form[cle],
+    onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+      setForm((f) => ({ ...f, [cle]: e.target.value })),
+  })
+
+  const envoyerImage = async (fichier: File) => {
+    setErreur(null)
+    if (!IMAGE_TYPES.includes(fichier.type)) {
+      setErreur('Image refusée : formats acceptés JPG, PNG ou WebP.')
+      return
+    }
+    if (fichier.size > IMAGE_MAX_OCTETS) {
+      setErreur('Image trop lourde : 5 Mo maximum.')
+      return
+    }
+    setUploading(true)
+    const supabase = createClient()
+    const ext = fichier.type === 'image/png' ? 'png' : fichier.type === 'image/webp' ? 'webp' : 'jpg'
+    const chemin = `${formation.id}/cover-${Date.now()}.${ext}`
+    const { error } = await supabase.storage
+      .from('formations')
+      .upload(chemin, fichier, { contentType: fichier.type })
+    if (error) setErreur(`Envoi de l'image impossible : ${error.message}`)
+    else {
+      const { data } = supabase.storage.from('formations').getPublicUrl(chemin)
+      setForm((f) => ({ ...f, cover_image: data.publicUrl }))
+    }
+    setUploading(false)
+  }
+
+  const enregistrer = async () => {
+    setErreur(null)
+    const prix = Number(form.prix_fcfa)
+    if (!form.titre.trim()) return setErreur('Le titre est obligatoire.')
+    if (!Number.isInteger(prix) || prix < 0) return setErreur('Le prix doit être un nombre entier, 0 pour une formation gratuite.')
+    setSaving(true)
+    const res = await updateFormation(formation.id, {
+      titre: form.titre,
+      sous_titre: form.sous_titre,
+      categorie: form.categorie,
+      niveau: form.niveau,
+      duree_estimee: form.duree_estimee,
+      prix_fcfa: prix,
+      cover_image: form.cover_image,
+      description: form.description,
+      objectifs: lignes(form.objectifs),
+      prerequis: lignes(form.prerequis),
+      formateur_nom: form.formateur_nom,
+      formateur_bio: form.formateur_bio,
+    })
+    setSaving(false)
+    if (!res.success) return setErreur(res.error || 'Enregistrement impossible.')
+    router.refresh()
+    onClose()
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/40 px-4 py-8"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="editer-formation-titre"
+    >
+      <div className="my-auto w-full max-w-2xl rounded-3xl bg-white p-6">
+        <div className="mb-5 flex items-center justify-between">
+          <h3 id="editer-formation-titre" className="text-lg font-bold">Modifier la formation</h3>
+          <button onClick={onClose} aria-label="Fermer" className="text-gray-400 hover:text-gray-600">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="max-h-[70vh] space-y-4 overflow-y-auto pr-1">
+          <Champ id="f-titre" label="Titre *"><Input id="f-titre" {...champ('titre')} maxLength={160} className="rounded-xl" /></Champ>
+          <Champ id="f-sous-titre" label="Sous-titre"><Input id="f-sous-titre" {...champ('sous_titre')} maxLength={240} className="rounded-xl" /></Champ>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Champ id="f-prix" label="Prix (FCFA)" aide="0 = formation gratuite, accès immédiat.">
+              <Input id="f-prix" type="number" min={0} step={1} inputMode="numeric" {...champ('prix_fcfa')} className="rounded-xl" />
+            </Champ>
+            <Champ id="f-duree" label="Durée estimée"><Input id="f-duree" placeholder="6 semaines" {...champ('duree_estimee')} className="rounded-xl" /></Champ>
+            <Champ id="f-categorie" label="Catégorie"><Input id="f-categorie" {...champ('categorie')} className="rounded-xl" /></Champ>
+            <Champ id="f-niveau" label="Niveau"><Input id="f-niveau" placeholder="Tous niveaux" {...champ('niveau')} className="rounded-xl" /></Champ>
+          </div>
+
+          <Champ id="f-description" label="Description">
+            <Textarea id="f-description" rows={6} {...champ('description')} className="rounded-xl" />
+          </Champ>
+
+          {/* Image de couverture */}
+          <div className="space-y-1.5">
+            <Label htmlFor="f-image">Image de couverture</Label>
+            <div className="flex flex-wrap items-start gap-3">
+              <div className="relative h-24 w-40 flex-shrink-0 overflow-hidden rounded-xl border border-[#f0ebe3] bg-[#fbf8f3]">
+                {form.cover_image ? (
+                  // eslint-disable-next-line @next/next/no-img-element -- aperçu admin, source libre
+                  <img src={form.cover_image} alt="Aperçu de la couverture" className="h-full w-full object-cover" />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center text-xs text-gray-400">Aucune image</div>
+                )}
+              </div>
+              <div className="min-w-0 flex-1 space-y-2">
+                <div className="flex flex-wrap gap-2">
+                  <Button asChild variant="outline" size="sm" disabled={uploading}>
+                    <label htmlFor="f-image" className="cursor-pointer">
+                      {uploading ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <ImagePlus className="mr-1 h-4 w-4" />}
+                      {form.cover_image ? 'Remplacer' : 'Choisir une image'}
+                    </label>
+                  </Button>
+                  {form.cover_image && (
+                    <Button variant="ghost" size="sm" onClick={() => setForm((f) => ({ ...f, cover_image: '' }))}>
+                      <Trash2 className="mr-1 h-4 w-4" />Retirer
+                    </Button>
+                  )}
+                </div>
+                <input
+                  id="f-image"
+                  type="file"
+                  accept={IMAGE_TYPES.join(',')}
+                  className="sr-only"
+                  onChange={(e) => {
+                    const fichier = e.target.files?.[0]
+                    if (fichier) void envoyerImage(fichier)
+                    e.target.value = ''
+                  }}
+                />
+                <Input
+                  aria-label="Adresse de l'image"
+                  placeholder="ou collez l'adresse d'une image"
+                  {...champ('cover_image')}
+                  className="rounded-xl text-xs"
+                />
+                <p className="text-xs text-muted-foreground">
+                  JPG, PNG ou WebP, 5 Mo maximum. Une adresse externe ne s&apos;affiche sur le site que si elle
+                  vient de Supabase ou d&apos;Unsplash.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <Champ id="f-objectifs" label="Objectifs (un par ligne)">
+            <Textarea id="f-objectifs" rows={4} {...champ('objectifs')} className="rounded-xl" />
+          </Champ>
+          <Champ id="f-prerequis" label="Prérequis (un par ligne)">
+            <Textarea id="f-prerequis" rows={3} {...champ('prerequis')} className="rounded-xl" />
+          </Champ>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Champ id="f-formateur" label="Formateur"><Input id="f-formateur" {...champ('formateur_nom')} className="rounded-xl" /></Champ>
+            <Champ id="f-bio" label="Présentation du formateur">
+              <Textarea id="f-bio" rows={2} {...champ('formateur_bio')} className="rounded-xl" />
+            </Champ>
+          </div>
+        </div>
+
+        {erreur && <p role="alert" className="mt-3 text-sm text-red-600">{erreur}</p>}
+
+        <div className="mt-5 flex justify-end gap-2">
+          <Button variant="outline" onClick={onClose} disabled={saving}>Annuler</Button>
+          <Button onClick={enregistrer} disabled={saving || uploading} className="bg-[#e97e42] text-white hover:bg-[#d56a2e]">
+            {saving ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Save className="mr-1 h-4 w-4" />}
+            Enregistrer
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function Champ({ id, label, aide, children }: { id: string; label: string; aide?: string; children: React.ReactNode }) {
+  return (
+    <div className="space-y-1.5">
+      <Label htmlFor={id}>{label}</Label>
+      {children}
+      {aide && <p className="text-xs text-muted-foreground">{aide}</p>}
+    </div>
+  )
+}
