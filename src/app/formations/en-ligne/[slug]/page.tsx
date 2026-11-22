@@ -9,8 +9,9 @@ import { createClient } from '@/lib/supabase/server'
 import { formatNumber } from '@/lib/utils'
 import {
   ArrowLeft, CheckCircle, Clock, BarChart, PlayCircle, Lock, FileText,
-  Video, Award, Target,
+  Video, Award, Target, MousePointerClick, Trophy, Flame, LineChart,
 } from 'lucide-react'
+import { codeLiveActif } from '@/lib/studia-live/lancement'
 import { EnrollCTA } from '@/components/formations/EnrollCTA'
 import type { Formation, FormationLesson, FormationEnrollment } from '@/types/formation'
 
@@ -53,6 +54,16 @@ export default async function FormationDetailPage({
     enrollment = data as FormationEnrollment | null
   }
 
+  // Formation suivie sur Studia Live : son contenu n'est pas fait de
+  // leçons Academy, la fiche ne doit donc ni les compter ni les lister.
+  const surLive = codeLiveActif(f) !== null
+  const deroulement = [
+    { icon: MousePointerClick, titre: 'Des exercices pratiques', texte: 'Vous apprenez en faisant, un exercice interactif après l’autre.' },
+    { icon: Trophy, titre: 'Des points et des niveaux', texte: 'Chaque exercice réussi rapporte des points et vous fait monter de niveau.' },
+    { icon: Flame, titre: 'Une série de jours', texte: 'Revenez chaque jour pour garder votre série et ancrer les acquis.' },
+    { icon: LineChart, titre: 'Votre avancement suivi', texte: 'Points, niveau et exercices réussis s’affichent dans votre tableau de bord Studia Academy.' },
+  ]
+
   const totalMin = lessons.reduce((s, l) => s + (l.duree_minutes || 0), 0)
   const lessonIcon = (t: string) =>
     t === 'video' ? Video : t === 'pdf' ? FileText : t === 'quiz' ? Target : FileText
@@ -78,9 +89,9 @@ export default async function FormationDetailPage({
                 <h1 className="text-3xl md:text-4xl font-extrabold font-heading text-gray-900 mb-3">{f.titre}</h1>
                 {f.sous_titre && <p className="text-lg text-gray-600 mb-4">{f.sous_titre}</p>}
                 <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
-                  <span className="inline-flex items-center gap-1.5"><Clock className="w-4 h-4 text-[#e97e42]" />{f.duree_estimee || `${totalMin} min`}</span>
+                  <span className="inline-flex items-center gap-1.5"><Clock className="w-4 h-4 text-[#e97e42]" />{f.duree_estimee || (surLive ? 'À votre rythme' : `${totalMin} min`)}</span>
                   <span className="inline-flex items-center gap-1.5"><BarChart className="w-4 h-4 text-[#e97e42]" />{f.niveau}</span>
-                  <span className="inline-flex items-center gap-1.5"><PlayCircle className="w-4 h-4 text-[#e97e42]" />{lessons.length} leçons</span>
+                  <span className="inline-flex items-center gap-1.5"><PlayCircle className="w-4 h-4 text-[#e97e42]" />{surLive ? 'Exercices interactifs' : `${lessons.length} leçons`}</span>
                   <span className="inline-flex items-center gap-1.5"><Award className="w-4 h-4 text-[#e97e42]" />Certificat</span>
                 </div>
               </div>
@@ -146,7 +157,28 @@ export default async function FormationDetailPage({
               </div>
             )}
 
+            {/* Déroulement (formation suivie sur Studia Live) */}
+            {surLive && (
+              <div>
+                <h2 className="text-xl font-bold font-heading text-gray-900 mb-4">Comment se déroule la formation</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {deroulement.map((d) => (
+                    <div key={d.titre} className="flex items-start gap-3 rounded-2xl border border-[#f0ebe3] bg-white p-4">
+                      <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-[#fff7ed]">
+                        <d.icon className="w-4 h-4 text-[#e97e42]" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900">{d.titre}</p>
+                        <p className="mt-0.5 text-sm text-gray-600">{d.texte}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Curriculum */}
+            {!surLive && (
             <div>
               <h2 className="text-xl font-bold font-heading text-gray-900 mb-4">Programme · {lessons.length} leçons</h2>
               <div className="border border-[#f0ebe3] rounded-2xl overflow-hidden divide-y divide-[#f0ebe3]">
@@ -171,6 +203,7 @@ export default async function FormationDetailPage({
                 )}
               </div>
             </div>
+            )}
           </div>
 
           {/* Formateur */}
