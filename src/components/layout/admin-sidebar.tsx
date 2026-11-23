@@ -19,6 +19,7 @@ import {
   UserCog,
 } from 'lucide-react'
 import { InboxNavBadge } from '@/components/inbox/InboxNavBadge'
+import { OuvrirStudiaLiveButton } from '@/components/studia-live/OuvrirStudiaLiveButton'
 
 interface AdminSidebarProps extends React.HTMLAttributes<HTMLDivElement> {}
 
@@ -95,6 +96,7 @@ export function AdminSidebar({ className }: AdminSidebarProps) {
           <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight text-red-600">
             Administration
           </h2>
+          <OuvrirStudiaLiveButton className="mb-3 px-1" />
           <div className="space-y-1">
             {sidebarItems.map((item) => (
               <Button
