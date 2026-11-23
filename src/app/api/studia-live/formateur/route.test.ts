@@ -21,6 +21,37 @@ const etat = {
 }
 const quotas = vi.fn()
 
+interface Fiche {
+  user_id: string | null
+  email: string | null
+  role: string
+  is_active: boolean
+}
+const base = { fiches: [] as Fiche[], erreurFiches: false }
+
+/** Faux client service : applique réellement eq / is sur les fiches. */
+vi.mock('@/lib/supabase/admin', () => ({
+  createAdminClient: () => ({
+    from: () => {
+      let lignes = [...base.fiches]
+      const requete = {
+        select: () => requete,
+        eq(col: keyof Fiche, val: unknown) {
+          lignes = lignes.filter((l) => l[col] === val)
+          return requete
+        },
+        is(col: keyof Fiche, val: null) {
+          lignes = lignes.filter((l) => l[col] === val)
+          return requete
+        },
+        maybeSingle: async () =>
+          base.erreurFiches ? { data: null, error: { code: 'XX000' } } : { data: lignes[0] ?? null, error: null },
+      }
+      return requete
+    },
+  }),
+}))
+
 vi.mock('@/lib/supabase/server', () => ({
   createClient: async () => ({
     auth: { getUser: async () => ({ data: { user: etat.user } }) },
@@ -76,6 +107,8 @@ beforeEach(() => {
   etat.erreurRole = false
   etat.profil = { full_name: 'Awa Ndong' }
   etat.quota = true
+  base.fiches = []
+  base.erreurFiches = false
 })
 
 afterEach(() => {
@@ -131,6 +164,66 @@ describe('POST /api/studia-live/formateur', () => {
     expect((await res.json()).error).toBe('acces_refuse')
     expect(fauxFetch).not.toHaveBeenCalled()
     expect(quotas).not.toHaveBeenCalled()
+  })
+
+  describe('formateur désigné par un administrateur (fiche collaborateur)', () => {
+    const fiche = (surcharge: Partial<Fiche> = {}): Fiche => ({
+      user_id: ADMIN,
+      email: 'awa.ndong@exemple.ga',
+      role: 'formateur',
+      is_active: true,
+      ...surcharge,
+    })
+
+    beforeEach(() => {
+      etat.role = null // ni admin ni agent : current_staff_role renvoie NULL pour un formateur
+    })
+
+    it('fiche « formateur » active liée au compte : ticket délivré', async () => {
+      base.fiches = [fiche()]
+      const res = await POST()
+      expect(res.status).toBe(200)
+      expect(JSON.parse(fauxFetch.mock.calls[0][1].body as string).email).toBe('awa.ndong@exemple.ga')
+    })
+
+    it('fiche pas encore liée, retrouvée par l’e-mail confirmé du compte : ticket délivré', async () => {
+      base.fiches = [fiche({ user_id: null })]
+      expect((await POST()).status).toBe(200)
+    })
+
+    it.each([
+      ['fiche désactivée', [fiche({ is_active: false })]],
+      ['fiche désactivée, retrouvée par e-mail', [fiche({ user_id: null, is_active: false })]],
+      ['fiche « agent messagerie »', [fiche({ role: 'agent' })]],
+      ['fiche d’un autre e-mail', [fiche({ user_id: null, email: 'autre@exemple.ga' })]],
+      ['fiche du même e-mail déjà liée à un autre compte', [fiche({ user_id: 'autre-compte' })]],
+      ['aucune fiche (élève, professeur en libre-service)', []],
+    ])('%s : 403, aucun appel à Studia Live', async (_nom, fiches) => {
+      base.fiches = fiches
+      const res = await POST()
+      expect(res.status).toBe(403)
+      expect(fauxFetch).not.toHaveBeenCalled()
+    })
+
+    it('e-mail non confirmé : la fiche non liée n’est pas retenue', async () => {
+      base.fiches = [fiche({ user_id: null })]
+      etat.user = { ...(etat.user as Compte), email_confirmed_at: null }
+      expect((await POST()).status).toBe(403)
+      expect(fauxFetch).not.toHaveBeenCalled()
+    })
+
+    it('lecture des fiches impossible : 403 (échec fermé)', async () => {
+      base.fiches = [fiche()]
+      base.erreurFiches = true
+      expect((await POST()).status).toBe(403)
+      expect(fauxFetch).not.toHaveBeenCalled()
+    })
+  })
+
+  it('administrateur dont la fiche est désactivée : 403', async () => {
+    base.fiches = [{ user_id: ADMIN, email: 'awa.ndong@exemple.ga', role: 'admin', is_active: false }]
+    expect((await POST()).status).toBe(403)
+    expect(fauxFetch).not.toHaveBeenCalled()
   })
 
   it('rôle illisible en base : 403 (échec fermé)', async () => {

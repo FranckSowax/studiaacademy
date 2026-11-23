@@ -196,6 +196,7 @@ describe('rôles', () => {
     const me = 'u1'
     expect(isSelfLockout(me, { user_id: me }, { is_active: false })).toBe(true)
     expect(isSelfLockout(me, { user_id: me }, { role: 'agent' })).toBe(true)
+    expect(isSelfLockout(me, { user_id: me }, { role: 'formateur' })).toBe(true)
     expect(isSelfLockout(me, { user_id: me }, { role: 'admin', is_active: true })).toBe(false)
     expect(isSelfLockout(me, { user_id: 'u2' }, { is_active: false })).toBe(false)
     expect(isSelfLockout(me, { user_id: null }, { is_active: false })).toBe(false)

@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server'
 import { parseStaffRole } from '@/lib/collaborators/roles'
 import { consumeRateLimit, RATE_LIMITS } from '@/lib/security/rate-limit'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
-import { MESSAGES_ECHEC, demanderTicketFormateur, peutEntrerCommeFormateur } from '@/lib/studia-live/formateur'
+import { MESSAGES_ECHEC, demanderTicketFormateur, ficheFormateur, peutEntrerCommeFormateur } from '@/lib/studia-live/formateur'
 import { configLancement } from '@/lib/studia-live/lancement'
 import { prenomEleve } from '@/lib/studia-live/prenom'
 
@@ -19,8 +20,9 @@ function refus(status: number, error: string, message: string) {
  * POST /api/studia-live/formateur — sans corps. Renvoie `{ url }` :
  * l'adresse d'entrée à usage unique du compte connecté sur Studia Live.
  *
- * Réservé aux administrateurs de Studia Academy (rôle d'équipe effectif,
- * relu en base à chaque appel). L'e-mail est celui du compte de la
+ * Réservé aux administrateurs et aux formateurs désignés par un
+ * administrateur (fiche collaborateur « formateur » active), droit relu
+ * en base à chaque appel. L'e-mail est celui du compte de la
  * session, jamais une valeur envoyée par le navigateur : le corps de la
  * requête n'est pas lu.
  */
@@ -36,16 +38,28 @@ export async function POST() {
   } = await supabase.auth.getUser()
   if (!user) return refus(401, 'non_connecte', 'Connectez-vous pour ouvrir Studia Live.')
 
-  // Rôle effectif relu en base (fiche collaborateur désactivée = null).
+  // WHY: e-mail du compte d'authentification (vérifié par Supabase), pas
+  // celui de `profiles`, que chacun peut modifier sur sa propre ligne.
+  const email = user.email?.trim().toLowerCase() ?? null
+  const emailConfirme = Boolean(user.email_confirmed_at)
+
+  // Droit relu en base à chaque appel : rôle d'équipe effectif, puis fiche
+  // collaborateur. Toute lecture impossible vaut refus.
   const { data: role, error: erreurRole } = await supabase.rpc('current_staff_role')
-  if (erreurRole || !peutEntrerCommeFormateur(parseStaffRole(role))) {
+  let autorise = false
+  if (!erreurRole) {
+    try {
+      const fiche = await ficheFormateur(createAdminClient(), { id: user.id, email, emailConfirme })
+      autorise = peutEntrerCommeFormateur(parseStaffRole(role), fiche)
+    } catch {
+      autorise = false
+    }
+  }
+  if (!autorise) {
     return refus(403, 'acces_refuse', "Votre compte n'a pas accès à Studia Live. Cet accès est réservé aux formateurs et administrateurs de Studia Academy.")
   }
 
-  // WHY: e-mail du compte d'authentification (vérifié par Supabase), pas
-  // celui de `profiles`, que chacun peut modifier sur sa propre ligne.
-  const email = user.email?.trim().toLowerCase()
-  if (!email || !user.email_confirmed_at) {
+  if (!email || !emailConfirme) {
     return refus(403, 'email_non_confirme', "L'adresse e-mail de votre compte doit être confirmée avant d'ouvrir Studia Live.")
   }
 

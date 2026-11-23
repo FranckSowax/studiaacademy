@@ -1,3 +1,4 @@
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { canAccessAdmin, type StaffRole } from '@/lib/collaborators/roles'
 import { signer } from './signature'
 import type { ConfigLancement } from './lancement'
@@ -15,16 +16,54 @@ import type { ConfigLancement } from './lancement'
 
 const DELAI_MAX_MS = 10_000
 
+/** Fiche collaborateur telle que lue en base (clé service). */
+export interface FicheFormateur {
+  user_id: string | null
+  role: string
+  is_active: boolean
+}
+
 /**
- * Qui peut ouvrir Studia Live comme formateur.
+ * Qui peut ouvrir Studia Live comme formateur. Le droit est toujours
+ * donné par un administrateur :
+ *  - un administrateur (rôle d'équipe effectif admin / super admin) ;
+ *  - un collaborateur actif dont la fiche porte le rôle « formateur ».
+ *
  * WHY: le « mode professeur » d'Academy (table teacher_profiles) est en
  * libre-service — tout compte, élève compris, peut l'activer lui-même.
- * Il ne prouve donc rien et n'ouvre PAS ce droit. Seul le rôle d'équipe
- * effectif (public.current_staff_role : admin ou super admin, fiche
- * collaborateur désactivée = accès coupé) est accepté.
+ * Il ne prouve rien et n'ouvre PAS ce droit.
+ *
+ * `fiche` est la fiche du compte : celle liée à son identifiant, ou à
+ * défaut celle qui porte son e-mail confirmé et n'est liée à personne
+ * (le lien ne se fait qu'à la première connexion par code).
  */
-export function peutEntrerCommeFormateur(role: StaffRole | null): boolean {
-  return canAccessAdmin(role)
+export function peutEntrerCommeFormateur(role: StaffRole | null, fiche?: FicheFormateur | null): boolean {
+  // Une fiche désactivée coupe tout, même pour un profil encore admin.
+  if (fiche && !fiche.is_active) return false
+  if (canAccessAdmin(role)) return true
+  return Boolean(fiche && fiche.is_active && fiche.role === 'formateur')
+}
+
+/**
+ * Fiche collaborateur d'un compte, lue avec la clé service. La fiche
+ * liée au compte l'emporte ; sinon celle de son e-mail, seulement si
+ * l'e-mail est confirmé et la fiche encore libre.
+ * Lève une erreur si la base ne répond pas (l'appelant refuse alors).
+ */
+export async function ficheFormateur(
+  admin: SupabaseClient,
+  compte: { id: string; email: string | null; emailConfirme: boolean }
+): Promise<FicheFormateur | null> {
+  const colonnes = 'user_id, role, is_active'
+  const liee = await admin.from('collaborators').select(colonnes).eq('user_id', compte.id).maybeSingle()
+  if (liee.error) throw new Error('lecture de la fiche impossible')
+  if (liee.data) return liee.data as FicheFormateur
+
+  const email = compte.email?.trim().toLowerCase()
+  if (!email || !compte.emailConfirme) return null
+  const parEmail = await admin.from('collaborators').select(colonnes).eq('email', email).is('user_id', null).maybeSingle()
+  if (parEmail.error) throw new Error('lecture de la fiche impossible')
+  return (parEmail.data as FicheFormateur | null) ?? null
 }
 
 export type EchecTicketFormateur =

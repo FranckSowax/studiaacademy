@@ -13,7 +13,7 @@ import {
   updateCollaborator,
   type ActionResult,
 } from '@/lib/collaborators/admin-actions'
-import { ROLE_LABELS, type CollaboratorRole } from '@/lib/collaborators/roles'
+import { COLLABORATOR_ROLE_LABELS, type CollaboratorRole } from '@/lib/collaborators/roles'
 import { formatPhone, formatRelativeTime, initials } from '@/lib/inbox/list'
 import { cn } from '@/lib/utils'
 
@@ -86,8 +86,9 @@ function CollaboratorForm({
           onChange={set('role')}
           className="h-9 w-full rounded-md border bg-white px-2 text-sm"
         >
-          <option value="agent">{ROLE_LABELS.agent} (messagerie seule)</option>
-          <option value="admin">{ROLE_LABELS.admin} (tout l&apos;espace admin)</option>
+          <option value="agent">{COLLABORATOR_ROLE_LABELS.agent} (messagerie seule)</option>
+          <option value="formateur">{COLLABORATOR_ROLE_LABELS.formateur} (ni admin ni messagerie)</option>
+          <option value="admin">{COLLABORATOR_ROLE_LABELS.admin} (tout l&apos;espace admin, Studia Live compris)</option>
         </select>
       </div>
       <div className="space-y-1">
@@ -199,7 +200,7 @@ export function CollaboratorsManager({ items }: { items: CollaboratorRowDto[] })
                     )}
                   >
                     {c.role === 'admin' ? <Shield className="size-3" /> : <UserRound className="size-3" />}
-                    {ROLE_LABELS[c.role]}
+                    {COLLABORATOR_ROLE_LABELS[c.role]}
                   </span>
                   {!c.isActive && <span className="rounded-full bg-slate-200 px-2 py-0.5 text-xs">Désactivé</span>}
                   {c.userId && c.repliesLast30d > 0 && (

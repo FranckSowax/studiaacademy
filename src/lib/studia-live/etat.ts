@@ -1,7 +1,9 @@
 'use server'
 
-import { getStaffContext } from '@/lib/auth/staff'
-import { peutEntrerCommeFormateur } from './formateur'
+import { parseStaffRole } from '@/lib/collaborators/roles'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { createClient } from '@/lib/supabase/server'
+import { ficheFormateur, peutEntrerCommeFormateur } from './formateur'
 import { configLancement } from './lancement'
 
 /** Pour les composants client : le lancement vers Studia Live est-il
@@ -14,6 +16,21 @@ export async function lancementLiveConfigure(): Promise<boolean> {
  * connecté ? Affichage seulement : la route revérifie tout à chaque appel. */
 export async function peutOuvrirStudiaLive(): Promise<boolean> {
   if (!configLancement()) return false
-  const contexte = await getStaffContext()
-  return peutEntrerCommeFormateur(contexte?.role ?? null)
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return false
+  const { data: role, error } = await supabase.rpc('current_staff_role')
+  if (error) return false
+  try {
+    const fiche = await ficheFormateur(createAdminClient(), {
+      id: user.id,
+      email: user.email ?? null,
+      emailConfirme: Boolean(user.email_confirmed_at),
+    })
+    return peutEntrerCommeFormateur(parseStaffRole(role), fiche)
+  } catch {
+    return false
+  }
 }
