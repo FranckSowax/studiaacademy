@@ -35,6 +35,8 @@ export const RATE_LIMITS = {
   staffOtpRequestPerIdentifier: { limit: 3, windowSeconds: 900 },
   /** Saisies de code depuis une même IP (anti-force brute, en plus du plafond par code). */
   staffOtpVerifyPerIp: { limit: 20, windowSeconds: 900 },
+  /** Tickets d'entrée Studia Live demandés par un même formateur ou admin. */
+  liveFormateurTicketPerUser: { limit: 5, windowSeconds: 60 },
   /** Envois de rapports WhatsApp par professeur. */
   teacherSendPerUser: { limit: 200, windowSeconds: 86_400 },
 } as const satisfies Record<string, RateLimitRule>

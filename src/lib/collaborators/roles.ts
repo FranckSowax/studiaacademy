@@ -8,9 +8,20 @@
 export type StaffRole = 'super_admin' | 'admin' | 'agent'
 
 /** Rôle stocké sur une fiche collaborateur (super_admin reste porté par le profil). */
-export type CollaboratorRole = 'admin' | 'agent'
+export type CollaboratorRole = 'admin' | 'agent' | 'formateur'
 
-export const COLLABORATOR_ROLES = ['admin', 'agent'] as const satisfies readonly CollaboratorRole[]
+export const COLLABORATOR_ROLES = ['admin', 'agent', 'formateur'] as const satisfies readonly CollaboratorRole[]
+
+/**
+ * Libellés des rôles d'une fiche. « formateur » n'est pas un rôle
+ * d'équipe effectif (ni admin ni messagerie) : il ouvre seulement
+ * Studia Live.
+ */
+export const COLLABORATOR_ROLE_LABELS: Record<CollaboratorRole, string> = {
+  admin: 'Admin',
+  agent: 'Agent messagerie',
+  formateur: 'Formateur Studia Live',
+}
 
 export const ROLE_LABELS: Record<StaffRole, string> = {
   super_admin: 'Super admin',
@@ -47,7 +58,7 @@ export function isSelfLockout(
   change: { role?: CollaboratorRole; is_active?: boolean },
 ): boolean {
   if (!target.user_id || target.user_id !== actorUserId) return false
-  return change.is_active === false || change.role === 'agent'
+  return change.is_active === false || (change.role !== undefined && change.role !== 'admin')
 }
 
 /** Page d'arrivée après connexion. */

@@ -15,6 +15,7 @@ import {
   BookOpen,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { OuvrirStudiaLiveButton } from '@/components/studia-live/OuvrirStudiaLiveButton'
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Vue d'ensemble", href: '/professeur' },
@@ -86,6 +87,9 @@ export function TeacherSidebar({ className, onNavigate }: TeacherSidebarProps) {
           })}
         </ul>
       </nav>
+
+      {/* Visible seulement pour un compte autorisé (cf. peutEntrerCommeFormateur) */}
+      <OuvrirStudiaLiveButton className="mt-4" />
 
       {/* Retour espace étudiant */}
       <Link

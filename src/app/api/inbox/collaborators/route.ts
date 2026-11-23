@@ -17,6 +17,8 @@ export async function GET() {
     .from('collaborators')
     .select('user_id, full_name, is_active')
     .not('user_id', 'is', null)
+    // Un formateur Studia Live n'a pas la messagerie : hors du filtre.
+    .neq('role', 'formateur')
     .order('full_name')
   if (error) return NextResponse.json({ items: [] })
   return NextResponse.json({
