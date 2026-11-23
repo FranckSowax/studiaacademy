@@ -1,9 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { estFormateurDesigne } from '@/lib/studia-live/etat'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -13,7 +11,6 @@ import Link from 'next/link'
 import { Eye, EyeOff, Loader2, Sparkles } from 'lucide-react'
 
 export default function LoginPage() {
-  const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -24,6 +21,7 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    let redirige = false
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -38,22 +36,17 @@ export default function LoginPage() {
 
       if (data.user) {
         toast.success('Connexion réussie!')
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('account_type')
-          .eq('id', data.user.id)
-          .maybeSingle()
-        const type = profile?.account_type as string | undefined
-        // Un formateur désigné par un administrateur arrive sur son espace.
-        const formateur = await estFormateurDesigne().catch(() => false)
-        const dest = formateur || type === 'teacher' ? '/professeur' : type === 'pro' ? '/pro' : '/dashboard'
-        router.push(dest)
-        router.refresh()
+        // WHY: navigation complète vers une route serveur qui choisit
+        // l'espace d'arrivée (élève, professeur, formateur, pro). Les
+        // cookies de session tout juste posés partent avec la requête.
+        redirige = true
+        window.location.assign('/auth/apres-connexion')
       }
     } catch (error) {
       toast.error('Une erreur est survenue')
     } finally {
-      setIsLoading(false)
+      // Le bouton reste en attente jusqu'au départ de la page.
+      if (!redirige) setIsLoading(false)
     }
   }
 
