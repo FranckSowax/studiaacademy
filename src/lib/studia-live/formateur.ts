@@ -41,6 +41,11 @@ export function peutEntrerCommeFormateur(role: StaffRole | null, fiche?: FicheFo
   // Une fiche désactivée coupe tout, même pour un profil encore admin.
   if (fiche && !fiche.is_active) return false
   if (canAccessAdmin(role)) return true
+  return estFicheFormateurActive(fiche)
+}
+
+/** Fiche « formateur » en vigueur : rôle formateur et fiche active. */
+export function estFicheFormateurActive(fiche: FicheFormateur | null | undefined): boolean {
   return Boolean(fiche && fiche.is_active && fiche.role === 'formateur')
 }
 

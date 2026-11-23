@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { estFormateurDesigne } from '@/lib/studia-live/etat'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -43,7 +44,9 @@ export default function LoginPage() {
           .eq('id', data.user.id)
           .maybeSingle()
         const type = profile?.account_type as string | undefined
-        const dest = type === 'teacher' ? '/professeur' : type === 'pro' ? '/pro' : '/dashboard'
+        // Un formateur désigné par un administrateur arrive sur son espace.
+        const formateur = await estFormateurDesigne().catch(() => false)
+        const dest = formateur || type === 'teacher' ? '/professeur' : type === 'pro' ? '/pro' : '/dashboard'
         router.push(dest)
         router.refresh()
       }

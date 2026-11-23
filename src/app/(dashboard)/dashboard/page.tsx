@@ -8,6 +8,7 @@ import { useAuthContext } from '@/contexts/AuthContext'
 import { DashboardFormations } from '@/components/dashboard/DashboardFormations'
 import { DashboardLiveSessions } from '@/components/dashboard/DashboardLiveSessions'
 import { DashboardLiveProgressions } from '@/components/dashboard/DashboardLiveProgressions'
+import { LienEspaceFormateur } from '@/components/dashboard/LienEspaceFormateur'
 import { getUserStudiaStats, type UserStudiaStats } from '@/lib/dashboard/stats'
 import {
   Clock,
@@ -94,6 +95,7 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-4 sm:space-y-6">
+      <LienEspaceFormateur />
       {/* Quick Links - Horizontal scroll on mobile */}
       <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide">
         {quickLinks.map((link) => {

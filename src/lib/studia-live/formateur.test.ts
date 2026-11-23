@@ -27,3 +27,15 @@ describe('peutEntrerCommeFormateur', () => {
     expect(peutEntrerCommeFormateur('super_admin', fiche('formateur', false))).toBe(false)
   })
 })
+
+describe('estFicheFormateurActive', () => {
+  it('vrai seulement pour une fiche « formateur » active', async () => {
+    const { estFicheFormateurActive } = await import('./formateur')
+    expect(estFicheFormateurActive(fiche('formateur'))).toBe(true)
+    expect(estFicheFormateurActive(fiche('formateur', false))).toBe(false)
+    expect(estFicheFormateurActive(fiche('admin'))).toBe(false)
+    expect(estFicheFormateurActive(fiche('agent'))).toBe(false)
+    expect(estFicheFormateurActive(null)).toBe(false)
+    expect(estFicheFormateurActive(undefined)).toBe(false)
+  })
+})
