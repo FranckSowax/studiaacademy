@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { originePublique } from '@/lib/http/origine'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 import { trouverOuCreerCompte } from '@/lib/studia-live/comptes'
@@ -16,7 +17,9 @@ export const runtime = 'nodejs'
  */
 export async function GET(request: Request) {
   const url = new URL(request.url)
-  const vers = (chemin: string) => NextResponse.redirect(new URL(chemin, url.origin))
+  // Adresse publique (studia.academy), jamais l'origine interne du conteneur
+  const origine = originePublique(request)
+  const vers = (chemin: string) => NextResponse.redirect(new URL(chemin, origine))
 
   const secret = secretLiaison()
   if (!secret) return vers('/login')
