@@ -31,10 +31,11 @@ const PRIX_OPTIONS: { key: string; label: string; test: (p: number) => boolean }
 
 function Card({ f }: { f: BrowserFormation }) {
   return (
-    <Link href={`/formations/en-ligne/${f.slug}`} className="snap-start flex-shrink-0 w-[170px] sm:w-[210px] group">
-      <div className="relative aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-[#e97e42]/20 to-[#7C3AED]/15 border border-[#f0ebe3] mb-2.5">
+    // Couverture en 16:9 : cartes plus larges pour garder une image lisible.
+    <Link href={`/formations/en-ligne/${f.slug}`} className="snap-start flex-shrink-0 w-[240px] sm:w-[280px] group">
+      <div className="relative aspect-video rounded-2xl overflow-hidden bg-gradient-to-br from-[#e97e42]/20 to-[#7C3AED]/15 border border-[#f0ebe3] mb-2.5">
         {f.cover_image ? (
-          <Image src={f.cover_image} alt={f.titre} fill sizes="(max-width:640px) 50vw, 210px" className="object-cover group-hover:scale-105 transition-transform duration-300" />
+          <Image src={f.cover_image} alt={f.titre} fill sizes="(max-width:640px) 240px, 280px" className="object-cover group-hover:scale-105 transition-transform duration-300" />
         ) : (
           <div className="w-full h-full flex items-center justify-center"><PlayCircle className="w-10 h-10 text-[#e97e42]/60" /></div>
         )}
