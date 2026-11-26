@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { updateFormation } from '@/lib/formations/admin-actions'
+import { INTRO_VIDEO_MAX, resoudreVideoIntro } from '@/lib/formations/intro-video'
 import type { Formation } from '@/types/formation'
 
 const IMAGE_MAX_OCTETS = 5 * 1024 * 1024
@@ -40,6 +41,7 @@ export function AdminFormationEditor({ formation, onClose }: { formation: Format
     prerequis: (formation.prerequis ?? []).join('\n'),
     formateur_nom: formation.formateur_nom ?? '',
     formateur_bio: formation.formateur_bio ?? '',
+    intro_video_url: formation.intro_video_url ?? '',
   })
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -81,6 +83,10 @@ export function AdminFormationEditor({ formation, onClose }: { formation: Format
     const prix = Number(form.prix_fcfa)
     if (!form.titre.trim()) return setErreur('Le titre est obligatoire.')
     if (!Number.isInteger(prix) || prix < 0) return setErreur('Le prix doit être un nombre entier, 0 pour une formation gratuite.')
+    const video = form.intro_video_url.trim()
+    if (video && !resoudreVideoIntro(video)) {
+      return setErreur('Vidéo non prise en charge : collez un lien YouTube, Vimeo, ou un fichier .mp4 / .webm en https://')
+    }
     setSaving(true)
     const res = await updateFormation(formation.id, {
       titre: form.titre,
@@ -95,6 +101,9 @@ export function AdminFormationEditor({ formation, onClose }: { formation: Format
       prerequis: lignes(form.prerequis),
       formateur_nom: form.formateur_nom,
       formateur_bio: form.formateur_bio,
+      // Envoyée seulement si elle change : les autres champs restent enregistrables
+      // même si la colonne n'existe pas encore en base (migration non appliquée).
+      ...(video !== (formation.intro_video_url ?? '') ? { intro_video_url: video } : {}),
     })
     setSaving(false)
     if (!res.success) return setErreur(res.error || 'Enregistrement impossible.')
@@ -184,6 +193,22 @@ export function AdminFormationEditor({ formation, onClose }: { formation: Format
               </div>
             </div>
           </div>
+
+          <Champ
+            id="f-video"
+            label="Vidéo de présentation"
+            aide="Lien YouTube ou Vimeo, ou fichier .mp4 / .webm en https://. Affichée sur la fiche, au-dessus de « À propos de cette formation ». Vide : pas de vidéo."
+          >
+            <Input
+              id="f-video"
+              type="url"
+              inputMode="url"
+              placeholder="https://youtu.be/…"
+              maxLength={INTRO_VIDEO_MAX}
+              {...champ('intro_video_url')}
+              className="rounded-xl"
+            />
+          </Champ>
 
           <Champ id="f-objectifs" label="Objectifs (un par ligne)">
             <Textarea id="f-objectifs" rows={4} {...champ('objectifs')} className="rounded-xl" />

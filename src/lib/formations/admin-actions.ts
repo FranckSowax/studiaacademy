@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { sendWhatsApp } from '@/lib/whatsapp'
 import { LIVE_CODE_FORMAT } from '@/lib/studia-live/lancement'
+import { resoudreVideoIntro } from '@/lib/formations/intro-video'
 import type { LessonType } from '@/types/formation'
 
 async function assertAdmin() {
@@ -104,6 +105,8 @@ export async function updateFormation(
     prerequis?: string[]
     formateur_nom?: string
     formateur_bio?: string
+    /** Vidéo de présentation (YouTube, Vimeo, .mp4/.webm) ; chaîne vide pour la retirer. */
+    intro_video_url?: string
   }
 ): Promise<{ success: boolean; error?: string }> {
   const { ok, supabase } = await assertAdmin()
@@ -130,6 +133,16 @@ export async function updateFormation(
       return { success: false, error: "Adresse d'image invalide : elle doit commencer par https://" }
     }
     maj.cover_image = url || null
+  }
+  if (input.intro_video_url !== undefined) {
+    const url = input.intro_video_url.trim()
+    if (url && !resoudreVideoIntro(url)) {
+      return {
+        success: false,
+        error: 'Vidéo non prise en charge : collez un lien YouTube, Vimeo, ou un fichier .mp4 / .webm en https://',
+      }
+    }
+    maj.intro_video_url = url || null
   }
   if (input.sous_titre !== undefined) maj.sous_titre = texte(input.sous_titre, 240)
   if (input.description !== undefined) maj.description = texte(input.description, 10_000)

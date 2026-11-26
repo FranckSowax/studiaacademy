@@ -28,6 +28,8 @@ export interface Formation {
   final_quiz_generated_at: string | null
   /** Code de la formation sur Studia Live ; null → lecteur Academy. */
   live_code: string | null
+  /** Vidéo de présentation de la fiche publique (YouTube, Vimeo, .mp4) ; absente tant que la migration n'est pas appliquée. */
+  intro_video_url?: string | null
   created_at: string
   updated_at: string
 }
