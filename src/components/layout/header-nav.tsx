@@ -13,8 +13,6 @@ const navLinks = [
   { label: 'Événements', href: '/#evenements' },
   { label: 'Entreprise', href: '/entreprise' },
   { label: 'Outils IA', href: '/outils' },
-  { label: 'Institut Français', href: '/institut-francais' },
-  { label: 'Studia Labs', href: '/studia-labs' },
   { label: 'Contact', href: '/contact' },
 ]
 
