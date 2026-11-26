@@ -9,7 +9,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { updateFormation } from '@/lib/formations/admin-actions'
-import { INTRO_VIDEO_MAX, resoudreVideoIntro } from '@/lib/formations/intro-video'
+import { INTRO_VIDEO_MAX, resoudreVideoIntro, vignetteVideoIntro } from '@/lib/formations/intro-video'
+import { capturerVignette } from '@/lib/formations/video-capture'
 import type { Formation } from '@/types/formation'
 
 const IMAGE_MAX_OCTETS = 5 * 1024 * 1024
@@ -102,6 +103,19 @@ export function AdminFormationEditor({ formation, onClose }: { formation: Format
       .upload(chemin, fichier, { contentType: fichier.type, cacheControl: '31536000' })
     if (error) setErreur(`Envoi de la vidéo impossible : ${error.message}`)
     else {
+      // Vignette : une capture de la vidéo, déposée à côté (même chemin, .jpg).
+      // Sans elle la fiche affiche quand même une image du début de la vidéo.
+      const capture = await capturerVignette(fichier)
+      const envoiCapture = capture
+        ? await supabase.storage
+            .from(VIDEO_BUCKET)
+            .upload(chemin.replace(/\.(mp4|webm)$/, '.jpg'), capture, { contentType: 'image/jpeg', cacheControl: '31536000' })
+        : null
+      if (!capture || envoiCapture?.error) {
+        setErreur(
+          "Vidéo envoyée, mais sa vignette n'a pas pu être créée : la fiche affichera une image du début de la vidéo."
+        )
+      }
       const { data } = supabase.storage.from(VIDEO_BUCKET).getPublicUrl(chemin)
       setForm((f) => ({ ...f, intro_video_url: data.publicUrl }))
     }
@@ -232,7 +246,8 @@ export function AdminFormationEditor({ formation, onClose }: { formation: Format
             {apercuVideo?.kind === 'fichier' && (
               <video
                 key={apercuVideo.src}
-                src={apercuVideo.src}
+                src={apercuVideo.src.includes('#') ? apercuVideo.src : `${apercuVideo.src}#t=0.1`}
+                poster={vignetteVideoIntro(apercuVideo.src) ?? undefined}
                 controls
                 muted
                 playsInline

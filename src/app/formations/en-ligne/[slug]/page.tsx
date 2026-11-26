@@ -137,7 +137,7 @@ export default async function FormationDetailPage({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-8">
             {/* Vidéo de présentation (si renseignée dans l'admin) */}
-            <FormationIntroVideo url={f.intro_video_url} titre={f.titre} poster={f.cover_image} />
+            <FormationIntroVideo url={f.intro_video_url} titre={f.titre} />
 
             {/* Description */}
             {f.description && (

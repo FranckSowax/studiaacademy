@@ -1,21 +1,15 @@
-import { resoudreVideoIntro } from '@/lib/formations/intro-video'
+import { resoudreVideoIntro, vignetteVideoIntro } from '@/lib/formations/intro-video'
 
 /**
  * Vidéo de présentation d'une formation, sur sa fiche publique.
  * Ne rend rien si l'adresse est vide ou non prise en charge.
+ * À l'arrêt, un fichier vidéo affiche une image tirée de la vidéo elle-même :
+ * la capture faite à l'envoi depuis l'admin, sinon une image du début.
  *
  * @example
- * <FormationIntroVideo url={formation.intro_video_url} titre={formation.titre} poster={formation.cover_image} />
+ * <FormationIntroVideo url={formation.intro_video_url} titre={formation.titre} />
  */
-export function FormationIntroVideo({
-  url,
-  titre,
-  poster,
-}: {
-  url: string | null | undefined
-  titre: string
-  poster?: string | null
-}) {
+export function FormationIntroVideo({ url, titre }: { url: string | null | undefined; titre: string }) {
   const video = resoudreVideoIntro(url)
   if (!video) return null
 
@@ -35,8 +29,10 @@ export function FormationIntroVideo({
           />
         ) : (
           <video
-            src={video.src}
-            poster={poster ?? undefined}
+            // WHY: « #t » fait afficher une image de la vidéo à l'arrêt (au lieu d'un
+            // écran noir, notamment sur iPhone) quand aucune capture n'est disponible.
+            src={video.src.includes('#') ? video.src : `${video.src}#t=0.1`}
+            poster={vignetteVideoIntro(video.src) ?? undefined}
             controls
             playsInline
             preload="metadata"
