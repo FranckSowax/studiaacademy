@@ -16,14 +16,43 @@ interface Props {
   isLoggedIn: boolean
   enrollmentStatus: EnrollmentStatus | null
   isFree?: boolean
+  /** Vrai si ce compte (ou ce visiteur) n'a pas encore accès à la formation. */
+  accessClosed?: boolean
 }
 
-export function EnrollCTA({ formationId, formationSlug, isLoggedIn, enrollmentStatus, isFree = false }: Props) {
+export function EnrollCTA({
+  formationId,
+  formationSlug,
+  isLoggedIn,
+  enrollmentStatus,
+  isFree = false,
+  accessClosed = false,
+}: Props) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [done, setDone] = useState(false)
   const [form, setForm] = useState({ phone: '', message: '' })
+
+  // Formation pas encore ouverte à ce compte (décidé côté serveur) : aucun bouton
+  // d'accès, même avec une inscription existante.
+  if (accessClosed) {
+    return (
+      <div className="rounded-xl border border-[#f0ebe3] bg-[#fbf8f3] p-4 text-center">
+        <Clock className="mx-auto mb-2 h-6 w-6 text-[#e97e42]" />
+        <p className="text-sm font-semibold text-gray-900">Bientôt disponible</p>
+        <p className="mt-1 text-xs text-gray-600">Les inscriptions à cette formation ouvriront prochainement.</p>
+        {!isLoggedIn && (
+          <Link
+            href={`/login?redirect=/formations/en-ligne/${formationSlug}`}
+            className="mt-3 inline-block text-sm font-medium text-[#a84d16] hover:underline"
+          >
+            Vous avez déjà un accès ? Se connecter
+          </Link>
+        )}
+      </div>
+    )
+  }
 
   // Accès accordé → bouton commencer
   if (enrollmentStatus === 'active' || enrollmentStatus === 'completed') {

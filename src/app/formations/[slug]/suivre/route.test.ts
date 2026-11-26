@@ -7,7 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
  */
 const etat = {
   user: null as null | { id: string; email: string; user_metadata: Record<string, unknown> },
-  formation: null as null | { id: string; slug: string; live_code?: string | null },
+  formation: null as null | { id: string; slug: string; live_code?: string | null; prix_fcfa?: number },
   inscription: null as null | { status: string },
   profil: null as null | { full_name: string | null },
 }
@@ -54,6 +54,8 @@ function reponseLive(status: number, corps: unknown) {
 beforeEach(() => {
   vi.stubEnv('STUDIA_LINK_SECRET', SECRET)
   vi.stubEnv('STUDIA_LIVE_URL', LIVE)
+  // Formations gratuites ouvertes à tous, sauf dans les tests qui portent sur la restriction.
+  vi.stubEnv('FREE_FORMATIONS_ALLOWED_EMAILS', '*')
   vi.stubGlobal('fetch', fauxFetch)
   vi.spyOn(console, 'error').mockImplementation(erreurs)
   fauxFetch.mockReset()
@@ -92,6 +94,35 @@ describe('GET /formations/[slug]/suivre', () => {
     expect(res.status).toBe(307)
     expect(res.headers.get('location')).toBe('/formations/en-ligne/pc-express-a1b2')
     expect(fauxFetch).not.toHaveBeenCalled()
+  })
+
+  describe('formations gratuites réservées (FREE_FORMATIONS_ALLOWED_EMAILS vide)', () => {
+    beforeEach(() => {
+      vi.stubEnv('FREE_FORMATIONS_ALLOWED_EMAILS', '')
+      etat.formation = { id: 'f-1', slug: 'pc-express-a1b2', live_code: 'pc-express', prix_fcfa: 0 }
+    })
+
+    it('élève inscrit mais non autorisé : fiche de la formation, aucun ticket demandé', async () => {
+      const res = await appeler()
+      expect(res.status).toBe(307)
+      expect(res.headers.get('location')).toBe('/formations/en-ligne/pc-express-a1b2')
+      expect(fauxFetch).not.toHaveBeenCalled()
+    })
+
+    it('compte de démonstration : ticket demandé et redirection vers Studia Live', async () => {
+      etat.user = { id: ELEVE, email: 'Demo@Studia-Academy.com', user_metadata: {} }
+      const res = await appeler()
+      expect(res.status).toBe(302)
+      expect(res.headers.get('location')).toBe(ENTREE)
+      expect(fauxFetch).toHaveBeenCalledTimes(1)
+    })
+
+    it('formation payante : la restriction ne s’applique pas', async () => {
+      etat.formation = { id: 'f-1', slug: 'pc-express-a1b2', live_code: 'pc-express', prix_fcfa: 45000 }
+      const res = await appeler()
+      expect(res.status).toBe(302)
+      expect(res.headers.get('location')).toBe(ENTREE)
+    })
   })
 
   it('formation introuvable : 404', async () => {

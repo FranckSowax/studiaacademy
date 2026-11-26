@@ -6,6 +6,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { isValidPhone, normalizePhone } from '@/lib/whatsapp'
 import { consumeRateLimit, currentClientIp, RATE_LIMITS } from '@/lib/security/rate-limit'
 import { acknowledgeSiteRequest } from '@/lib/inbox/site-request'
+import { accesFormationAutorise } from '@/lib/formations/free-access'
 
 // ── Côté élève ──────────────────────────────
 
@@ -80,6 +81,10 @@ export async function enrollFree(
     .single()
   if (!formation) return { success: false, error: 'Formation introuvable' }
   if ((formation.prix_fcfa ?? 0) > 0) return { success: false, error: 'Cette formation est payante' }
+  // Formations gratuites pas encore ouvertes au public : comptes autorisés uniquement.
+  if (!accesFormationAutorise(formation, user.email)) {
+    return { success: false, error: "Cette formation n'est pas encore ouverte aux inscriptions." }
+  }
 
   const { error } = await supabase.from('formation_enrollments').upsert(
     {

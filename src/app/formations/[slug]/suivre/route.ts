@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { codeLiveActif, configLancement, demanderTicket } from '@/lib/studia-live/lancement'
 import { prenomEleve } from '@/lib/studia-live/prenom'
+import { accesFormationAutorise } from '@/lib/formations/free-access'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -52,6 +53,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
   if (!formation) {
     return new NextResponse('Formation introuvable', { status: 404, headers: SANS_CACHE })
   }
+
+  // Formation gratuite pas encore ouverte au public : comptes autorisés
+  // uniquement, même si une inscription existe déjà.
+  if (!accesFormationAutorise(formation, user.email)) return vers(`/formations/en-ligne/${chemin}`)
 
   const { data: inscription } = await supabase
     .from('formation_enrollments')

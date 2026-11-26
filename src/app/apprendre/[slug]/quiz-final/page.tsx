@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { codeLiveActif } from '@/lib/studia-live/lancement'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { accesFormationAutorise } from '@/lib/formations/free-access'
 import { KahootQuiz } from '@/components/formations/KahootQuiz'
 import { Trophy, ArrowLeft } from 'lucide-react'
 import type { Formation, FormationEnrollment, LessonQuizQuestion } from '@/types/formation'
@@ -24,6 +25,9 @@ export default async function QuizFinalPage({
   const { data: formation } = await supabase.from('formations').select('*').eq('slug', slug).single()
   if (!formation) notFound()
   const f = formation as Formation
+
+  // Formation gratuite pas encore ouverte au public : comptes autorisés uniquement.
+  if (!accesFormationAutorise(f, user.email)) redirect(`/formations/en-ligne/${slug}`)
 
   // Formation suivie sur Studia Live : l'ancien lecteur renvoie au lancement.
   if (codeLiveActif(f)) redirect(`/formations/${slug}/suivre`)

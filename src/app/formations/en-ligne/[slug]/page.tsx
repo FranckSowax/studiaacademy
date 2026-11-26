@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { codeLiveActif } from '@/lib/studia-live/lancement'
 import { EnrollCTA } from '@/components/formations/EnrollCTA'
+import { accesFormationAutorise } from '@/lib/formations/free-access'
 import { FormationIntroVideo } from '@/components/formations/FormationIntroVideo'
 import type { Formation, FormationLesson, FormationEnrollment } from '@/types/formation'
 
@@ -139,6 +140,7 @@ export default async function FormationDetailPage({
                       isLoggedIn={!!user}
                       enrollmentStatus={enrollment?.status ?? null}
                       isFree={(f.prix_fcfa ?? 0) === 0}
+                      accessClosed={!accesFormationAutorise(f, user?.email)}
                     />
                     <ul className="mt-5 space-y-2">
                       {['Accès à vie au contenu', 'Supports téléchargeables', 'Certificat de réussite', 'Support par l\'équipe'].map((b) => (
