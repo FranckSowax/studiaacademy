@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { codeLiveActif } from '@/lib/studia-live/lancement'
 import { EnrollCTA } from '@/components/formations/EnrollCTA'
+import { FormationIntroVideo } from '@/components/formations/FormationIntroVideo'
 import type { Formation, FormationLesson, FormationEnrollment } from '@/types/formation'
 
 export default async function FormationDetailPage({
@@ -135,6 +136,9 @@ export default async function FormationDetailPage({
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-8">
+            {/* Vidéo de présentation (si renseignée dans l'admin) */}
+            <FormationIntroVideo url={f.intro_video_url} titre={f.titre} poster={f.cover_image} />
+
             {/* Description */}
             {f.description && (
               <div>
