@@ -69,12 +69,31 @@ export default async function FormationDetailPage({
   const lessonIcon = (t: string) =>
     t === 'video' ? Video : t === 'pdf' ? FileText : t === 'quiz' ? Target : FileText
 
+  // Rendue à deux endroits selon la largeur d'écran (sous la carte / en fin de fiche).
+  const formateur = f.formateur_nom ? (
+    <div className="bg-white rounded-2xl border border-[#f0ebe3] p-6">
+      <h2 className="text-lg font-bold font-heading text-gray-900 mb-4">Votre formateur</h2>
+      <div className="flex items-center gap-3 mb-3">
+        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#e97e42] to-[#d56a2e] flex items-center justify-center text-white text-lg font-bold">
+          {f.formateur_nom[0]}
+        </div>
+        <p className="font-semibold text-gray-800">{f.formateur_nom}</p>
+      </div>
+      {f.formateur_bio && <p className="text-sm text-gray-500 leading-relaxed">{f.formateur_bio}</p>}
+    </div>
+  ) : null
+
   return (
     <div className="relative flex min-h-screen flex-col">
       <Header />
-      <main className="flex-1 pt-24">
-        {/* Hero */}
-        <section className="bg-gradient-to-b from-[#fff7ed] to-white py-10">
+      <main className="relative flex-1 pt-24">
+        {/* Fond dégradé du haut de page (décoratif) */}
+        <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-[28rem] bg-gradient-to-b from-[#fff7ed] to-white" />
+
+        {/* WHY: une seule grille pour toute la fiche. La carte d'inscription, plus
+            haute que le titre, occupe la colonne de droite sur deux rangées : le
+            contenu (vidéo, description…) remonte ainsi juste sous le titre. */}
+        <div className="relative py-10">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <Link href="/formations/en-ligne" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-[#e97e42] mb-6">
               <ArrowLeft className="w-4 h-4" />
@@ -99,7 +118,8 @@ export default async function FormationDetailPage({
 
               {/* Carte CTA */}
               <div className="lg:row-span-2">
-                <div className="bg-white rounded-3xl border border-[#f0ebe3] shadow-lg overflow-hidden sticky top-24">
+                <div className="lg:sticky lg:top-24">
+                <div className="bg-white rounded-3xl border border-[#f0ebe3] shadow-lg overflow-hidden">
                   <div className="relative h-44 w-full bg-[#fbf8f3]">
                     {f.cover_image ? (
                       <Image src={f.cover_image} alt={f.titre} fill sizes="400px" className="object-cover" />
@@ -129,12 +149,11 @@ export default async function FormationDetailPage({
                     </ul>
                   </div>
                 </div>
+                {/* Formateur : sous la carte sur grand écran */}
+                {formateur && <div className="mt-6 hidden lg:block">{formateur}</div>}
+                </div>
               </div>
-            </div>
-          </div>
-        </section>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-8">
             {/* Vidéo de présentation (si renseignée dans l'admin) */}
             <FormationIntroVideo url={f.intro_video_url} titre={f.titre} />
@@ -208,22 +227,11 @@ export default async function FormationDetailPage({
               </div>
             </div>
             )}
-          </div>
 
-          {/* Formateur */}
-          <div>
-            {f.formateur_nom && (
-              <div className="bg-white rounded-2xl border border-[#f0ebe3] p-6">
-                <h2 className="text-lg font-bold font-heading text-gray-900 mb-4">Votre formateur</h2>
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#e97e42] to-[#d56a2e] flex items-center justify-center text-white text-lg font-bold">
-                    {f.formateur_nom[0]}
-                  </div>
-                  <p className="font-semibold text-gray-800">{f.formateur_nom}</p>
-                </div>
-                {f.formateur_bio && <p className="text-sm text-gray-500 leading-relaxed">{f.formateur_bio}</p>}
-              </div>
-            )}
+            {/* Formateur : en fin de fiche sur mobile */}
+            {formateur && <div className="lg:hidden">{formateur}</div>}
+          </div>
+            </div>
           </div>
         </div>
       </main>
