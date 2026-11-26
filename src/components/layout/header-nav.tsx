@@ -9,10 +9,10 @@ import { cn } from '@/lib/utils'
 import { useScrolled } from '@/hooks/useScroll'
 
 const navLinks = [
-  { label: 'Modules', href: '/#modules' },
-  { label: 'Outils IA', href: '/outils' },
   { label: 'Formations', href: '/formations' },
+  { label: 'Événements', href: '/#evenements' },
   { label: 'Entreprise', href: '/entreprise' },
+  { label: 'Outils IA', href: '/outils' },
   { label: 'Institut Français', href: '/institut-francais' },
   { label: 'Studia Labs', href: '/studia-labs' },
   { label: 'Contact', href: '/contact' },

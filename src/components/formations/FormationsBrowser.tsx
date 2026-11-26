@@ -51,9 +51,23 @@ function Card({ f }: { f: BrowserFormation }) {
   )
 }
 
-export function FormationsBrowser({ formations }: { formations: BrowserFormation[] }) {
-  const [q, setQ] = useState('')
-  const [secteur, setSecteur] = useState('all')
+export function FormationsBrowser({
+  formations,
+  initialQuery = '',
+  initialSecteur,
+}: {
+  formations: BrowserFormation[]
+  /** Recherche pré-remplie (ex. depuis la page d'accueil : `?q=`). */
+  initialQuery?: string
+  /** Secteur pré-sélectionné (`?secteur=`), ignoré s'il n'existe pas dans le catalogue. */
+  initialSecteur?: string
+}) {
+  const [q, setQ] = useState(initialQuery)
+  const [secteur, setSecteur] = useState(() =>
+    initialSecteur && formations.some((f) => (f.categorie ?? 'Autres formations') === initialSecteur)
+      ? initialSecteur
+      : 'all',
+  )
   const [niveau, setNiveau] = useState('all')
   const [prix, setPrix] = useState('all')
 
