@@ -1,5 +1,24 @@
 import { describe, expect, it } from 'vitest'
-import { resoudreVideoIntro } from './intro-video'
+import { resoudreVideoIntro, vignetteVideoIntro } from './intro-video'
+
+describe('vignetteVideoIntro', () => {
+  const base = 'https://abc.supabase.co/storage/v1/object/public/formation-videos/42/intro-1700000000000'
+
+  it('pointe vers la capture .jpg déposée à côté de la vidéo téléversée', () => {
+    expect(vignetteVideoIntro(`${base}.mp4`)).toBe(`${base}.jpg`)
+    expect(vignetteVideoIntro(`${base}.WEBM?v=2#t=3`)).toBe(`${base}.jpg`)
+  })
+
+  it.each([
+    ['fichier hébergé ailleurs', 'https://cdn.example.com/videos/intro.mp4'],
+    ['autre bucket', 'https://abc.supabase.co/storage/v1/object/public/formations/42/cover.mp4'],
+    ['lecteur YouTube', 'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ'],
+    ['http non chiffré', `${base.replace('https:', 'http:')}.mp4`],
+    ['adresse invalide', 'pas une adresse'],
+  ])('ne propose pas de vignette : %s', (_cas, src) => {
+    expect(vignetteVideoIntro(src)).toBeNull()
+  })
+})
 
 describe('resoudreVideoIntro', () => {
   it.each([

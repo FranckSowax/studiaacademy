@@ -54,6 +54,34 @@ export function resoudreVideoIntro(valeur: string | null | undefined): VideoIntr
   return null
 }
 
+const STOCKAGE_VIDEOS = '/storage/v1/object/public/formation-videos/'
+const EXTENSION_VIDEO = /\.(mp4|webm)$/i
+
+/**
+ * Adresse de la vignette d'une vidéo téléversée depuis l'admin : la capture
+ * est déposée à côté du fichier, même chemin avec l'extension .jpg.
+ * Null pour toute vidéo hébergée ailleurs (pas de capture disponible).
+ *
+ * @example
+ * vignetteVideoIntro('https://x.supabase.co/storage/v1/object/public/formation-videos/42/intro-1.mp4')
+ * // → 'https://x.supabase.co/storage/v1/object/public/formation-videos/42/intro-1.jpg'
+ */
+export function vignetteVideoIntro(src: string): string | null {
+  let url: URL
+  try {
+    url = new URL(src)
+  } catch {
+    return null
+  }
+  if (url.protocol !== 'https:' || !url.pathname.includes(STOCKAGE_VIDEOS) || !EXTENSION_VIDEO.test(url.pathname)) {
+    return null
+  }
+  url.pathname = url.pathname.replace(EXTENSION_VIDEO, '.jpg')
+  url.search = ''
+  url.hash = ''
+  return url.toString()
+}
+
 function youtube(id: string | null | undefined): VideoIntro | null {
   return id && YOUTUBE_ID.test(id)
     ? { kind: 'embed', src: `https://www.youtube-nocookie.com/embed/${id}` }
