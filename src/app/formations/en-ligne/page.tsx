@@ -7,7 +7,14 @@ import { createClient } from '@/lib/supabase/server'
 import { ArrowLeft, Monitor, PlayCircle } from 'lucide-react'
 import { FormationsBrowser, type BrowserFormation } from '@/components/formations/FormationsBrowser'
 
-export default async function FormationsEnLignePage() {
+const firstParam = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v)?.slice(0, 100)
+
+export default async function FormationsEnLignePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string | string[]; secteur?: string | string[] }>
+}) {
+  const params = await searchParams
   const supabase = await createClient()
   const { data } = await supabase
     .from('formations')
@@ -48,7 +55,11 @@ export default async function FormationsEnLignePage() {
               </Link>
             </div>
           ) : (
-            <FormationsBrowser formations={formations} />
+            <FormationsBrowser
+              formations={formations}
+              initialQuery={firstParam(params.q) ?? ''}
+              initialSecteur={firstParam(params.secteur)}
+            />
           )}
         </div>
       </main>

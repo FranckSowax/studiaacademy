@@ -167,6 +167,17 @@
   .animate-fade-up-delay-4 { animation-delay: 400ms; }
 }
 
+/* Hero d'accueil : témoin visuel du minuteur de défilement (HomeHeroSlider). */
+@media (prefers-reduced-motion: no-preference) {
+  .hero-slide-progress {
+    animation: heroSlideProgress linear both;
+  }
+}
+@keyframes heroSlideProgress {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(24px); }
   to   { opacity: 1; transform: translateY(0); }

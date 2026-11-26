@@ -17,6 +17,7 @@ import {
   Building2,
   MessageCircle,
   UserCog,
+  GalleryHorizontalEnd,
 } from 'lucide-react'
 import { InboxNavBadge } from '@/components/inbox/InboxNavBadge'
 import { OuvrirStudiaLiveButton } from '@/components/studia-live/OuvrirStudiaLiveButton'
@@ -31,6 +32,11 @@ export function AdminSidebar({ className }: AdminSidebarProps) {
       title: 'Vue d\'ensemble',
       href: '/admin',
       icon: LayoutDashboard,
+    },
+    {
+      title: 'Page d\'accueil',
+      href: '/admin/accueil',
+      icon: GalleryHorizontalEnd,
     },
     {
       title: 'Utilisateurs',
