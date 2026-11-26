@@ -6,7 +6,7 @@
  * payantes ne sont pas concernées : leur accès reste accordé par l'équipe.
  *
  * Réglage par la variable d'environnement FREE_FORMATIONS_ALLOWED_EMAILS :
- *  - absente ou vide : seul le compte de démonstration ;
+ *  - absente ou vide : le compte de démonstration et le compte administrateur ;
  *  - liste d'adresses séparées par des virgules : ces comptes uniquement ;
  *  - `*` : ouvert à tous les comptes (fin de la restriction).
  *
@@ -14,7 +14,8 @@
  * l'accès est réellement donné, pas seulement dans l'affichage.
  */
 
-const COMPTES_PAR_DEFAUT = ['demo@studia-academy.com']
+// Compte de démonstration + compte administrateur de Studia.
+const COMPTES_PAR_DEFAUT = ['demo@studia-academy.com', 'studiagabon@gmail.com']
 
 const normaliser = (email: string) => email.trim().toLowerCase()
 
