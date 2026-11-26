@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ImagePlus, Loader2, Save, Trash2, X } from 'lucide-react'
+import { ImagePlus, Loader2, Save, Trash2, Video, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -14,6 +14,10 @@ import type { Formation } from '@/types/formation'
 
 const IMAGE_MAX_OCTETS = 5 * 1024 * 1024
 const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp']
+// Mêmes limites que le bucket (migration 20261127120000_formation_videos_bucket.sql).
+const VIDEO_BUCKET = 'formation-videos'
+const VIDEO_MAX_MO = 200
+const VIDEO_TYPES = ['video/mp4', 'video/webm']
 
 const lignes = (texte: string) =>
   texte
@@ -45,6 +49,7 @@ export function AdminFormationEditor({ formation, onClose }: { formation: Format
   })
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [uploadingVideo, setUploadingVideo] = useState(false)
   const [erreur, setErreur] = useState<string | null>(null)
 
   const champ = (cle: keyof typeof form) => ({
@@ -77,6 +82,33 @@ export function AdminFormationEditor({ formation, onClose }: { formation: Format
     }
     setUploading(false)
   }
+
+  const envoyerVideo = async (fichier: File) => {
+    setErreur(null)
+    if (!VIDEO_TYPES.includes(fichier.type)) {
+      setErreur('Vidéo refusée : formats acceptés MP4 ou WebM.')
+      return
+    }
+    if (fichier.size > VIDEO_MAX_MO * 1024 * 1024) {
+      setErreur(`Vidéo trop lourde : ${VIDEO_MAX_MO} Mo maximum. Compressez-la ou collez un lien YouTube / Vimeo.`)
+      return
+    }
+    setUploadingVideo(true)
+    const supabase = createClient()
+    const ext = fichier.type === 'video/webm' ? 'webm' : 'mp4'
+    const chemin = `${formation.id}/intro-${Date.now()}.${ext}`
+    const { error } = await supabase.storage
+      .from(VIDEO_BUCKET)
+      .upload(chemin, fichier, { contentType: fichier.type, cacheControl: '31536000' })
+    if (error) setErreur(`Envoi de la vidéo impossible : ${error.message}`)
+    else {
+      const { data } = supabase.storage.from(VIDEO_BUCKET).getPublicUrl(chemin)
+      setForm((f) => ({ ...f, intro_video_url: data.publicUrl }))
+    }
+    setUploadingVideo(false)
+  }
+
+  const apercuVideo = resoudreVideoIntro(form.intro_video_url)
 
   const enregistrer = async () => {
     setErreur(null)
@@ -194,21 +226,68 @@ export function AdminFormationEditor({ formation, onClose }: { formation: Format
             </div>
           </div>
 
-          <Champ
-            id="f-video"
-            label="Vidéo de présentation"
-            aide="Lien YouTube ou Vimeo, ou fichier .mp4 / .webm en https://. Affichée sur la fiche, au-dessus de « À propos de cette formation ». Vide : pas de vidéo."
-          >
+          {/* Vidéo de présentation : fichier téléversé ou lien */}
+          <div className="space-y-1.5">
+            <Label htmlFor="f-video">Vidéo de présentation</Label>
+            {apercuVideo?.kind === 'fichier' && (
+              <video
+                key={apercuVideo.src}
+                src={apercuVideo.src}
+                controls
+                muted
+                playsInline
+                preload="metadata"
+                className="aspect-video w-full max-w-sm rounded-xl border border-[#f0ebe3] bg-black"
+                aria-label="Aperçu de la vidéo de présentation"
+              />
+            )}
+            <div className="flex flex-wrap gap-2">
+              <Button asChild variant="outline" size="sm" disabled={uploadingVideo}>
+                <label htmlFor="f-video-fichier" className="cursor-pointer">
+                  {uploadingVideo ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Video className="mr-1 h-4 w-4" />}
+                  {uploadingVideo ? 'Envoi en cours…' : form.intro_video_url ? 'Remplacer par un fichier' : 'Téléverser une vidéo'}
+                </label>
+              </Button>
+              {form.intro_video_url && !uploadingVideo && (
+                <Button variant="ghost" size="sm" onClick={() => setForm((f) => ({ ...f, intro_video_url: '' }))}>
+                  <Trash2 className="mr-1 h-4 w-4" />Retirer
+                </Button>
+              )}
+            </div>
+            <input
+              id="f-video-fichier"
+              type="file"
+              accept={VIDEO_TYPES.join(',')}
+              className="sr-only"
+              disabled={uploadingVideo}
+              onChange={(e) => {
+                const fichier = e.target.files?.[0]
+                if (fichier) void envoyerVideo(fichier)
+                e.target.value = ''
+              }}
+            />
             <Input
               id="f-video"
               type="url"
               inputMode="url"
-              placeholder="https://youtu.be/…"
+              placeholder="ou collez un lien YouTube, Vimeo ou .mp4"
               maxLength={INTRO_VIDEO_MAX}
               {...champ('intro_video_url')}
-              className="rounded-xl"
+              className="rounded-xl text-xs"
             />
-          </Champ>
+            {uploadingVideo && (
+              <p role="status" className="text-xs text-[#a84d16]">
+                Envoi de la vidéo… gardez cette fenêtre ouverte, cela peut prendre plusieurs minutes.
+              </p>
+            )}
+            {apercuVideo?.kind === 'embed' && (
+              <p className="text-xs text-green-700">Lien reconnu : la vidéo sera intégrée à la fiche.</p>
+            )}
+            <p className="text-xs text-muted-foreground">
+              Fichier MP4 ou WebM, {VIDEO_MAX_MO} Mo maximum — ou un lien YouTube / Vimeo. Affichée sur la fiche,
+              au-dessus de « À propos de cette formation ». Pensez à cliquer sur Enregistrer.
+            </p>
+          </div>
 
           <Champ id="f-objectifs" label="Objectifs (un par ligne)">
             <Textarea id="f-objectifs" rows={4} {...champ('objectifs')} className="rounded-xl" />
@@ -229,7 +308,7 @@ export function AdminFormationEditor({ formation, onClose }: { formation: Format
 
         <div className="mt-5 flex justify-end gap-2">
           <Button variant="outline" onClick={onClose} disabled={saving}>Annuler</Button>
-          <Button onClick={enregistrer} disabled={saving || uploading} className="bg-[#e97e42] text-white hover:bg-[#d56a2e]">
+          <Button onClick={enregistrer} disabled={saving || uploading || uploadingVideo} className="bg-[#e97e42] text-white hover:bg-[#d56a2e]">
             {saving ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Save className="mr-1 h-4 w-4" />}
             Enregistrer
           </Button>
