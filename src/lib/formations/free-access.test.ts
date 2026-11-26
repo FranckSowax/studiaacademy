@@ -19,8 +19,11 @@ describe('estFormationGratuite', () => {
 })
 
 describe('accesFormationAutorise — réglage par défaut', () => {
-  it('formation gratuite : seul le compte de démonstration passe', () => {
+  it('formation gratuite : seuls le compte de démonstration et le compte administrateur passent', () => {
     vi.stubEnv(VARIABLE, '')
+    expect(accesFormationAutorise(GRATUITE, 'studiagabon@gmail.com')).toBe(true)
+    expect(accesFormationAutorise(GRATUITE, 'StudiaGabon@Gmail.com')).toBe(true)
+    expect(accesFormationAutorise(GRATUITE, 'studiagabon2@gmail.com')).toBe(false)
     expect(accesFormationAutorise(GRATUITE, 'demo@studia-academy.com')).toBe(true)
     expect(accesFormationAutorise(GRATUITE, '  Demo@Studia-Academy.COM ')).toBe(true)
     expect(accesFormationAutorise(GRATUITE, 'awa.ndong@exemple.ga')).toBe(false)
