@@ -1,16 +1,27 @@
 // ============================================
-// Secteurs d'activité — formations IA & outils adaptés (Gabon / Afrique)
+// Secteurs d'activité — une formation « métier + outils IA » par secteur
 // ============================================
 
-export interface SecteurFormation {
-  slug: string
+/** Outil utilisé dans une formation. Les gratuits sont listés en premier. */
+export interface OutilIA {
+  nom: string
+  acces: 'gratuit' | 'payant'
+}
+
+/** Leçon bâtie sur une situation réelle du métier. */
+export interface CasMetier {
   titre: string
-  pitch: string
-  arguments: string[]
-  format: 'En ligne' | 'Présentiel' | 'Hybride'
-  niveau: string
-  prix_fcfa: number
-  cover: string // /public/secteurs/<file>.png
+  /** Outil principal de la leçon (tel qu'affiché). */
+  outil: string
+}
+
+export interface FormationMetier {
+  titre: string
+  promesse: string
+  outils: OutilIA[]
+  cas: CasMetier[]
+  /** Règle de prudence propre au métier, affichée sur la fiche. */
+  garde_fou?: string
 }
 
 export interface Secteur {
@@ -21,9 +32,7 @@ export interface Secteur {
   cover: string
   accroche: string
   description: string
-  /** Slugs de micro-services (src/lib/ai-services/definitions.ts) pertinents. */
-  outils: string[]
-  formations: SecteurFormation[]
+  formation: FormationMetier
 }
 
 export const SECTEURS: Secteur[] = [
@@ -34,110 +43,176 @@ export const SECTEURS: Secteur[] = [
     couleur: '#7C3AED',
     cover: '/secteurs/ressources-humaines.png',
     accroche: "Recrutez, formez et fidélisez plus vite grâce à l'IA",
-    description: "Automatisez vos tâches RH, évaluez les compétences de vos équipes et construisez des parcours de formation sur mesure.",
-    outils: ['annonce-emploi', 'fiche-de-poste', 'scoring-cv', 'grille-entretien', 'plan-onboarding'],
-    formations: [
-      { slug: 'rh-ia-recrutement', titre: "L'IA pour recruter plus vite et mieux", pitch: "Réduisez vos délais de recrutement et fiabilisez vos choix grâce à l'IA.", arguments: ["Triez 10× plus vite les CV sans biais", "Rédigez annonces et grilles d'entretien en minutes", "Améliorez la qualité de vos embauches"], format: 'Hybride', niveau: 'Initiation', prix_fcfa: 90000, cover: '/secteurs/rh-recrutement.png' },
-      { slug: 'rh-onboarding-digital', titre: "Onboarding & fidélisation augmentés par l'IA", pitch: "Intégrez vos nouveaux talents et réduisez le turnover.", arguments: ["Parcours d'intégration générés automatiquement", "Suivi structuré 30-60-90 jours", "Moins de départs précoces"], format: 'En ligne', niveau: 'Initiation', prix_fcfa: 70000, cover: '/secteurs/rh-onboarding.png' },
-      { slug: 'rh-gestion-competences', titre: "Cartographier et développer les compétences", pitch: "Diagnostiquez le niveau de vos effectifs et pilotez la montée en compétences.", arguments: ["Diagnostic des compétences objectif", "Plans de formation ciblés", "ROI mesurable sur la productivité"], format: 'Hybride', niveau: 'Intermédiaire', prix_fcfa: 110000, cover: '/secteurs/rh-competences.png' },
-      { slug: 'rh-droit-social-ia', titre: "Documents RH conformes assistés par l'IA", pitch: "Produisez contrats, règlements et courriers RH fiables, plus vite.", arguments: ["Modèles adaptés au contexte local", "Gain de temps sur l'administratif", "Réduction des risques d'erreur"], format: 'En ligne', niveau: 'Intermédiaire', prix_fcfa: 80000, cover: '/secteurs/rh-droit-social.png' },
-    ],
+    description: "De l'offre d'emploi à l'accueil du nouvel employé : les gestes RH du quotidien, faits plus vite et mieux avec des outils IA gratuits.",
+    formation: {
+      titre: "Recruter et gérer son équipe avec l'IA",
+      promesse: "Offres d'emploi, tri de CV, entretiens et documents RH : gagnez des heures chaque semaine sans perdre la main sur les décisions.",
+      outils: [
+        { nom: 'ChatGPT', acces: 'gratuit' },
+        { nom: 'Google Forms', acces: 'gratuit' },
+        { nom: 'NotebookLM', acces: 'gratuit' },
+      ],
+      cas: [
+        { titre: "Rédiger une offre d'emploi et la décliner pour Facebook et LinkedIn", outil: 'ChatGPT' },
+        { titre: 'Trier 30 CV avec une grille de critères, la décision restant humaine', outil: 'ChatGPT' },
+        { titre: "Préparer une trame d'entretien et les questions clés du poste", outil: 'ChatGPT' },
+        { titre: 'Rédiger une attestation, un avertissement, une note de service', outil: 'ChatGPT' },
+        { titre: "Construire le parcours d'accueil d'un nouvel employé sur 30 jours", outil: 'Google Forms' },
+      ],
+      garde_fou: "L'IA prépare et classe ; le choix d'un candidat reste une décision humaine. Retirez les données personnelles avant de coller un CV.",
+    },
   },
   {
     slug: 'administration',
     label: 'Administration & Fonction publique',
     iconName: 'Landmark',
-    couleur: '#e97e42',
+    couleur: '#2563EB',
     cover: '/secteurs/administration.png',
-    accroche: "Traitez vos dossiers et courriers administratifs en un éclair",
-    description: "Rédaction de courriers, synthèse de dossiers, notes de service : l'IA accélère le quotidien des agents administratifs.",
-    outils: ['courrier-admin', 'resume-document', 'communication-rh', 'reglement-interieur'],
-    formations: [
-      { slug: 'admin-courriers-ia', titre: "Rédiger ses courriers administratifs avec l'IA", pitch: "Produisez des courriers et notes impeccables en quelques minutes.", arguments: ["Courriers officiels prêts à signer", "Ton et format administratifs respectés", "Moins de relectures, plus de dossiers traités"], format: 'En ligne', niveau: 'Initiation', prix_fcfa: 55000, cover: '/secteurs/admin-courriers.png' },
-      { slug: 'admin-synthese-dossiers', titre: "Synthétiser et instruire les dossiers plus vite", pitch: "Résumez de longs documents et préparez vos décisions.", arguments: ["Synthèses claires en un clic", "Points clés et actions identifiés", "Décisions plus rapides"], format: 'En ligne', niveau: 'Initiation', prix_fcfa: 55000, cover: '/secteurs/admin-synthese.png' },
-      { slug: 'admin-digitalisation-service', titre: "Digitaliser son service administratif", pitch: "Passez du papier au numérique sans complexité.", arguments: ["Process simplifiés et traçables", "Outils accessibles sur mobile", "Service plus réactif aux usagers"], format: 'Hybride', niveau: 'Initiation', prix_fcfa: 95000, cover: '/secteurs/admin-digitalisation.png' },
-      { slug: 'admin-prepa-concours-ia', titre: "Préparer un concours administratif avec l'IA", pitch: "Révisez efficacement et entraînez-vous aux épreuves.", arguments: ["Plan de révision personnalisé", "QCM et corrigés illimités", "Méthodologie des épreuves"], format: 'En ligne', niveau: 'Tous niveaux', prix_fcfa: 60000, cover: '/secteurs/admin-concours.png' },
-    ],
+    accroche: 'Courriers, notes et dossiers traités plus vite',
+    description: "Répondre aux usagers, synthétiser un dossier, rédiger une note : le travail administratif allégé, dans le respect du ton officiel.",
+    formation: {
+      titre: 'Courriers, notes et dossiers en deux fois moins de temps',
+      promesse: "Rédigez dans le ton administratif, résumez de longs dossiers et suivez vos instances sans y passer la journée.",
+      outils: [
+        { nom: 'ChatGPT', acces: 'gratuit' },
+        { nom: 'Gemini', acces: 'gratuit' },
+        { nom: 'NotebookLM', acces: 'gratuit' },
+      ],
+      cas: [
+        { titre: "Répondre à un courrier d'usager dans le ton administratif", outil: 'ChatGPT' },
+        { titre: "Résumer un dossier de 40 pages en une note d'une page", outil: 'NotebookLM' },
+        { titre: 'Rédiger une note de service et un compte rendu de réunion', outil: 'Gemini' },
+        { titre: 'Transformer un texte réglementaire en fiche pratique pour le public', outil: 'NotebookLM' },
+        { titre: 'Créer un tableau de suivi des dossiers en instance', outil: 'ChatGPT' },
+      ],
+      garde_fou: "Aucun document classé ou nominatif dans un outil IA : on travaille sur des versions anonymisées.",
+    },
   },
   {
     slug: 'secretariat',
     label: 'Secrétariat & Assistanat',
     iconName: 'ClipboardList',
-    couleur: '#EC4899',
+    couleur: '#DB2777',
     cover: '/secteurs/secretariat.png',
-    accroche: "Devenez l'assistant·e augmenté·e par l'IA",
-    description: "Comptes-rendus, e-mails, agendas, présentations : déléguez les tâches chronophages à l'IA et gagnez en valeur.",
-    outils: ['courrier-admin', 'resume-document', 'communication-rh', 'posts-reseaux'],
-    formations: [
-      { slug: 'secretariat-comptes-rendus', titre: "Comptes-rendus de réunion en 5 minutes", pitch: "Transformez vos notes en comptes-rendus structurés instantanément.", arguments: ["CR clairs et professionnels", "Actions et décisions mises en avant", "Des heures gagnées chaque semaine"], format: 'En ligne', niveau: 'Initiation', prix_fcfa: 50000, cover: '/secteurs/secretariat-cr.png' },
-      { slug: 'secretariat-emails-pro', titre: "E-mails et communication pro avec l'IA", pitch: "Rédigez des e-mails irréprochables, dans le bon ton, plus vite.", arguments: ["Réponses professionnelles instantanées", "Zéro faute, ton maîtrisé", "Image de marque renforcée"], format: 'En ligne', niveau: 'Initiation', prix_fcfa: 45000, cover: '/secteurs/secretariat-emails.png' },
-      { slug: 'secretariat-presentations', titre: "Créer des présentations percutantes", pitch: "Produisez des supports clairs et convaincants sans designer.", arguments: ["Structure et contenu générés", "Mise en valeur des messages clés", "Gain de temps considérable"], format: 'Hybride', niveau: 'Initiation', prix_fcfa: 60000, cover: '/secteurs/secretariat-presentations.png' },
-      { slug: 'secretariat-organisation-ia', titre: "S'organiser et gérer son temps avec l'IA", pitch: "Priorisez, planifiez et automatisez les tâches répétitives.", arguments: ["Agenda et priorités optimisés", "Modèles et automatisations simples", "Moins de stress, plus d'efficacité"], format: 'En ligne', niveau: 'Initiation', prix_fcfa: 50000, cover: '/secteurs/secretariat-organisation.png' },
-    ],
+    accroche: "E-mails, comptes rendus et agenda : l'assistanat augmenté",
+    description: "Traiter sa boîte de réception, produire un compte rendu, préparer un déplacement : les réflexes IA de l'assistant(e) d'aujourd'hui.",
+    formation: {
+      titre: "L'assistant(e) augmenté(e) : e-mails, comptes rendus, agenda",
+      promesse: "Répondez aux e-mails difficiles en deux minutes et sortez un compte rendu propre avant la fin de la réunion.",
+      outils: [
+        { nom: 'ChatGPT', acces: 'gratuit' },
+        { nom: 'Gemini dans Gmail', acces: 'gratuit' },
+        { nom: 'Extension Claude pour Chrome', acces: 'payant' },
+      ],
+      cas: [
+        { titre: 'Traiter un e-mail difficile avec la méthode Contexte, Objectif, Ton, Format', outil: 'ChatGPT' },
+        { titre: 'Trier et résumer sa boîte de réception directement dans le navigateur', outil: 'Gemini dans Gmail' },
+        { titre: 'Transformer une note vocale de réunion en compte rendu propre', outil: 'ChatGPT' },
+        { titre: 'Préparer un déplacement : programme, courriers, liste de contrôle', outil: 'ChatGPT' },
+        { titre: "Mettre en forme une présentation à partir d'un brouillon", outil: 'Gemini' },
+      ],
+    },
   },
   {
     slug: 'comptabilite-finance',
     label: 'Comptabilité & Finance',
     iconName: 'Calculator',
-    couleur: '#16A34A',
+    couleur: '#059669',
     cover: '/secteurs/comptabilite.png',
-    accroche: "Pilotez vos chiffres et vos clients avec l'IA",
-    description: "Devis, factures, tableaux de bord, prévisions : l'IA fiabilise et accélère la gestion comptable et financière.",
-    outils: ['devis-facture', 'business-plan', 'etude-marche', 'resume-document'],
-    formations: [
-      { slug: 'compta-devis-factures', titre: "Devis & factures professionnels avec l'IA", pitch: "Générez des documents commerciaux soignés en quelques clics.", arguments: ["Devis et factures prêts à envoyer", "Moins d'erreurs de saisie", "Image professionnelle renforcée"], format: 'En ligne', niveau: 'Initiation', prix_fcfa: 55000, cover: '/secteurs/compta-devis.png' },
-      { slug: 'compta-tableaux-bord', titre: "Tableaux de bord financiers & pilotage", pitch: "Suivez votre trésorerie et vos indicateurs pour mieux décider.", arguments: ["Indicateurs clés visualisés", "Anticipation des risques de trésorerie", "Décisions appuyées sur les chiffres"], format: 'Hybride', niveau: 'Intermédiaire', prix_fcfa: 110000, cover: '/secteurs/compta-tableaux.png' },
-      { slug: 'compta-previsionnel-ia', titre: "Construire un prévisionnel et un business plan", pitch: "Bâtissez des prévisions crédibles pour convaincre banques et partenaires.", arguments: ["Business plan structuré et chiffré", "Hypothèses réalistes", "Dossiers de financement plus solides"], format: 'En ligne', niveau: 'Intermédiaire', prix_fcfa: 95000, cover: '/secteurs/compta-previsionnel.png' },
-      { slug: 'compta-automatisation', titre: "Automatiser la saisie et le suivi comptable", pitch: "Réduisez les tâches manuelles et fiabilisez vos données.", arguments: ["Moins de saisie répétitive", "Données plus fiables", "Clôtures plus rapides"], format: 'Hybride', niveau: 'Intermédiaire', prix_fcfa: 100000, cover: '/secteurs/compta-automatisation.png' },
-    ],
+    accroche: 'Excel, factures et relances sans y passer ses soirées',
+    description: "Formules, exports bancaires, relances d'impayés, trésorerie : les tâches chiffrées accélérées par l'IA, toujours vérifiées par vous.",
+    formation: {
+      titre: 'Excel, factures et relances sans y passer ses soirées',
+      promesse: "Décrivez ce que vous voulez en français : l'IA écrit la formule, nettoie le fichier et prépare la relance.",
+      outils: [
+        { nom: 'ChatGPT', acces: 'gratuit' },
+        { nom: 'Google Sheets', acces: 'gratuit' },
+        { nom: 'Copilot', acces: 'gratuit' },
+      ],
+      cas: [
+        { titre: 'Faire écrire une formule Excel en la décrivant en français', outil: 'ChatGPT' },
+        { titre: 'Nettoyer un export bancaire et catégoriser les dépenses', outil: 'Google Sheets' },
+        { titre: 'Rédiger trois niveaux de relance pour une facture impayée', outil: 'ChatGPT' },
+        { titre: 'Monter un tableau de trésorerie mensuel simple', outil: 'Google Sheets' },
+        { titre: 'Expliquer un bilan à un dirigeant non comptable', outil: 'Copilot' },
+      ],
+      garde_fou: "L'IA se trompe parfois dans les calculs : chaque chiffre se recontrôle dans le tableur.",
+    },
   },
   {
     slug: 'commerce-vente',
     label: 'Commerce & Vente',
     iconName: 'ShoppingBag',
-    couleur: '#F59E0B',
+    couleur: '#EA580C',
     cover: '/secteurs/commerce.png',
-    accroche: "Vendez plus grâce à l'IA, en ligne comme en boutique",
-    description: "Argumentaires, prospection, présentations clients, réseaux : l'IA booste votre force de vente.",
-    outils: ['pitch-html', 'posts-reseaux', 'devis-facture', 'etude-marche'],
-    formations: [
-      { slug: 'vente-prospection-ia', titre: "Prospecter et convaincre avec l'IA", pitch: "Trouvez les bons arguments et personnalisez vos approches.", arguments: ["Argumentaires de vente percutants", "Messages personnalisés à grande échelle", "Taux de transformation amélioré"], format: 'Hybride', niveau: 'Initiation', prix_fcfa: 75000, cover: '/secteurs/vente-prospection.png' },
-      { slug: 'vente-presentation-projet', titre: "Présenter un produit ou un projet (HTML/pitch)", pitch: "Créez des présentations commerciales modernes et convaincantes.", arguments: ["Pitchs professionnels en minutes", "Présentation web partageable", "Plus d'impact face aux clients"], format: 'En ligne', niveau: 'Initiation', prix_fcfa: 70000, cover: '/secteurs/vente-pitch.png' },
-      { slug: 'vente-reseaux-sociaux', titre: "Vendre sur les réseaux sociaux avec l'IA", pitch: "Produisez du contenu qui attire et convertit, régulièrement.", arguments: ["Posts et visuels générés", "Calendrier de contenu tenu", "Plus de clients via le digital"], format: 'En ligne', niveau: 'Initiation', prix_fcfa: 65000, cover: '/secteurs/vente-reseaux.png' },
-      { slug: 'vente-etude-marche', titre: "Étudier son marché et ses clients", pitch: "Comprenez votre marché pour mieux cibler et vendre.", arguments: ["Analyse de marché structurée", "Cibles et positionnement clarifiés", "Décisions commerciales éclairées"], format: 'En ligne', niveau: 'Intermédiaire', prix_fcfa: 80000, cover: '/secteurs/vente-marche.png' },
-    ],
+    accroche: 'Prospectez et relancez sur WhatsApp avec méthode',
+    description: "Messages de prospection, réponses aux objections, fiches produit, relances : vendez plus avec les outils que vos clients utilisent déjà.",
+    formation: {
+      titre: "Prospecter et relancer sur WhatsApp avec l'IA",
+      promesse: "Des messages qui obtiennent une réponse, des objections préparées et des relances qui ne se perdent plus.",
+      outils: [
+        { nom: 'ChatGPT', acces: 'gratuit' },
+        { nom: 'WhatsApp Business', acces: 'gratuit' },
+        { nom: 'Canva', acces: 'gratuit' },
+      ],
+      cas: [
+        { titre: 'Écrire un message de prospection WhatsApp qui obtient une réponse', outil: 'ChatGPT' },
+        { titre: 'Préparer les réponses aux cinq objections les plus fréquentes', outil: 'ChatGPT' },
+        { titre: 'Créer une fiche produit et son visuel', outil: 'Canva' },
+        { titre: 'Relancer un devis resté sans réponse', outil: 'WhatsApp Business' },
+        { titre: 'Analyser ses ventes du mois et choisir trois actions', outil: 'ChatGPT' },
+      ],
+    },
   },
   {
     slug: 'communication-marketing',
     label: 'Communication & Marketing',
     iconName: 'Megaphone',
-    couleur: '#0EA5E9',
+    couleur: '#E11D48',
     cover: '/secteurs/communication.png',
-    accroche: "Créez du contenu et une marque qui marquent",
-    description: "Contenus, identité de marque, sites vitrines, campagnes : l'IA démultiplie votre communication.",
-    outils: ['posts-reseaux', 'identite-marque', 'site-vitrine', 'pitch-html'],
-    formations: [
-      { slug: 'com-contenu-ia', titre: "Produire du contenu pro avec l'IA", pitch: "Alimentez vos canaux en contenus de qualité, sans y passer vos journées.", arguments: ["Articles, posts et visuels générés", "Ligne éditoriale tenue", "Présence en ligne renforcée"], format: 'En ligne', niveau: 'Initiation', prix_fcfa: 70000, cover: '/secteurs/com-contenu.png' },
-      { slug: 'com-identite-marque', titre: "Construire son identité de marque", pitch: "Définissez une marque cohérente et mémorable.", arguments: ["Plateforme de marque claire", "Ton et messages alignés", "Image professionnelle"], format: 'Hybride', niveau: 'Initiation', prix_fcfa: 80000, cover: '/secteurs/com-marque.png' },
-      { slug: 'com-site-vitrine', titre: "Créer un site vitrine sans coder", pitch: "Mettez votre activité en ligne rapidement, à moindre coût.", arguments: ["Site vitrine généré", "Présence web professionnelle", "Plus de visibilité et de leads"], format: 'En ligne', niveau: 'Initiation', prix_fcfa: 85000, cover: '/secteurs/com-site.png' },
-      { slug: 'com-campagnes-ia', titre: "Campagnes marketing pilotées par l'IA", pitch: "Concevez et mesurez des campagnes plus efficaces.", arguments: ["Messages et ciblage optimisés", "Suivi des performances", "Meilleur retour sur investissement"], format: 'Hybride', niveau: 'Intermédiaire', prix_fcfa: 100000, cover: '/secteurs/com-campagnes.png' },
-    ],
+    accroche: 'Un mois de contenus en une après-midi',
+    description: "Calendrier éditorial, posts, visuels, vidéos courtes : produisez régulièrement sans équipe ni budget d'agence.",
+    formation: {
+      titre: 'Un mois de contenus en une après-midi',
+      promesse: "Planifiez, rédigez et illustrez vos publications du mois, puis ajustez à partir de vos statistiques.",
+      outils: [
+        { nom: 'ChatGPT', acces: 'gratuit' },
+        { nom: 'Canva', acces: 'gratuit' },
+        { nom: 'CapCut', acces: 'gratuit' },
+      ],
+      cas: [
+        { titre: "Bâtir un calendrier éditorial d'un mois", outil: 'ChatGPT' },
+        { titre: 'Décliner une idée en post, story et script de vidéo courte', outil: 'ChatGPT' },
+        { titre: "Créer les visuels à partir d'un modèle", outil: 'Canva' },
+        { titre: 'Monter une vidéo courte sous-titrée', outil: 'CapCut' },
+        { titre: 'Répondre aux commentaires et aux avis négatifs', outil: 'ChatGPT' },
+      ],
+    },
   },
   {
     slug: 'education',
     label: 'Éducation & Enseignement',
     iconName: 'GraduationCap',
-    couleur: '#2563EB',
+    couleur: '#0891B2',
     cover: '/secteurs/education.png',
-    accroche: "Enseignez et accompagnez mieux avec l'IA",
-    description: "Préparation de cours, exercices, correction, fiches : l'IA fait gagner du temps aux enseignants et formateurs.",
-    outils: ['fiches-revision', 'explique-cours', 'correcteur-dissertation', 'plan-memoire'],
-    formations: [
-      { slug: 'edu-preparer-cours', titre: "Préparer ses cours et supports avec l'IA", pitch: "Concevez cours, exercices et évaluations en un temps record.", arguments: ["Supports pédagogiques générés", "Différenciation facilitée", "Plus de temps pour les élèves"], format: 'Hybride', niveau: 'Initiation', prix_fcfa: 60000, cover: '/secteurs/edu-cours.png' },
-      { slug: 'edu-correction-ia', titre: "Corriger et évaluer plus vite", pitch: "Accélérez la correction tout en restant juste et précis.", arguments: ["Correction assistée et homogène", "Feedback détaillé aux élèves", "Charge de travail allégée"], format: 'En ligne', niveau: 'Initiation', prix_fcfa: 55000, cover: '/secteurs/edu-correction.png' },
-      { slug: 'edu-engager-eleves', titre: "Rendre ses cours vivants (quiz, Kahoot)", pitch: "Engagez vos apprenants avec des activités ludiques générées par l'IA.", arguments: ["Quiz et jeux en classe", "Plus de participation", "Meilleure mémorisation"], format: 'Hybride', niveau: 'Initiation', prix_fcfa: 65000, cover: '/secteurs/edu-engagement.png' },
-      { slug: 'edu-accompagner-memoire', titre: "Accompagner mémoires et projets", pitch: "Aidez vos étudiants à structurer et réussir leurs travaux.", arguments: ["Plans de mémoire structurés", "Méthodologie de recherche", "Meilleurs taux de réussite"], format: 'En ligne', niveau: 'Intermédiaire', prix_fcfa: 70000, cover: '/secteurs/edu-memoire.png' },
-    ],
+    accroche: 'Préparez, animez et corrigez vos cours plus vite',
+    description: "Fiches de préparation, exercices par niveau, quiz, correction : plus de temps pour les élèves, moins pour la préparation.",
+    formation: {
+      titre: "Préparer, animer et corriger ses cours avec l'IA",
+      promesse: "Une séance prête en vingt minutes, des exercices sur trois niveaux et des copies commentées sans y laisser son week-end.",
+      outils: [
+        { nom: 'ChatGPT', acces: 'gratuit' },
+        { nom: 'NotebookLM', acces: 'gratuit' },
+        { nom: 'Kahoot', acces: 'gratuit' },
+      ],
+      cas: [
+        { titre: 'Créer une fiche de préparation conforme au programme', outil: 'ChatGPT' },
+        { titre: 'Générer des exercices sur trois niveaux de difficulté', outil: 'ChatGPT' },
+        { titre: "Fabriquer un quiz interactif à partir d'une leçon", outil: 'Kahoot' },
+        { titre: 'Corriger des copies avec une grille et un commentaire personnalisé', outil: 'ChatGPT' },
+        { titre: 'Résumer un manuel et en tirer une fiche de révision', outil: 'NotebookLM' },
+      ],
+    },
   },
   {
     slug: 'sante',
@@ -145,63 +220,77 @@ export const SECTEURS: Secteur[] = [
     iconName: 'HeartPulse',
     couleur: '#DC2626',
     cover: '/secteurs/sante.png',
-    accroche: "Gagnez du temps administratif pour vos patients",
-    description: "Comptes-rendus, courriers, vulgarisation, organisation : l'IA réduit la charge administrative du personnel de santé.",
-    outils: ['resume-document', 'courrier-admin', 'communication-rh', 'explique-cours'],
-    formations: [
-      { slug: 'sante-admin-ia', titre: "Réduire la charge administrative avec l'IA", pitch: "Déléguez courriers et comptes-rendus pour vous recentrer sur le soin.", arguments: ["Comptes-rendus plus rapides", "Courriers de liaison facilités", "Plus de temps patient"], format: 'En ligne', niveau: 'Initiation', prix_fcfa: 65000, cover: '/secteurs/sante-admin.png' },
-      { slug: 'sante-vulgarisation', titre: "Expliquer et éduquer les patients", pitch: "Produisez des supports d'information clairs et accessibles.", arguments: ["Explications simples et fiables", "Supports d'éducation patient", "Meilleure observance"], format: 'En ligne', niveau: 'Initiation', prix_fcfa: 60000, cover: '/secteurs/sante-vulgarisation.png' },
-      { slug: 'sante-organisation-cabinet', titre: "Digitaliser et organiser son cabinet/structure", pitch: "Simplifiez la gestion de votre activité de santé.", arguments: ["Process et rappels simplifiés", "Communication patients fluidifiée", "Activité mieux organisée"], format: 'Hybride', niveau: 'Initiation', prix_fcfa: 90000, cover: '/secteurs/sante-organisation.png' },
-      { slug: 'sante-veille-formation', titre: "Se former en continu avec l'IA", pitch: "Restez à jour et synthétisez l'information médicale utile.", arguments: ["Synthèses de documents", "Veille facilitée", "Montée en compétence continue"], format: 'En ligne', niveau: 'Intermédiaire', prix_fcfa: 70000, cover: '/secteurs/sante-veille.png' },
-    ],
+    accroche: 'Moins de paperasse, plus de temps pour les patients',
+    description: "Fiches de conseils, affiches de sensibilisation, plannings, courriers : l'IA au service de l'organisation, jamais du diagnostic.",
+    formation: {
+      titre: 'Moins de paperasse, plus de temps pour les patients',
+      promesse: "Allégez l'administratif de votre structure et expliquez mieux, avec des supports clairs pour vos patients.",
+      outils: [
+        { nom: 'ChatGPT', acces: 'gratuit' },
+        { nom: 'Canva', acces: 'gratuit' },
+        { nom: 'Google Sheets', acces: 'gratuit' },
+      ],
+      cas: [
+        { titre: 'Rédiger une fiche de conseils patient en langage simple', outil: 'ChatGPT' },
+        { titre: "Créer une affiche de sensibilisation pour la salle d'attente", outil: 'Canva' },
+        { titre: 'Organiser le planning des gardes et des rendez-vous', outil: 'Google Sheets' },
+        { titre: "Rédiger un courrier de liaison ou un rapport d'activité", outil: 'ChatGPT' },
+        { titre: 'Résumer un article médical pour la formation continue', outil: 'ChatGPT' },
+      ],
+      garde_fou: "Aucune donnée nominative de patient dans un outil IA, et aucun diagnostic confié à l'IA.",
+    },
   },
   {
     slug: 'agriculture',
     label: 'Agriculture & Agro-business',
     iconName: 'Sprout',
-    couleur: '#16A34A',
+    couleur: '#65A30D',
     cover: '/secteurs/agriculture.png',
-    accroche: "Modernisez votre exploitation et vendez mieux avec l'IA",
-    description: "Gestion d'exploitation, financement, commercialisation : l'IA aide les agriculteurs et agripreneurs à produire et vendre plus efficacement.",
-    outils: ['business-plan', 'etude-marche', 'devis-facture', 'posts-reseaux'],
-    formations: [
-      { slug: 'agri-gestion-exploitation', titre: "Piloter son exploitation avec l'IA", pitch: "Suivez vos cultures, votre élevage et vos coûts pour mieux décider.", arguments: ["Suivi simple des récoltes et dépenses", "Décisions appuyées sur les données", "Meilleure rentabilité"], format: 'Hybride', niveau: 'Initiation', prix_fcfa: 70000, cover: '/secteurs/agri-gestion.png' },
-      { slug: 'agri-vendre-produits', titre: "Vendre ses produits agricoles avec l'IA", pitch: "Trouvez des acheteurs et valorisez vos produits, en ligne et sur les marchés.", arguments: ["Annonces et visuels attractifs", "Nouveaux canaux de vente", "Meilleurs prix de vente"], format: 'En ligne', niveau: 'Initiation', prix_fcfa: 60000, cover: '/secteurs/agri-vente.png' },
-      { slug: 'agri-financement-projet', titre: "Monter un projet agricole finançable", pitch: "Construisez un dossier solide pour obtenir un financement.", arguments: ["Business plan agricole structuré", "Prévisions crédibles", "Dossier prêt pour banque/bailleur"], format: 'En ligne', niveau: 'Intermédiaire', prix_fcfa: 85000, cover: '/secteurs/agri-financement.png' },
-      { slug: 'agri-decider-ia', titre: "S'informer et décider avec l'IA", pitch: "Accédez à des conseils et synthèses utiles pour votre activité.", arguments: ["Informations vulgarisées", "Réponses à vos questions techniques", "Gain de temps"], format: 'En ligne', niveau: 'Initiation', prix_fcfa: 50000, cover: '/secteurs/agri-decider.png' },
-    ],
+    accroche: 'Gérez et vendez votre production avec votre téléphone',
+    description: "Reconnaître une maladie, tenir ses comptes à la voix, fixer son prix, vendre sur WhatsApp : tout se fait depuis un simple téléphone.",
+    formation: {
+      titre: 'Gérer et vendre sa production avec son téléphone',
+      promesse: "Un téléphone suffit : photo, voix et WhatsApp pour mieux suivre ses cultures, ses comptes et ses ventes.",
+      outils: [
+        { nom: 'ChatGPT (mode vocal)', acces: 'gratuit' },
+        { nom: 'Google Lens', acces: 'gratuit' },
+        { nom: 'WhatsApp Business', acces: 'gratuit' },
+      ],
+      cas: [
+        { titre: "Identifier une maladie de plante à partir d'une photo, puis vérifier auprès d'un technicien", outil: 'Google Lens' },
+        { titre: 'Tenir son cahier de charges et recettes en dictant à la voix', outil: 'ChatGPT (mode vocal)' },
+        { titre: 'Calculer son coût de revient et son prix de vente', outil: 'ChatGPT' },
+        { titre: 'Rédiger une annonce de vente et un catalogue', outil: 'WhatsApp Business' },
+        { titre: 'Préparer un dossier de demande de financement', outil: 'ChatGPT' },
+      ],
+      garde_fou: "Un diagnostic par photo est une piste, pas une certitude : confirmez avant de traiter.",
+    },
   },
   {
     slug: 'entrepreneuriat',
     label: 'Entrepreneuriat & Startups',
     iconName: 'Rocket',
-    couleur: '#e97e42',
+    couleur: '#D97706',
     cover: '/secteurs/entrepreneuriat.png',
-    accroche: "Lancez et développez votre activité avec l'IA",
-    description: "De l'idée au premier client : l'IA accompagne les porteurs de projet à chaque étape de la création d'entreprise.",
-    outils: ['business-plan', 'creation-entreprise', 'pitch-html', 'etude-marche', 'identite-marque'],
-    formations: [
-      { slug: 'entr-idee-business-plan', titre: "De l'idée au business plan avec l'IA", pitch: "Transformez votre idée en projet structuré et chiffré.", arguments: ["Business plan complet généré", "Modèle économique clarifié", "Vision claire pour avancer"], format: 'Hybride', niveau: 'Initiation', prix_fcfa: 80000, cover: '/secteurs/entr-business-plan.png' },
-      { slug: 'entr-creer-entreprise', titre: "Créer et structurer son entreprise", pitch: "Maîtrisez les démarches et posez des bases solides.", arguments: ["Étapes de création clarifiées", "Documents et statuts facilités", "Démarrage serein"], format: 'En ligne', niveau: 'Initiation', prix_fcfa: 70000, cover: '/secteurs/entr-creation.png' },
-      { slug: 'entr-pitch-financement', titre: "Pitcher et convaincre les investisseurs", pitch: "Créez un pitch percutant pour lever des fonds ou des partenaires.", arguments: ["Pitch deck professionnel", "Arguments financiers solides", "Plus de crédibilité"], format: 'En ligne', niveau: 'Intermédiaire', prix_fcfa: 75000, cover: '/secteurs/entr-pitch.png' },
-      { slug: 'entr-premiers-clients', titre: "Trouver ses premiers clients avec l'IA", pitch: "Lancez votre marketing et décrochez vos premières ventes.", arguments: ["Contenu et offres générés", "Canaux d'acquisition activés", "Premiers revenus plus vite"], format: 'Hybride', niveau: 'Initiation', prix_fcfa: 70000, cover: '/secteurs/entr-clients.png' },
-    ],
-  },
-  {
-    slug: 'dirigeant',
-    label: "Gérant & Dirigeant d'entreprise",
-    iconName: 'Briefcase',
-    couleur: '#4F46E5',
-    cover: '/secteurs/dirigeant.png',
-    accroche: "Pilotez et développez votre entreprise avec l'IA",
-    description: "Décisions, productivité, stratégie, management : l'IA donne aux dirigeants les moyens de piloter et faire croître leur entreprise.",
-    outils: ['business-plan', 'etude-marche', 'devis-facture', 'resume-document', 'pitch-html'],
-    formations: [
-      { slug: 'dir-piloter-entreprise', titre: "Piloter son entreprise avec l'IA", pitch: "Suivez vos indicateurs et prenez de meilleures décisions, plus vite.", arguments: ["Tableaux de bord clairs", "Décisions appuyées sur les chiffres", "Vision d'ensemble en temps réel"], format: 'Hybride', niveau: 'Initiation', prix_fcfa: 95000, cover: '/secteurs/dir-piloter.png' },
-      { slug: 'dir-productivite', titre: "Gagner en productivité avec l'IA", pitch: "Automatisez les tâches à faible valeur et concentrez-vous sur l'essentiel.", arguments: ["Tâches répétitives automatisées", "Temps libéré pour la stratégie", "Équipe plus efficace"], format: 'Hybride', niveau: 'Intermédiaire', prix_fcfa: 100000, cover: '/secteurs/dir-productivite.png' },
-      { slug: 'dir-strategie-croissance', titre: "Stratégie & croissance de l'entreprise", pitch: "Analysez votre marché et bâtissez votre plan de développement.", arguments: ["Étude de marché structurée", "Plan de croissance chiffré", "Opportunités identifiées"], format: 'En ligne', niveau: 'Intermédiaire', prix_fcfa: 90000, cover: '/secteurs/dir-strategie.png' },
-      { slug: 'dir-manager-equipes', titre: "Manager et fédérer ses équipes", pitch: "Communiquez, organisez et motivez vos équipes plus efficacement.", arguments: ["Communication interne claire", "Organisation optimisée", "Équipes engagées"], format: 'Hybride', niveau: 'Initiation', prix_fcfa: 80000, cover: '/secteurs/dir-manager.png' },
-    ],
+    accroche: "De l'idée au premier client",
+    description: "Tester son idée, chiffrer son projet, pitcher et lancer sa première offre : l'IA comme associé de démarrage.",
+    formation: {
+      titre: "De l'idée au premier client avec l'IA",
+      promesse: "Validez votre idée auprès de vrais clients, posez vos chiffres et lancez une première offre en quelques semaines.",
+      outils: [
+        { nom: 'ChatGPT', acces: 'gratuit' },
+        { nom: 'Gemini', acces: 'gratuit' },
+        { nom: 'Gamma (crédits offerts)', acces: 'gratuit' },
+        { nom: 'Canva', acces: 'gratuit' },
+      ],
+      cas: [
+        { titre: 'Tester une idée avec dix questions à poser à de vrais clients', outil: 'ChatGPT' },
+        { titre: "Rédiger un business plan d'une page", outil: 'Gemini' },
+        { titre: 'Calculer son seuil de rentabilité', outil: 'ChatGPT' },
+        { titre: 'Créer un pitch de trois minutes et ses diapositives', outil: 'Gamma' },
+        { titre: 'Lancer sa première offre sur WhatsApp et Facebook', outil: 'Canva' },
+      ],
+    },
   },
   {
     slug: 'services',
@@ -209,15 +298,25 @@ export const SECTEURS: Secteur[] = [
     iconName: 'Wrench',
     couleur: '#0EA5E9',
     cover: '/secteurs/services.png',
-    accroche: "Développez votre activité de services grâce à l'IA",
-    description: "Prestataires, artisans, indépendants : devis, visibilité en ligne, organisation et prospection assistés par l'IA.",
-    outils: ['devis-facture', 'site-vitrine', 'posts-reseaux', 'courrier-admin'],
-    formations: [
-      { slug: 'serv-devis-clients', titre: "Devis, factures et relances clients", pitch: "Gérez vos documents commerciaux et encaissez plus vite.", arguments: ["Devis et factures pro en minutes", "Relances automatisées", "Moins d'impayés"], format: 'En ligne', niveau: 'Initiation', prix_fcfa: 50000, cover: '/secteurs/serv-devis.png' },
-      { slug: 'serv-presence-ligne', titre: "Être visible en ligne (site, réseaux, avis)", pitch: "Attirez des clients grâce à une présence digitale soignée.", arguments: ["Site vitrine et fiche en ligne", "Contenu pour les réseaux", "Plus de demandes de devis"], format: 'En ligne', niveau: 'Initiation', prix_fcfa: 75000, cover: '/secteurs/serv-presence.png' },
-      { slug: 'serv-organisation', titre: "Organiser son activité et ses rendez-vous", pitch: "Gagnez du temps sur l'administratif et la planification.", arguments: ["Agenda et rappels optimisés", "Process simplifiés", "Plus de temps facturable"], format: 'En ligne', niveau: 'Initiation', prix_fcfa: 55000, cover: '/secteurs/serv-organisation.png' },
-      { slug: 'serv-prospection', titre: "Trouver et fidéliser des clients", pitch: "Développez votre clientèle et faites revenir vos clients.", arguments: ["Messages de prospection efficaces", "Suivi et fidélisation", "Bouche-à-oreille amplifié"], format: 'Hybride', niveau: 'Initiation', prix_fcfa: 65000, cover: '/secteurs/serv-prospection.png' },
-    ],
+    accroche: 'Devis, clients et visibilité depuis son téléphone',
+    description: "Prestataires, artisans, indépendants : des devis propres, des clients mieux suivis et une présence en ligne qui ramène du travail.",
+    formation: {
+      titre: 'Devis, clients et visibilité depuis son téléphone',
+      promesse: "Un devis propre dicté à la voix, des réponses automatiques aux clients et des avis qui font venir les suivants.",
+      outils: [
+        { nom: 'ChatGPT', acces: 'gratuit' },
+        { nom: 'WhatsApp Business', acces: 'gratuit' },
+        { nom: 'Fiche Google', acces: 'gratuit' },
+        { nom: 'Canva', acces: 'gratuit' },
+      ],
+      cas: [
+        { titre: "Faire un devis propre à partir d'une note vocale", outil: 'ChatGPT' },
+        { titre: 'Programmer des réponses automatiques et un catalogue', outil: 'WhatsApp Business' },
+        { titre: 'Créer sa fiche Google et demander des avis', outil: 'Fiche Google' },
+        { titre: 'Publier des photos avant/après avec une légende qui vend', outil: 'Canva' },
+        { titre: 'Relancer un client et obtenir une recommandation', outil: 'ChatGPT' },
+      ],
+    },
   },
 ]
 
