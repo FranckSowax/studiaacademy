@@ -93,6 +93,8 @@ export interface PresentielSession {
   ville: string
   places_total: number
   places_reservees: number
+  /** Affiché dans l'agenda de la page d'accueil ; absent tant que la migration n'est pas appliquée (= affiché). */
+  afficher_accueil?: boolean
   prix_fcfa: number
   formateur_nom: string | null
   is_published: boolean

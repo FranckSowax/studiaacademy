@@ -29,6 +29,7 @@ import { HomeHeroSlider } from '@/components/home/HomeHeroSlider'
 import { createClient } from '@/lib/supabase/server'
 import { formationsIA, WHATSAPP_NUMBER } from '@/lib/formations-ia'
 import { getSessionsBySlug } from '@/lib/formations-ia-data'
+import { COLONNES_REGLAGES, estAfficheAccueil, normaliserReglages } from '@/lib/home/event-settings'
 import { MAX_HOME_SLIDES, type HomeSlide } from '@/lib/home/slides'
 import { modules } from '@/lib/modules'
 import { formatNumber } from '@/lib/utils'
@@ -49,7 +50,8 @@ interface HomeEvent {
 }
 
 const TZ = 'Africa/Libreville'
-const MAX_EVENTS = 5
+// Lus en base avant le tri « affiché sur l'accueil » ; le nombre affiché vient des réglages.
+const MAX_SESSIONS_LUES = 50
 
 /** Borne basse de l'agenda : une session commencée depuis moins de 24 h reste affichée. */
 const sinceYesterdayIso = () => new Date(Date.now() - 86400000).toISOString()
@@ -237,7 +239,7 @@ function EventRow({ event }: { event: HomeEvent }) {
 export default async function HomePage() {
   const supabase = await createClient()
 
-  const [slidesRes, formationsRes, sessionsRes, fiaSessions] = await Promise.all([
+  const [slidesRes, formationsRes, sessionsRes, fiaSessions, reglagesRes] = await Promise.all([
     supabase
       .from('home_slides')
       .select('id, ordre, titre, sous_titre, texte, cta_label, cta_href, image_url, is_active')
@@ -257,14 +259,18 @@ export default async function HomePage() {
       .eq('is_published', true)
       .gte('date_debut', sinceYesterdayIso())
       .order('date_debut', { ascending: true })
-      .limit(MAX_EVENTS),
+      .limit(MAX_SESSIONS_LUES),
     getSessionsBySlug(),
+    supabase.from('home_settings').select(COLONNES_REGLAGES).maybeSingle(),
   ])
+
+  // Réglages de /admin/accueil ; valeurs par défaut si la table n'existe pas encore.
+  const reglages = normaliserReglages(reglagesRes.data)
 
   // Table absente ou vide → hero par défaut (recherche) plutôt qu'une page cassée.
   const slides = (slidesRes.data ?? []) as HomeSlide[]
   const formations = (formationsRes.data ?? []) as CatalogFormation[]
-  const sessions = (sessionsRes.data ?? []) as PresentielSession[]
+  const sessions = ((sessionsRes.data ?? []) as PresentielSession[]).filter((s) => estAfficheAccueil(s))
   const featured = formations[0]
   const popularCategories = [...new Set(formations.map((f) => f.categorie).filter(Boolean) as string[])].slice(0, 4)
 
@@ -282,7 +288,7 @@ export default async function HomePage() {
     prixLabel: prixLabel(s.prix_fcfa),
     href: '/formations/presentiel',
   }))
-  for (const f of formationsIA) {
+  for (const f of reglages.journeesIa ? formationsIA : []) {
     // Le repli statique (base injoignable) peut contenir des dates passées : on les écarte.
     const list = (fiaSessions[f.slug] ?? []).filter((s) => s.date >= todayIso)
     if (list[0]) nextFiaDate[f.slug] = new Date(list[0].date)
@@ -301,7 +307,7 @@ export default async function HomePage() {
     }
   }
   events.sort((a, b) => a.date.getTime() - b.date.getTime())
-  const agenda = events.slice(0, MAX_EVENTS)
+  const agenda = events.slice(0, reglages.max)
   const nextEvent = agenda[0]
 
   const pillars = [
@@ -565,7 +571,7 @@ export default async function HomePage() {
             action={{ href: '/formations/presentiel', label: 'Tout le planning' }}
           />
 
-          <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className={`grid gap-8 ${reglages.journeesIa ? 'lg:grid-cols-[1.1fr_0.9fr]' : ''}`}>
             {/* Agenda */}
             <div>
               <h3 className="mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-gray-500">
@@ -588,7 +594,8 @@ export default async function HomePage() {
               )}
             </div>
 
-            {/* Programmes des journées IA */}
+            {/* Programmes des journées IA (masquables depuis /admin/accueil) */}
+            {reglages.journeesIa && (
             <div>
               <h3 className="mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-gray-500">
                 <Users className="h-4 w-4 text-[#e97e42]" />
@@ -637,6 +644,7 @@ export default async function HomePage() {
                 <ArrowRight className="ml-3 h-5 w-5 flex-shrink-0 text-[#e97e42]" />
               </Link>
             </div>
+            )}
           </div>
         </div>
       </section>
