@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { sendWhatsApp } from '@/lib/whatsapp'
 import { LIVE_CODE_FORMAT } from '@/lib/studia-live/lancement'
 import { resoudreVideoIntro } from '@/lib/formations/intro-video'
+import { estSecteurValide } from '@/lib/formations/secteur-link'
 import type { LessonType } from '@/types/formation'
 
 async function assertAdmin() {
@@ -107,6 +108,8 @@ export async function updateFormation(
     formateur_bio?: string
     /** Vidéo de présentation (YouTube, Vimeo, .mp4/.webm) ; chaîne vide pour la retirer. */
     intro_video_url?: string
+    /** Secteur dont c'est la formation métier ; chaîne vide pour la détacher. */
+    secteur_slug?: string
   }
 ): Promise<{ success: boolean; error?: string }> {
   const { ok, supabase } = await assertAdmin()
@@ -143,6 +146,25 @@ export async function updateFormation(
       }
     }
     maj.intro_video_url = url || null
+  }
+  if (input.secteur_slug !== undefined) {
+    const secteur = input.secteur_slug.trim()
+    if (secteur && !estSecteurValide(secteur)) return { success: false, error: 'Secteur inconnu.' }
+    if (secteur) {
+      // WHY: une seule formation par secteur (index unique) — l'ancienne est détachée d'abord.
+      const { error: detachError } = await supabase
+        .from('formations')
+        .update({ secteur_slug: null })
+        .eq('secteur_slug', secteur)
+        .neq('id', id)
+      if (detachError) {
+        return {
+          success: false,
+          error: 'Rattachement au secteur impossible : la migration « formations_secteur » doit être appliquée.',
+        }
+      }
+    }
+    maj.secteur_slug = secteur || null
   }
   if (input.sous_titre !== undefined) maj.sous_titre = texte(input.sous_titre, 240)
   if (input.description !== undefined) maj.description = texte(input.description, 10_000)

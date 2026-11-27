@@ -8,6 +8,7 @@ import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
 import { getSecteur, SECTEURS } from '@/lib/secteurs'
 import { WHATSAPP_NUMBER } from '@/lib/formations-ia'
+import { getFormationsParSecteur } from '@/lib/formations/secteur-formations'
 import {
   ArrowLeft, ArrowRight, Calculator, CheckCircle2, ChevronRight, ClipboardList, GraduationCap,
   HeartPulse, Landmark, MapPin, Megaphone, MessageCircle, Rocket, ShieldCheck, ShoppingBag,
@@ -32,6 +33,8 @@ export default async function SecteurPage({ params }: { params: Promise<{ slug: 
   if (!secteur) notFound()
   const SectorIcon = iconMap[secteur.iconName] ?? Sparkles
   const f = secteur.formation
+  // Formation réelle créée dans l'admin et rattachée à ce secteur (absente tant qu'elle n'est pas publiée).
+  const liee = (await getFormationsParSecteur()).get(secteur.slug)
   const waText = encodeURIComponent(
     `Bonjour Studia Academy, je suis intéressé(e) par la formation « ${f.titre} » (${secteur.label}).`,
   )
@@ -57,7 +60,22 @@ export default async function SecteurPage({ params }: { params: Promise<{ slug: 
                 </span>
                 <h1 className="mt-4 font-heading text-3xl font-extrabold leading-tight md:text-5xl">{f.titre}</h1>
                 <p className="mt-4 text-lg text-gray-200">{f.promesse}</p>
+                {liee?.live_code && (
+                  <p className="mt-5 inline-flex items-center gap-2 rounded-full bg-[#e97e42]/20 px-3 py-1 text-sm font-medium text-[#f8b98a]">
+                    <Sparkles className="h-4 w-4" />
+                    Formation interactive sur Studia Live
+                  </p>
+                )}
                 <div className="mt-8 flex flex-wrap gap-3">
+                  {liee ? (
+                    <Link
+                      href={`/formations/en-ligne/${liee.slug}`}
+                      className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-[#e97e42] to-[#d56a2e] px-6 py-3.5 font-bold text-white shadow-lg shadow-[#e97e42]/30 transition-shadow hover:shadow-xl"
+                    >
+                      Commencer la formation
+                      <ArrowRight className="h-5 w-5" />
+                    </Link>
+                  ) : (
                   <a
                     href={`https://wa.me/${WHATSAPP_NUMBER}?text=${waText}`}
                     target="_blank"
@@ -67,6 +85,7 @@ export default async function SecteurPage({ params }: { params: Promise<{ slug: 
                     <MessageCircle className="h-5 w-5" />
                     Je veux cette formation
                   </a>
+                  )}
                   <a
                     href="#programme"
                     className="inline-flex items-center gap-2 rounded-2xl border border-white/30 bg-white/10 px-6 py-3.5 font-bold text-white backdrop-blur transition-colors hover:bg-white hover:text-gray-900"

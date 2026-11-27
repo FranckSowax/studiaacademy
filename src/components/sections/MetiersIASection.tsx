@@ -2,6 +2,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowRight, Briefcase, CheckCircle2, Sparkles } from 'lucide-react'
 import { HorizontalGallery } from '@/components/home/HorizontalGallery'
+import { getFormationsParSecteur } from '@/lib/formations/secteur-formations'
 import { SECTEURS } from '@/lib/secteurs'
 
 const CARD = 'w-[82vw] max-w-[340px] flex-shrink-0 snap-start sm:w-[340px]'
@@ -10,7 +11,8 @@ const CARD = 'w-[82vw] max-w-[340px] flex-shrink-0 snap-start sm:w-[340px]'
  * Section d'accueil « une formation par métier » : galerie horizontale où chaque carte met
  * d'abord en avant le secteur, puis la formation et ses outils IA (gratuits en priorité).
  */
-export function MetiersIASection() {
+export async function MetiersIASection() {
+  const disponibles = await getFormationsParSecteur()
   return (
     <section id="metiers" className="w-full border-y border-[#f0ebe3] bg-[#fbf8f3] py-16 md:py-24">
       <div className="mx-auto mb-8 max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -80,7 +82,7 @@ export function MetiersIASection() {
                       {aDuPayant ? 'Gratuit + option payante' : 'Outils 100 % gratuits'}
                     </span>
                     <span className="inline-flex items-center gap-1 whitespace-nowrap text-sm font-semibold text-[#a84d16]">
-                      Le programme
+                      {disponibles.has(s.slug) ? 'Commencer' : 'Le programme'}
                       <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                     </span>
                   </div>
