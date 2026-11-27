@@ -12,7 +12,6 @@ const navLinks = [
   { label: 'Formations', href: '/formations' },
   { label: 'Événements', href: '/#evenements' },
   { label: 'Entreprise', href: '/entreprise' },
-  { label: 'Outils IA', href: '/outils' },
   { label: 'Contact', href: '/contact' },
 ]
 
