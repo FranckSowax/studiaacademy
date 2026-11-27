@@ -41,7 +41,7 @@ export const SECTEURS: Secteur[] = [
     label: 'Ressources Humaines',
     iconName: 'Users',
     couleur: '#7C3AED',
-    cover: '/secteurs/ressources-humaines.png',
+    cover: '/secteurs/metier-ressources-humaines.jpg',
     accroche: "Recrutez, formez et fidélisez plus vite grâce à l'IA",
     description: "De l'offre d'emploi à l'accueil du nouvel employé : les gestes RH du quotidien, faits plus vite et mieux avec des outils IA gratuits.",
     formation: {
@@ -67,7 +67,7 @@ export const SECTEURS: Secteur[] = [
     label: 'Administration & Fonction publique',
     iconName: 'Landmark',
     couleur: '#2563EB',
-    cover: '/secteurs/administration.png',
+    cover: '/secteurs/metier-administration.jpg',
     accroche: 'Courriers, notes et dossiers traités plus vite',
     description: "Répondre aux usagers, synthétiser un dossier, rédiger une note : le travail administratif allégé, dans le respect du ton officiel.",
     formation: {
@@ -93,7 +93,7 @@ export const SECTEURS: Secteur[] = [
     label: 'Secrétariat & Assistanat',
     iconName: 'ClipboardList',
     couleur: '#DB2777',
-    cover: '/secteurs/secretariat.png',
+    cover: '/secteurs/metier-secretariat.jpg',
     accroche: "E-mails, comptes rendus et agenda : l'assistanat augmenté",
     description: "Traiter sa boîte de réception, produire un compte rendu, préparer un déplacement : les réflexes IA de l'assistant(e) d'aujourd'hui.",
     formation: {
@@ -118,7 +118,7 @@ export const SECTEURS: Secteur[] = [
     label: 'Comptabilité & Finance',
     iconName: 'Calculator',
     couleur: '#059669',
-    cover: '/secteurs/comptabilite.png',
+    cover: '/secteurs/metier-comptabilite-finance.jpg',
     accroche: 'Excel, factures et relances sans y passer ses soirées',
     description: "Formules, exports bancaires, relances d'impayés, trésorerie : les tâches chiffrées accélérées par l'IA, toujours vérifiées par vous.",
     formation: {
@@ -144,7 +144,7 @@ export const SECTEURS: Secteur[] = [
     label: 'Commerce & Vente',
     iconName: 'ShoppingBag',
     couleur: '#EA580C',
-    cover: '/secteurs/commerce.png',
+    cover: '/secteurs/metier-commerce-vente.jpg',
     accroche: 'Prospectez et relancez sur WhatsApp avec méthode',
     description: "Messages de prospection, réponses aux objections, fiches produit, relances : vendez plus avec les outils que vos clients utilisent déjà.",
     formation: {
@@ -169,7 +169,7 @@ export const SECTEURS: Secteur[] = [
     label: 'Communication & Marketing',
     iconName: 'Megaphone',
     couleur: '#E11D48',
-    cover: '/secteurs/communication.png',
+    cover: '/secteurs/metier-communication-marketing.jpg',
     accroche: 'Un mois de contenus en une après-midi',
     description: "Calendrier éditorial, posts, visuels, vidéos courtes : produisez régulièrement sans équipe ni budget d'agence.",
     formation: {
@@ -194,7 +194,7 @@ export const SECTEURS: Secteur[] = [
     label: 'Éducation & Enseignement',
     iconName: 'GraduationCap',
     couleur: '#0891B2',
-    cover: '/secteurs/education.png',
+    cover: '/secteurs/metier-education.jpg',
     accroche: 'Préparez, animez et corrigez vos cours plus vite',
     description: "Fiches de préparation, exercices par niveau, quiz, correction : plus de temps pour les élèves, moins pour la préparation.",
     formation: {
@@ -219,7 +219,7 @@ export const SECTEURS: Secteur[] = [
     label: 'Santé & Médical',
     iconName: 'HeartPulse',
     couleur: '#DC2626',
-    cover: '/secteurs/sante.png',
+    cover: '/secteurs/metier-sante.jpg',
     accroche: 'Moins de paperasse, plus de temps pour les patients',
     description: "Fiches de conseils, affiches de sensibilisation, plannings, courriers : l'IA au service de l'organisation, jamais du diagnostic.",
     formation: {
@@ -245,7 +245,7 @@ export const SECTEURS: Secteur[] = [
     label: 'Agriculture & Agro-business',
     iconName: 'Sprout',
     couleur: '#65A30D',
-    cover: '/secteurs/agriculture.png',
+    cover: '/secteurs/metier-agriculture.jpg',
     accroche: 'Gérez et vendez votre production avec votre téléphone',
     description: "Reconnaître une maladie, tenir ses comptes à la voix, fixer son prix, vendre sur WhatsApp : tout se fait depuis un simple téléphone.",
     formation: {
@@ -271,7 +271,7 @@ export const SECTEURS: Secteur[] = [
     label: 'Entrepreneuriat & Startups',
     iconName: 'Rocket',
     couleur: '#D97706',
-    cover: '/secteurs/entrepreneuriat.png',
+    cover: '/secteurs/metier-entrepreneuriat.jpg',
     accroche: "De l'idée au premier client",
     description: "Tester son idée, chiffrer son projet, pitcher et lancer sa première offre : l'IA comme associé de démarrage.",
     formation: {
@@ -297,7 +297,7 @@ export const SECTEURS: Secteur[] = [
     label: 'Services & Artisanat',
     iconName: 'Wrench',
     couleur: '#0EA5E9',
-    cover: '/secteurs/services.png',
+    cover: '/secteurs/metier-services.jpg',
     accroche: 'Devis, clients et visibilité depuis son téléphone',
     description: "Prestataires, artisans, indépendants : des devis propres, des clients mieux suivis et une présence en ligne qui ramène du travail.",
     formation: {

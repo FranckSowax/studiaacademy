@@ -43,7 +43,7 @@ export default async function SecteurPage({ params }: { params: Promise<{ slug: 
         {/* HERO — pt-16 = décalage du header fixe */}
         <section className="bg-[#0f0d0b] pt-16 text-white">
           <div className="relative overflow-hidden">
-            <Image src={secteur.cover} alt="" fill priority sizes="100vw" className="object-cover" />
+            <Image src={secteur.cover} alt="" fill priority sizes="100vw" className="object-cover object-[50%_12%]" />
             <div className="absolute inset-0 bg-gradient-to-r from-[#0f0d0b]/95 via-[#0f0d0b]/75 to-[#0f0d0b]/30" />
             <div className="relative mx-auto max-w-7xl px-4 pb-14 pt-10 sm:px-6 lg:px-8 lg:pb-20">
               <Link href="/#metiers" className="mb-6 inline-flex items-center gap-2 text-sm text-white/80 hover:text-white">
