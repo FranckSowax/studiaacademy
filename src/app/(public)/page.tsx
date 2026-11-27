@@ -26,6 +26,7 @@ import { FAQSection } from '@/components/sections/FAQSection'
 import { SecteursSection } from '@/components/sections/SecteursSection'
 import { CourseCatalog, type CatalogFormation } from '@/components/home/CourseCatalog'
 import { HomeHeroSlider } from '@/components/home/HomeHeroSlider'
+import { StudiaLiveSection } from '@/components/home/StudiaLiveSection'
 import { createClient } from '@/lib/supabase/server'
 import { formationsIA, WHATSAPP_NUMBER } from '@/lib/formations-ia'
 import { getSessionsBySlug } from '@/lib/formations-ia-data'
@@ -505,6 +506,9 @@ export default async function HomePage() {
           ))}
         </div>
       </section>
+
+      {/* ─── STUDIA LIVE : la pédagogie interactive ────────────────── */}
+      <StudiaLiveSection />
 
       {/* ─── PARTENAIRES ───────────────────────────────────────────── */}
       <section className="w-full py-12">
