@@ -69,8 +69,8 @@ export function AdminSidebar({ className }: AdminSidebarProps) {
       icon: Inbox,
     },
     {
-      title: 'Présentiel',
-      href: '/admin/presentiel',
+      title: 'Événements',
+      href: '/admin/evenements',
       icon: MapPin,
     },
     {
