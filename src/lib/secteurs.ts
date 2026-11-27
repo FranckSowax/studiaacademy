@@ -2,10 +2,17 @@
 // Secteurs d'activité — une formation « métier + outils IA » par secteur
 // ============================================
 
-/** Outil utilisé dans une formation. Les gratuits sont listés en premier. */
+/**
+ * Outil utilisé dans une formation. Les gratuits sont listés en premier.
+ * « gratuit » et « payant » ne s'écrivent qu'après lecture de la page officielle
+ * de l'outil (`source`, `verifie_le` au format AAAA-MM-JJ) ; sinon « a_verifier ».
+ * Les cours Studia Live portent les mêmes vérifications (course.presentation).
+ */
 export interface OutilIA {
   nom: string
-  acces: 'gratuit' | 'payant'
+  acces: 'gratuit' | 'payant' | 'a_verifier'
+  source?: string
+  verifie_le?: string
 }
 
 /** Leçon bâtie sur une situation réelle du métier. */
@@ -48,9 +55,9 @@ export const SECTEURS: Secteur[] = [
       titre: "Recruter et gérer son équipe avec l'IA",
       promesse: "Offres d'emploi, tri de CV, entretiens et documents RH : gagnez des heures chaque semaine sans perdre la main sur les décisions.",
       outils: [
-        { nom: 'ChatGPT', acces: 'gratuit' },
-        { nom: 'Google Forms', acces: 'gratuit' },
-        { nom: 'NotebookLM', acces: 'gratuit' },
+        { nom: 'ChatGPT', acces: 'gratuit', source: 'https://chatgpt.com/pricing', verifie_le: '2026-11-27' },
+        { nom: 'Google Forms', acces: 'a_verifier' },
+        { nom: 'NotebookLM', acces: 'a_verifier' },
       ],
       cas: [
         { titre: "Rédiger une offre d'emploi et la décliner pour Facebook et LinkedIn", outil: 'ChatGPT' },
@@ -74,9 +81,9 @@ export const SECTEURS: Secteur[] = [
       titre: 'Courriers, notes et dossiers en deux fois moins de temps',
       promesse: "Rédigez dans le ton administratif, résumez de longs dossiers et suivez vos instances sans y passer la journée.",
       outils: [
-        { nom: 'ChatGPT', acces: 'gratuit' },
-        { nom: 'Gemini', acces: 'gratuit' },
-        { nom: 'NotebookLM', acces: 'gratuit' },
+        { nom: 'ChatGPT', acces: 'gratuit', source: 'https://chatgpt.com/pricing', verifie_le: '2026-11-27' },
+        { nom: 'Gemini', acces: 'gratuit', source: 'https://gemini.google/subscriptions/', verifie_le: '2026-11-27' },
+        { nom: 'NotebookLM', acces: 'a_verifier' },
       ],
       cas: [
         { titre: "Répondre à un courrier d'usager dans le ton administratif", outil: 'ChatGPT' },
@@ -100,9 +107,9 @@ export const SECTEURS: Secteur[] = [
       titre: "L'assistant(e) augmenté(e) : e-mails, comptes rendus, agenda",
       promesse: "Répondez aux e-mails difficiles en deux minutes et sortez un compte rendu propre avant la fin de la réunion.",
       outils: [
-        { nom: 'ChatGPT', acces: 'gratuit' },
-        { nom: 'Gemini dans Gmail', acces: 'gratuit' },
-        { nom: 'Extension Claude pour Chrome', acces: 'payant' },
+        { nom: 'ChatGPT', acces: 'gratuit', source: 'https://chatgpt.com/pricing', verifie_le: '2026-11-27' },
+        { nom: 'Gemini dans Gmail', acces: 'a_verifier' },
+        { nom: 'Extension Claude pour Chrome', acces: 'payant', source: 'https://claude.com/pricing', verifie_le: '2026-11-27' },
       ],
       cas: [
         { titre: 'Traiter un e-mail difficile avec la méthode Contexte, Objectif, Ton, Format', outil: 'ChatGPT' },
@@ -125,9 +132,9 @@ export const SECTEURS: Secteur[] = [
       titre: 'Excel, factures et relances sans y passer ses soirées',
       promesse: "Décrivez ce que vous voulez en français : l'IA écrit la formule, nettoie le fichier et prépare la relance.",
       outils: [
-        { nom: 'ChatGPT', acces: 'gratuit' },
-        { nom: 'Google Sheets', acces: 'gratuit' },
-        { nom: 'Copilot', acces: 'gratuit' },
+        { nom: 'ChatGPT', acces: 'gratuit', source: 'https://chatgpt.com/pricing', verifie_le: '2026-11-27' },
+        { nom: 'Google Sheets', acces: 'gratuit', source: 'https://workspace.google.com/products/sheets/', verifie_le: '2026-11-27' },
+        { nom: 'Copilot', acces: 'gratuit', source: 'https://www.microsoft.com/en-us/copilot/pricing/individuals', verifie_le: '2026-11-27' },
       ],
       cas: [
         { titre: 'Faire écrire une formule Excel en la décrivant en français', outil: 'ChatGPT' },
@@ -151,9 +158,9 @@ export const SECTEURS: Secteur[] = [
       titre: "Prospecter et relancer sur WhatsApp avec l'IA",
       promesse: "Des messages qui obtiennent une réponse, des objections préparées et des relances qui ne se perdent plus.",
       outils: [
-        { nom: 'ChatGPT', acces: 'gratuit' },
-        { nom: 'WhatsApp Business', acces: 'gratuit' },
-        { nom: 'Canva', acces: 'gratuit' },
+        { nom: 'ChatGPT', acces: 'gratuit', source: 'https://chatgpt.com/pricing', verifie_le: '2026-11-27' },
+        { nom: 'WhatsApp Business', acces: 'a_verifier' },
+        { nom: 'Canva', acces: 'gratuit', source: 'https://www.canva.com/pricing/', verifie_le: '2026-11-27' },
       ],
       cas: [
         { titre: 'Écrire un message de prospection WhatsApp qui obtient une réponse', outil: 'ChatGPT' },
@@ -176,9 +183,9 @@ export const SECTEURS: Secteur[] = [
       titre: 'Un mois de contenus en une après-midi',
       promesse: "Planifiez, rédigez et illustrez vos publications du mois, puis ajustez à partir de vos statistiques.",
       outils: [
-        { nom: 'ChatGPT', acces: 'gratuit' },
-        { nom: 'Canva', acces: 'gratuit' },
-        { nom: 'CapCut', acces: 'gratuit' },
+        { nom: 'ChatGPT', acces: 'gratuit', source: 'https://chatgpt.com/pricing', verifie_le: '2026-11-27' },
+        { nom: 'Canva', acces: 'gratuit', source: 'https://www.canva.com/pricing/', verifie_le: '2026-11-27' },
+        { nom: 'CapCut', acces: 'gratuit', source: 'https://www.capcut.com/pricing', verifie_le: '2026-11-27' },
       ],
       cas: [
         { titre: "Bâtir un calendrier éditorial d'un mois", outil: 'ChatGPT' },
@@ -201,9 +208,9 @@ export const SECTEURS: Secteur[] = [
       titre: "Préparer, animer et corriger ses cours avec l'IA",
       promesse: "Une séance prête en vingt minutes, des exercices sur trois niveaux et des copies commentées sans y laisser son week-end.",
       outils: [
-        { nom: 'ChatGPT', acces: 'gratuit' },
-        { nom: 'NotebookLM', acces: 'gratuit' },
-        { nom: 'Kahoot', acces: 'gratuit' },
+        { nom: 'ChatGPT', acces: 'gratuit', source: 'https://chatgpt.com/pricing', verifie_le: '2026-11-27' },
+        { nom: 'NotebookLM', acces: 'a_verifier' },
+        { nom: 'Kahoot', acces: 'gratuit', source: 'https://kahoot.com/schools/plans/', verifie_le: '2026-11-27' },
       ],
       cas: [
         { titre: 'Créer une fiche de préparation conforme au programme', outil: 'ChatGPT' },
@@ -226,9 +233,9 @@ export const SECTEURS: Secteur[] = [
       titre: 'Moins de paperasse, plus de temps pour les patients',
       promesse: "Allégez l'administratif de votre structure et expliquez mieux, avec des supports clairs pour vos patients.",
       outils: [
-        { nom: 'ChatGPT', acces: 'gratuit' },
-        { nom: 'Canva', acces: 'gratuit' },
-        { nom: 'Google Sheets', acces: 'gratuit' },
+        { nom: 'ChatGPT', acces: 'gratuit', source: 'https://chatgpt.com/pricing', verifie_le: '2026-11-27' },
+        { nom: 'Canva', acces: 'gratuit', source: 'https://www.canva.com/pricing/', verifie_le: '2026-11-27' },
+        { nom: 'Google Sheets', acces: 'gratuit', source: 'https://workspace.google.com/products/sheets/', verifie_le: '2026-11-27' },
       ],
       cas: [
         { titre: 'Rédiger une fiche de conseils patient en langage simple', outil: 'ChatGPT' },
@@ -252,9 +259,9 @@ export const SECTEURS: Secteur[] = [
       titre: 'Gérer et vendre sa production avec son téléphone',
       promesse: "Un téléphone suffit : photo, voix et WhatsApp pour mieux suivre ses cultures, ses comptes et ses ventes.",
       outils: [
-        { nom: 'ChatGPT (mode vocal)', acces: 'gratuit' },
-        { nom: 'Google Lens', acces: 'gratuit' },
-        { nom: 'WhatsApp Business', acces: 'gratuit' },
+        { nom: 'ChatGPT (mode vocal)', acces: 'gratuit', source: 'https://chatgpt.com/pricing', verifie_le: '2026-11-27' },
+        { nom: 'Google Lens', acces: 'a_verifier' },
+        { nom: 'WhatsApp Business', acces: 'a_verifier' },
       ],
       cas: [
         { titre: "Identifier une maladie de plante à partir d'une photo, puis vérifier auprès d'un technicien", outil: 'Google Lens' },
@@ -278,10 +285,10 @@ export const SECTEURS: Secteur[] = [
       titre: "De l'idée au premier client avec l'IA",
       promesse: "Validez votre idée auprès de vrais clients, posez vos chiffres et lancez une première offre en quelques semaines.",
       outils: [
-        { nom: 'ChatGPT', acces: 'gratuit' },
-        { nom: 'Gemini', acces: 'gratuit' },
-        { nom: 'Gamma (crédits offerts)', acces: 'gratuit' },
-        { nom: 'Canva', acces: 'gratuit' },
+        { nom: 'ChatGPT', acces: 'gratuit', source: 'https://chatgpt.com/pricing', verifie_le: '2026-11-27' },
+        { nom: 'Gemini', acces: 'gratuit', source: 'https://gemini.google/subscriptions/', verifie_le: '2026-11-27' },
+        { nom: 'Gamma (crédits offerts)', acces: 'gratuit', source: 'https://gamma.app/pricing', verifie_le: '2026-11-27' },
+        { nom: 'Canva', acces: 'gratuit', source: 'https://www.canva.com/pricing/', verifie_le: '2026-11-27' },
       ],
       cas: [
         { titre: 'Tester une idée avec dix questions à poser à de vrais clients', outil: 'ChatGPT' },
@@ -304,10 +311,10 @@ export const SECTEURS: Secteur[] = [
       titre: 'Devis, clients et visibilité depuis son téléphone',
       promesse: "Un devis propre dicté à la voix, des réponses automatiques aux clients et des avis qui font venir les suivants.",
       outils: [
-        { nom: 'ChatGPT', acces: 'gratuit' },
-        { nom: 'WhatsApp Business', acces: 'gratuit' },
-        { nom: 'Fiche Google', acces: 'gratuit' },
-        { nom: 'Canva', acces: 'gratuit' },
+        { nom: 'ChatGPT', acces: 'gratuit', source: 'https://chatgpt.com/pricing', verifie_le: '2026-11-27' },
+        { nom: 'WhatsApp Business', acces: 'a_verifier' },
+        { nom: 'Fiche Google', acces: 'gratuit', source: 'https://business.google.com/es-all/business-profile/', verifie_le: '2026-11-27' },
+        { nom: 'Canva', acces: 'gratuit', source: 'https://www.canva.com/pricing/', verifie_le: '2026-11-27' },
       ],
       cas: [
         { titre: "Faire un devis propre à partir d'une note vocale", outil: 'ChatGPT' },

@@ -18,13 +18,17 @@ describe('SECTEURS', () => {
     }
   })
 
-  it('favorise les outils gratuits : le premier outil est gratuit et ils sont majoritaires', () => {
-    for (const s of SECTEURS) {
-      const { outils } = s.formation
-      const gratuits = outils.filter((o) => o.acces === 'gratuit')
-      expect(outils[0].acces, s.slug).toBe('gratuit')
-      expect(gratuits.length, s.slug).toBeGreaterThan(outils.length / 2)
-    }
+  it('commence par un outil gratuit vérifié dans chaque formation', () => {
+    for (const s of SECTEURS) expect(s.formation.outils[0].acces, s.slug).toBe('gratuit')
+  })
+
+  it("n'annonce un accès gratuit ou payant qu'avec sa source officielle et sa date de vérification", () => {
+    for (const s of SECTEURS)
+      for (const o of s.formation.outils) {
+        if (o.acces === 'a_verifier') continue
+        expect(o.source, `${s.slug} / ${o.nom}`).toMatch(/^https:\/\//)
+        expect(o.verifie_le, `${s.slug} / ${o.nom}`).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+      }
   })
 
   it('retrouve un secteur par son slug', () => {
