@@ -23,7 +23,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { FAQSection } from '@/components/sections/FAQSection'
-import { SecteursSection } from '@/components/sections/SecteursSection'
+import { MetiersIASection } from '@/components/sections/MetiersIASection'
 import { CourseCatalog, type CatalogFormation } from '@/components/home/CourseCatalog'
 import { HomeHeroSlider } from '@/components/home/HomeHeroSlider'
 import { StudiaLiveSection } from '@/components/home/StudiaLiveSection'
@@ -776,8 +776,8 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ─── SECTEURS D'ACTIVITÉ ───────────────────────────────────── */}
-      <SecteursSection />
+      {/* ─── UNE FORMATION PAR MÉTIER ──────────────────────────────── */}
+      <MetiersIASection />
 
       {/* ─── TÉMOIGNAGES ───────────────────────────────────────────── */}
       <section className="w-full bg-white py-20 md:py-24">

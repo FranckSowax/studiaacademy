@@ -7,26 +7,23 @@ import Image from 'next/image'
 import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
 import { getSecteur, SECTEURS } from '@/lib/secteurs'
-import { getServiceBySlug } from '@/lib/ai-services/definitions'
-import { formatNumber } from '@/lib/utils'
+import { WHATSAPP_NUMBER } from '@/lib/formations-ia'
 import {
-  ArrowLeft, ArrowRight, CheckCircle, Sparkles, GraduationCap, MapPin, Monitor,
-  Users, Landmark, ClipboardList, Calculator, ShoppingBag, Megaphone, HeartPulse,
-  BarChart3, ChevronRight, FileText, FileCheck, FileSignature, Briefcase, Mail,
-  Presentation, BookOpen, PenTool, TrendingUp, Compass, Receipt, Building2, Globe,
-  Palette, Lightbulb, AlignLeft, Sprout, Rocket, Scale, Wrench,
+  ArrowLeft, ArrowRight, Calculator, CheckCircle2, ChevronRight, ClipboardList, GraduationCap,
+  HeartPulse, Landmark, MapPin, Megaphone, MessageCircle, Rocket, ShieldCheck, ShoppingBag,
+  Sparkles, Sprout, Users, Wrench,
 } from 'lucide-react'
 
-const iconMap: Record<string, React.ComponentType<{ className?: string; style?: React.CSSProperties }>> = {
+const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Users, Landmark, ClipboardList, Calculator, ShoppingBag, Megaphone, GraduationCap, HeartPulse,
-  FileText, FileCheck, FileSignature, Briefcase, Mail, Presentation, BookOpen, PenTool, TrendingUp,
-  Compass, Receipt, Building2, Globe, Palette, Lightbulb, AlignLeft, Sparkles, Sprout, Rocket, Scale, Wrench,
+  Sprout, Rocket, Wrench,
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
   const s = getSecteur(slug)
-  return { title: s ? `${s.label} — Formations IA | Studia Academy` : 'Secteur', description: s?.description }
+  if (!s) return { title: 'Secteur' }
+  return { title: `${s.formation.titre} — ${s.label} | Studia Academy`, description: s.formation.promesse }
 }
 
 export default async function SecteurPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -34,131 +31,145 @@ export default async function SecteurPage({ params }: { params: Promise<{ slug: 
   const secteur = getSecteur(slug)
   if (!secteur) notFound()
   const SectorIcon = iconMap[secteur.iconName] ?? Sparkles
-  const tools = secteur.outils.map((sl) => getServiceBySlug(sl)).filter(Boolean)
-  const isRH = secteur.slug === 'ressources-humaines'
-  // Côté du texte (personnage du côté opposé sur la cover)
-  const HERO_TEXT_SIDE: Record<string, 'left' | 'right'> = {
-    'ressources-humaines': 'right', 'administration': 'left', 'secretariat': 'right', 'comptabilite-finance': 'left',
-    'commerce-vente': 'right', 'communication-marketing': 'left', 'education': 'right', 'sante': 'left',
-    'agriculture': 'right', 'entrepreneuriat': 'left', 'dirigeant': 'right', 'services': 'left',
-  }
-  const textRight = (HERO_TEXT_SIDE[secteur.slug] ?? 'right') === 'right'
-
-  const fmtIcon = (f: string) => (f === 'Présentiel' ? MapPin : f === 'Hybride' ? Sparkles : Monitor)
+  const f = secteur.formation
+  const waText = encodeURIComponent(
+    `Bonjour Studia Academy, je suis intéressé(e) par la formation « ${f.titre} » (${secteur.label}).`,
+  )
 
   return (
     <div className="relative flex min-h-screen flex-col">
       <Header />
       <main className="flex-1">
-        {/* HERO — cover 21:9 en fond + overlay conservé + texte du bon côté.
-            pt-16 (section) = décalage du header fixe, pour ne pas le chevaucher. */}
-        <section className="relative text-white pt-16 bg-[#faf8f5]">
-          <div className="relative overflow-hidden" style={{ backgroundColor: secteur.couleur }}>
-            <Image src={secteur.cover} alt={secteur.label} fill priority sizes="100vw" className="object-cover" />
-            {/* Overlays (gardés) : base sur mobile + dégradé directionnel sur desktop */}
-            <div className="absolute inset-0 bg-black/45 lg:bg-transparent" />
-            <div className={`hidden lg:block absolute inset-0 ${textRight ? 'bg-gradient-to-l' : 'bg-gradient-to-r'} from-black/75 via-black/40 to-transparent`} />
-
-          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-14 min-h-[400px] lg:min-h-[440px]">
-            <Link href="/entreprise" className="inline-flex items-center gap-2 text-sm text-white/80 hover:text-white mb-4"><ArrowLeft className="w-4 h-4" />Tous les secteurs</Link>
-            <div className="grid lg:grid-cols-2 items-center gap-6">
-              <div className={textRight ? 'lg:order-2' : 'lg:order-1'}>
-                <div className="max-w-xl">
-                  <div className="flex items-start gap-4">
-                    <div className="w-14 h-14 rounded-2xl bg-white/15 backdrop-blur flex items-center justify-center flex-shrink-0"><SectorIcon className="w-7 h-7" /></div>
-                    <div>
-                      <h1 className="text-3xl md:text-4xl font-extrabold font-heading mb-2 drop-shadow">{secteur.label}</h1>
-                      <p className="text-lg text-white font-semibold drop-shadow">{secteur.accroche}</p>
-                    </div>
-                  </div>
-                  <p className="text-white/85 mt-3 drop-shadow">{secteur.description}</p>
-                  <div className="flex flex-wrap gap-3 mt-6">
-                    <a href="#formations" className="inline-flex items-center gap-2 bg-white text-gray-900 rounded-2xl px-6 py-3 font-bold hover:bg-white/90 transition-colors"><GraduationCap className="w-5 h-5" />Voir les formations</a>
-                    {isRH && <Link href="/entreprise/diagnostic" className="inline-flex items-center gap-2 bg-[#e97e42] text-white rounded-2xl px-6 py-3 font-bold hover:bg-[#d56a2e] transition-colors"><BarChart3 className="w-5 h-5" />Diagnostic gratuit</Link>}
-                  </div>
-                </div>
-              </div>
-              <div className={`hidden lg:block ${textRight ? 'lg:order-1' : 'lg:order-2'}`} />
-            </div>
-          </div>
-          </div>
-        </section>
-
-        {/* FORMATIONS */}
-        <section id="formations" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
-          <div className="text-center mb-10">
-            <span className="inline-flex items-center gap-2 bg-[#fff7ed] text-[#a84d16] px-3 py-1 rounded-full text-sm font-medium mb-3"><Sparkles className="w-4 h-4" />Transformez votre quotidien avec l&apos;IA</span>
-            <h2 className="text-3xl font-extrabold font-heading text-gray-900">Formations adaptées à votre métier</h2>
-            <p className="text-gray-500 mt-2">En ligne ou en présentiel intra-entreprise (sur demande).</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {secteur.formations.map((f) => {
-              const FIcon = fmtIcon(f.format)
-              return (
-                <div key={f.slug} className="group bg-white rounded-3xl border border-[#f0ebe3] overflow-hidden hover:shadow-xl transition-all flex flex-col sm:flex-row">
-                  <div className="relative w-full sm:w-48 aspect-square flex-shrink-0" style={{ background: `linear-gradient(135deg, ${secteur.couleur}, ${secteur.couleur}99)` }}>
-                    <Image src={f.cover} alt={f.titre} fill sizes="(max-width:640px) 100vw, 192px" className="object-cover" />
-                    <span className="absolute top-3 left-3 inline-flex items-center gap-1.5 bg-white/90 text-gray-700 text-xs font-medium px-2.5 py-1 rounded-full"><FIcon className="w-3.5 h-3.5" />{f.format}</span>
-                  </div>
-                  <div className="p-6 flex flex-col flex-1">
-                    <h3 className="font-bold font-heading text-lg text-gray-900 mb-1">{f.titre}</h3>
-                    <p className="text-sm text-gray-500 mb-4">{f.pitch}</p>
-                    <ul className="space-y-2 mb-5">
-                      {f.arguments.map((a) => (
-                        <li key={a} className="flex items-start gap-2 text-sm text-gray-700"><CheckCircle className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: secteur.couleur }} />{a}</li>
-                      ))}
-                    </ul>
-                    <div className="mt-auto flex items-center justify-between">
-                      <span className="font-bold" style={{ color: secteur.couleur }}>{f.prix_fcfa > 0 ? `${formatNumber(f.prix_fcfa)} FCFA` : 'Gratuit'}</span>
-                      <Link href={`/formations/en-ligne/${f.slug}`} className="inline-flex items-center gap-1 text-sm font-semibold text-gray-900 group-hover:gap-2 transition-all">S&apos;inscrire<ArrowRight className="w-4 h-4" /></Link>
-                    </div>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-          <div className="mt-8 bg-[#fbf8f3] rounded-2xl border border-[#f0ebe3] p-5 flex items-start gap-3">
-            <MapPin className="w-5 h-5 text-[#e97e42] flex-shrink-0 mt-0.5" />
-            <div className="text-sm text-gray-600">
-              <p className="font-semibold text-gray-800">Aussi en présentiel dans votre entreprise</p>
-              Toutes ces formations peuvent être animées en <strong>intra-entreprise</strong> (sur demande, dates à convenir). <Link href="/entreprise#contact" className="text-[#e97e42] font-medium hover:underline">Demander une session</Link>.
-            </div>
-          </div>
-        </section>
-
-        {/* OUTILS */}
-        {tools.length > 0 && (
-          <section className="bg-[#faf8f5] border-y border-[#f0ebe3]">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
-              <div className="text-center mb-8">
-                <h2 className="text-2xl font-extrabold font-heading text-gray-900">Outils IA pour ce métier</h2>
-                <p className="text-gray-500 mt-2">Gagnez du temps dès aujourd&apos;hui, à la demande.</p>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {tools.map((s) => {
-                  const Icon = iconMap[s!.iconName] ?? Sparkles
-                  return (
-                    <Link key={s!.slug} href={`/outils/${s!.slug}`} className="group bg-white rounded-2xl border border-[#f0ebe3] p-5 hover:shadow-md transition-all">
-                      <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style={{ backgroundColor: `${s!.couleur}18` }}><Icon className="w-5 h-5" style={{ color: s!.couleur }} /></div>
-                      <h3 className="font-semibold text-gray-900 group-hover:text-[#e97e42] transition-colors">{s!.titre}</h3>
-                      <p className="text-xs text-gray-500 mt-0.5">{s!.sousTitre}</p>
-                    </Link>
-                  )
-                })}
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* AUTRES SECTEURS */}
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <h2 className="text-lg font-bold font-heading text-gray-900 mb-4">Autres secteurs</h2>
-          <div className="flex flex-wrap gap-2">
-            {SECTEURS.filter((s) => s.slug !== secteur.slug).map((s) => (
-              <Link key={s.slug} href={`/entreprise/secteur/${s.slug}`} className="inline-flex items-center gap-1.5 bg-white border border-[#f0ebe3] rounded-full px-4 py-2 text-sm font-medium text-gray-700 hover:border-[#e97e42] hover:text-[#e97e42] transition-colors">
-                {s.label}<ChevronRight className="w-3.5 h-3.5" />
+        {/* HERO — pt-16 = décalage du header fixe */}
+        <section className="bg-[#0f0d0b] pt-16 text-white">
+          <div className="relative overflow-hidden">
+            <Image src={secteur.cover} alt="" fill priority sizes="100vw" className="object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#0f0d0b]/95 via-[#0f0d0b]/75 to-[#0f0d0b]/30" />
+            <div className="relative mx-auto max-w-7xl px-4 pb-14 pt-10 sm:px-6 lg:px-8 lg:pb-20">
+              <Link href="/#metiers" className="mb-6 inline-flex items-center gap-2 text-sm text-white/80 hover:text-white">
+                <ArrowLeft className="h-4 w-4" />
+                Toutes les formations métier
               </Link>
-            ))}
+              <div className="max-w-2xl">
+                <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-sm font-medium backdrop-blur">
+                  <SectorIcon className="h-4 w-4" />
+                  {secteur.label}
+                </span>
+                <h1 className="mt-4 font-heading text-3xl font-extrabold leading-tight md:text-5xl">{f.titre}</h1>
+                <p className="mt-4 text-lg text-gray-200">{f.promesse}</p>
+                <div className="mt-8 flex flex-wrap gap-3">
+                  <a
+                    href={`https://wa.me/${WHATSAPP_NUMBER}?text=${waText}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-[#e97e42] to-[#d56a2e] px-6 py-3.5 font-bold text-white shadow-lg shadow-[#e97e42]/30 transition-shadow hover:shadow-xl"
+                  >
+                    <MessageCircle className="h-5 w-5" />
+                    Je veux cette formation
+                  </a>
+                  <a
+                    href="#programme"
+                    className="inline-flex items-center gap-2 rounded-2xl border border-white/30 bg-white/10 px-6 py-3.5 font-bold text-white backdrop-blur transition-colors hover:bg-white hover:text-gray-900"
+                  >
+                    Voir le programme
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* PROGRAMME */}
+        <section id="programme" className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+          <div className="grid gap-12 lg:grid-cols-[1fr_360px]">
+            <div>
+              <h2 className="font-heading text-2xl font-extrabold text-gray-900 md:text-3xl">
+                5 situations réelles de votre métier
+              </h2>
+              <p className="mt-2 text-gray-600">
+                Chaque leçon part d&apos;une tâche que vous faites déjà, et se termine par un prompt prêt à copier
+                et un exercice sur vos propres documents.
+              </p>
+              <ol className="mt-8 space-y-4">
+                {f.cas.map((c, i) => (
+                  <li key={c.titre} className="flex gap-4 rounded-2xl border border-[#ece4d8] bg-white p-5">
+                    <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-[#fff7ed] font-heading font-bold text-[#a84d16]">
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                    <div>
+                      <h3 className="font-semibold text-gray-900">{c.titre}</h3>
+                      <p className="mt-1 text-sm text-gray-500">Avec {c.outil}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+
+              {f.garde_fou && (
+                <div className="mt-6 flex items-start gap-3 rounded-2xl border border-[#ece4d8] bg-[#fbf8f3] p-5">
+                  <ShieldCheck className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#a84d16]" />
+                  <p className="text-sm text-gray-700">
+                    <strong className="text-gray-900">À retenir.</strong> {f.garde_fou}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <aside className="space-y-6">
+              <div className="rounded-3xl border border-[#ece4d8] bg-white p-6">
+                <h2 className="font-heading text-lg font-bold text-gray-900">Les outils utilisés</h2>
+                <ul className="mt-4 space-y-3">
+                  {f.outils.map((o) => (
+                    <li key={o.nom} className="flex items-center justify-between gap-3 text-sm">
+                      <span className="flex items-center gap-2 text-gray-800">
+                        <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-[#e97e42]" />
+                        {o.nom}
+                      </span>
+                      <span
+                        className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                          o.acces === 'gratuit' ? 'bg-emerald-50 text-emerald-800' : 'bg-gray-100 text-gray-700'
+                        }`}
+                      >
+                        {o.acces === 'gratuit' ? 'Gratuit' : 'Option payante'}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-4 text-xs text-gray-500">
+                  Toute la formation se suit avec les outils gratuits. Les options payantes sont montrées à part.
+                </p>
+              </div>
+
+              <div className="rounded-3xl border border-[#ece4d8] bg-[#fbf8f3] p-6">
+                <MapPin className="h-5 w-5 text-[#e97e42]" />
+                <h2 className="mt-3 font-heading text-lg font-bold text-gray-900">Pour toute une équipe</h2>
+                <p className="mt-2 text-sm text-gray-600">
+                  Cette formation peut être animée dans votre entreprise, sur vos propres documents.
+                </p>
+                <Link href="/contact" className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-[#a84d16] hover:gap-2">
+                  Demander une session
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
+            </aside>
+          </div>
+        </section>
+
+        {/* AUTRES MÉTIERS */}
+        <section className="border-t border-[#f0ebe3] bg-[#fbf8f3]">
+          <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+            <h2 className="mb-4 font-heading text-lg font-bold text-gray-900">Les autres métiers</h2>
+            <div className="flex flex-wrap gap-2">
+              {SECTEURS.filter((s) => s.slug !== secteur.slug).map((s) => (
+                <Link
+                  key={s.slug}
+                  href={`/entreprise/secteur/${s.slug}`}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-[#ece4d8] bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:border-[#e97e42] hover:text-[#a84d16]"
+                >
+                  {s.label}
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </Link>
+              ))}
+            </div>
           </div>
         </section>
       </main>

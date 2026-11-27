@@ -83,7 +83,7 @@ export default async function EntreprisePage() {
                     <h3 className="font-bold font-heading text-lg text-gray-900 mb-1">{s.label}</h3>
                     <p className="text-sm text-gray-500 mb-4">{s.accroche}</p>
                     <div className="flex items-center justify-between">
-                      <span className="text-xs text-gray-400">{s.formations.length} formations · {s.outils.length} outils</span>
+                      <span className="text-xs text-gray-400">1 formation · {s.formation.cas.length} cas pratiques</span>
                       <span className="inline-flex items-center gap-1 text-sm font-semibold" style={{ color: s.couleur }}>Découvrir<ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" /></span>
                     </div>
                   </div>
