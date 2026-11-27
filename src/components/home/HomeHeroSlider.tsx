@@ -56,7 +56,7 @@ export function HomeHeroSlider({ slides }: { slides: HomeSlide[] }) {
     <section
       aria-roledescription="carrousel"
       aria-label="À la une"
-      className="relative w-full overflow-hidden bg-[#0f0d0b]"
+      className="relative w-full overflow-hidden bg-[#0f0d0b] pt-16 lg:pt-0"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onFocusCapture={() => setPaused(true)}
@@ -71,7 +71,12 @@ export function HomeHeroSlider({ slides }: { slides: HomeSlide[] }) {
         if (Math.abs(dx) > SWIPE_THRESHOLD_PX) go(dx < 0 ? 1 : -1)
       }}
     >
-      {/* Images de fond empilées, fondu enchaîné */}
+      {/* WHY: les visuels sont en paysage (16:9). Sur mobile et tablette, un fond plein écran
+          n'en montrerait qu'un tiers (la personne, placée à droite, disparaissait) : l'image
+          s'affiche donc entière en haut, le texte dessous. Sur ordinateur, elle redevient un
+          fond, et la hauteur du hero suit le 16:9 pour limiter le recadrage. */}
+      <div className="relative aspect-video w-full lg:absolute lg:inset-0 lg:aspect-auto">
+      {/* Images empilées, fondu enchaîné */}
       {slides.map((s, i) => {
         const active = i === idx
         const hasImg = !!s.image_url && !broken[s.id]
@@ -89,7 +94,7 @@ export function HomeHeroSlider({ slides }: { slides: HomeSlide[] }) {
                 loading={i === 0 ? 'eager' : 'lazy'}
                 fetchPriority={i === 0 ? 'high' : 'auto'}
                 onError={() => setBroken((m) => ({ ...m, [s.id]: true }))}
-                className={`h-full w-full object-cover motion-safe:transition-transform motion-safe:duration-[8000ms] motion-safe:ease-out ${
+                className={`h-full w-full object-cover object-[50%_30%] motion-safe:transition-transform motion-safe:duration-[8000ms] motion-safe:ease-out ${
                   active ? 'scale-100' : 'scale-110'
                 }`}
               />
@@ -100,11 +105,14 @@ export function HomeHeroSlider({ slides }: { slides: HomeSlide[] }) {
         )
       })}
 
-      {/* Étalonnage : lisibilité du texte quelle que soit l'image */}
-      <div className="absolute inset-0 bg-gradient-to-r from-[#0f0d0b]/90 via-[#0f0d0b]/60 to-[#0f0d0b]/10" />
-      <div className="absolute inset-0 bg-gradient-to-t from-[#0f0d0b] via-transparent to-[#0f0d0b]/50" />
+      {/* Mobile : l'image se fond dans le bas de la section, sous le texte */}
+      <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-[#0f0d0b] to-transparent lg:hidden" />
+      {/* Ordinateur : étalonnage pour la lisibilité du texte posé sur l'image */}
+      <div className="absolute inset-0 hidden bg-gradient-to-r from-[#0f0d0b]/90 via-[#0f0d0b]/60 to-[#0f0d0b]/10 lg:block" />
+      <div className="absolute inset-0 hidden bg-gradient-to-t from-[#0f0d0b] via-transparent to-[#0f0d0b]/50 lg:block" />
+      </div>
 
-      <div className="relative mx-auto flex min-h-[620px] w-full max-w-7xl flex-col justify-center px-4 pb-44 pt-28 sm:min-h-[680px] sm:px-6 md:pt-36 lg:min-h-[min(820px,92vh)] lg:px-8 lg:pb-52">
+      <div className="relative mx-auto flex w-full max-w-7xl flex-col justify-center px-4 pb-32 pt-6 sm:px-6 sm:pt-8 lg:min-h-[max(640px,min(56.25vw,90vh))] lg:px-8 lg:pb-52 lg:pt-36">
         {/* Texte du slide actif */}
         <div key={current.id} aria-live="polite" className="max-w-2xl">
           {n > 1 && (
@@ -136,7 +144,7 @@ export function HomeHeroSlider({ slides }: { slides: HomeSlide[] }) {
 
         {/* Navigation : barres de progression + flèches */}
         {n > 1 && (
-          <div className="absolute inset-x-4 bottom-32 flex items-center gap-4 sm:inset-x-6 lg:inset-x-8 lg:bottom-40">
+          <div className="mt-8 flex items-center gap-4 lg:absolute lg:inset-x-8 lg:bottom-40 lg:mt-0">
             <div className="flex flex-1 items-center gap-2 sm:max-w-md">
               {slides.map((s, i) => (
                 <button
