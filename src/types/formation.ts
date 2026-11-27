@@ -30,6 +30,8 @@ export interface Formation {
   live_code: string | null
   /** Vidéo de présentation de la fiche publique (YouTube, Vimeo, .mp4) ; absente tant que la migration n'est pas appliquée. */
   intro_video_url?: string | null
+  /** Secteur dont c'est la formation métier (slug de `SECTEURS`) ; absent tant que la migration n'est pas appliquée. */
+  secteur_slug?: string | null
   created_at: string
   updated_at: string
 }

@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { updateFormation } from '@/lib/formations/admin-actions'
 import { INTRO_VIDEO_MAX, resoudreVideoIntro, vignetteVideoIntro } from '@/lib/formations/intro-video'
 import { capturerVignette } from '@/lib/formations/video-capture'
+import { SECTEURS } from '@/lib/secteurs'
 import type { Formation } from '@/types/formation'
 
 const IMAGE_MAX_OCTETS = 5 * 1024 * 1024
@@ -47,6 +48,7 @@ export function AdminFormationEditor({ formation, onClose }: { formation: Format
     formateur_nom: formation.formateur_nom ?? '',
     formateur_bio: formation.formateur_bio ?? '',
     intro_video_url: formation.intro_video_url ?? '',
+    secteur_slug: formation.secteur_slug ?? '',
   })
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -150,6 +152,7 @@ export function AdminFormationEditor({ formation, onClose }: { formation: Format
       // Envoyée seulement si elle change : les autres champs restent enregistrables
       // même si la colonne n'existe pas encore en base (migration non appliquée).
       ...(video !== (formation.intro_video_url ?? '') ? { intro_video_url: video } : {}),
+      ...(form.secteur_slug !== (formation.secteur_slug ?? '') ? { secteur_slug: form.secteur_slug } : {}),
     })
     setSaving(false)
     if (!res.success) return setErreur(res.error || 'Enregistrement impossible.')
@@ -184,6 +187,26 @@ export function AdminFormationEditor({ formation, onClose }: { formation: Format
             <Champ id="f-categorie" label="Catégorie"><Input id="f-categorie" {...champ('categorie')} className="rounded-xl" /></Champ>
             <Champ id="f-niveau" label="Niveau"><Input id="f-niveau" placeholder="Tous niveaux" {...champ('niveau')} className="rounded-xl" /></Champ>
           </div>
+
+          <Champ
+            id="f-secteur"
+            label="Formation métier du secteur"
+            aide="Rattache cette formation à la fiche du secteur et à sa carte « Boostez votre métier » de l'accueil. Une seule formation par secteur : la précédente est détachée."
+          >
+            <select
+              id="f-secteur"
+              value={form.secteur_slug}
+              onChange={(e) => setForm((f) => ({ ...f, secteur_slug: e.target.value }))}
+              className="h-10 w-full rounded-xl border border-input bg-white px-3 text-sm"
+            >
+              <option value="">Aucun secteur</option>
+              {SECTEURS.map((s) => (
+                <option key={s.slug} value={s.slug}>
+                  {s.label}
+                </option>
+              ))}
+            </select>
+          </Champ>
 
           <Champ id="f-description" label="Description">
             <Textarea id="f-description" rows={6} {...champ('description')} className="rounded-xl" />
