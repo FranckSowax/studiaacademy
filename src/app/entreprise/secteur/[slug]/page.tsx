@@ -6,7 +6,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
-import { getSecteur, SECTEURS } from '@/lib/secteurs'
+import { getSecteur, SECTEURS, type OutilIA } from '@/lib/secteurs'
 import { WHATSAPP_NUMBER } from '@/lib/formations-ia'
 import { getFormationsParSecteur } from '@/lib/formations/secteur-formations'
 import {
@@ -14,6 +14,13 @@ import {
   HeartPulse, Landmark, MapPin, Megaphone, MessageCircle, Rocket, ShieldCheck, ShoppingBag,
   Sparkles, Sprout, Users, Wrench,
 } from 'lucide-react'
+
+/** Badge d'accès d'un outil : couleur et texte, jamais la couleur seule. */
+const ACCES: Record<OutilIA['acces'], { libelle: string; classe: string }> = {
+  gratuit: { libelle: 'Gratuit', classe: 'bg-emerald-50 text-emerald-800' },
+  payant: { libelle: 'Option payante', classe: 'bg-gray-100 text-gray-700' },
+  a_verifier: { libelle: 'Accès à vérifier', classe: 'bg-amber-50 text-amber-900' },
+}
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Users, Landmark, ClipboardList, Calculator, ShoppingBag, Megaphone, GraduationCap, HeartPulse,
@@ -144,17 +151,16 @@ export default async function SecteurPage({ params }: { params: Promise<{ slug: 
                         {o.nom}
                       </span>
                       <span
-                        className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                          o.acces === 'gratuit' ? 'bg-emerald-50 text-emerald-800' : 'bg-gray-100 text-gray-700'
-                        }`}
+                        title={o.verifie_le ? `Vérifié le ${o.verifie_le.split('-').reverse().join('/')} sur la page officielle` : "Gratuité non confirmée par la page officielle de l'outil"}
+                        className={`flex-shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold ${ACCES[o.acces].classe}`}
                       >
-                        {o.acces === 'gratuit' ? 'Gratuit' : 'Option payante'}
+                        {ACCES[o.acces].libelle}
                       </span>
                     </li>
                   ))}
                 </ul>
                 <p className="mt-4 text-xs text-gray-500">
-                  Toute la formation se suit avec les outils gratuits. Les options payantes sont montrées à part.
+                  Chaque exercice se fait sans abonnement, en simulation sur Studia Live. « Gratuit » et « Option payante » ont été vérifiés sur la page officielle de l&apos;outil ; « Accès à vérifier » signale une gratuité que cette page ne confirme pas.
                 </p>
               </div>
 

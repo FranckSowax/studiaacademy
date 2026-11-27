@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next'
 import { formationsIA } from '@/lib/formations-ia'
+import { SECTEURS } from '@/lib/secteurs'
 
 const BASE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.studia-academy.ga'
@@ -31,5 +32,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.9,
   }))
 
-  return [...staticRoutes, ...formationRoutes]
+  // Fiches des formations « Boostez votre métier », une par secteur.
+  const metierRoutes = SECTEURS.map((s) => ({
+    url: `${BASE_URL}/entreprise/secteur/${s.slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'weekly' as const,
+    priority: 0.8,
+  }))
+
+  return [...staticRoutes, ...formationRoutes, ...metierRoutes]
 }
