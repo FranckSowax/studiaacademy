@@ -1,18 +1,22 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { Pause, Play } from 'lucide-react'
+import { Pause, Play, Volume2, VolumeX } from 'lucide-react'
 
 const SOURCE = '/studia-live/concept.mp4'
 const AFFICHE = '/studia-live/concept-poster.jpg'
 
+const BOUTON =
+  'flex h-11 w-11 items-center justify-center rounded-full bg-[#141828]/80 text-white backdrop-blur-sm transition-colors hover:bg-[#e97e42] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#e97e42]'
+
 /**
- * Vidéo verticale (9:16) qui présente Studia Live, sans son.
+ * Vidéo verticale (9:16) qui présente Studia Live.
  *
  * Elle ne se charge et ne se lit que lorsqu'elle est à l'écran (économie de
  * données sur mobile), s'arrête quand on la quitte, et ne démarre pas seule si
- * l'utilisateur préfère réduire les animations. Un bouton permet toujours de la
- * mettre en pause ou de la relancer.
+ * l'utilisateur préfère réduire les animations. Elle démarre sans le son (seule
+ * lecture automatique permise par les navigateurs) : un bouton l'active, et la
+ * vidéo reprend alors du début pour que la voix off soit entendue en entier.
  *
  * @example
  * <StudiaLiveVideo />
@@ -20,6 +24,7 @@ const AFFICHE = '/studia-live/concept-poster.jpg'
 export function StudiaLiveVideo() {
   const video = useRef<HTMLVideoElement>(null)
   const [enLecture, setEnLecture] = useState(false)
+  const [sonActif, setSonActif] = useState(false)
   // WHY: une pause demandée par l'utilisateur doit primer sur la lecture automatique au défilement.
   const pauseVoulue = useRef(false)
 
@@ -32,7 +37,12 @@ export function StudiaLiveVideo() {
     const observateur = new IntersectionObserver(
       ([entree]) => {
         if (entree.isIntersecting && !pauseVoulue.current) {
-          el.play().catch(() => setEnLecture(false))
+          // WHY: avec le son, un navigateur peut refuser la reprise automatique : on retente en muet.
+          el.play().catch(() => {
+            el.muted = true
+            setSonActif(false)
+            el.play().catch(() => setEnLecture(false))
+          })
         } else if (!entree.isIntersecting) {
           el.pause()
         }
@@ -52,6 +62,21 @@ export function StudiaLiveVideo() {
     } else {
       pauseVoulue.current = true
       el.pause()
+    }
+  }
+
+  const basculerSon = () => {
+    const el = video.current
+    if (!el) return
+    if (el.muted) {
+      el.muted = false
+      el.currentTime = 0
+      pauseVoulue.current = false
+      setSonActif(true)
+      el.play().catch(() => setEnLecture(false))
+    } else {
+      el.muted = true
+      setSonActif(false)
     }
   }
 
@@ -75,11 +100,33 @@ export function StudiaLiveVideo() {
           />
         </div>
       </div>
+
+      <button
+        type="button"
+        onClick={basculerSon}
+        aria-pressed={sonActif}
+        aria-label={sonActif ? 'Couper le son de la vidéo' : 'Activer le son de la vidéo'}
+        className={
+          sonActif
+            ? `${BOUTON} absolute bottom-6 left-6`
+            : 'absolute bottom-6 left-6 flex h-11 items-center gap-2 rounded-full bg-[#e97e42] pl-3 pr-4 text-sm font-semibold text-white shadow-lg transition-colors hover:bg-[#d56a2e] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#141828]'
+        }
+      >
+        {sonActif ? (
+          <Volume2 className="h-5 w-5" />
+        ) : (
+          <>
+            <VolumeX className="h-5 w-5" />
+            Activer le son
+          </>
+        )}
+      </button>
+
       <button
         type="button"
         onClick={basculer}
         aria-label={enLecture ? 'Mettre la vidéo en pause' : 'Lire la vidéo'}
-        className="absolute bottom-6 right-6 flex h-11 w-11 items-center justify-center rounded-full bg-[#141828]/80 text-white backdrop-blur-sm transition-colors hover:bg-[#e97e42] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#e97e42]"
+        className={`${BOUTON} absolute bottom-6 right-6`}
       >
         {enLecture ? <Pause className="h-5 w-5" /> : <Play className="ml-0.5 h-5 w-5" />}
       </button>
