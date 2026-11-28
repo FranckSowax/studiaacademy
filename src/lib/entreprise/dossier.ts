@@ -1,6 +1,7 @@
 import type { createAdminClient } from '@/lib/supabase/admin'
 import type { DonneesSessionLive, SessionLiveResume } from '@/lib/studia-live/pilotage'
 import { dateIso } from '@/lib/studia-live/suivi-regles'
+import { analyserSessions, type AnalyseEntreprise } from './analyse'
 import {
   agregerSessions, comptesAEtiqueter, etatEvenement, participantsEntreprise, trierSessions, type Entreprise,
   type IndicateursEntreprise, type ParticipantEntreprise, type SessionDisponible, type SessionEntreprise,
@@ -148,6 +149,15 @@ export interface DossierEntreprise {
   /** Comptes Academy portant l'étiquette de l'entreprise. */
   etiquetes: string[]
   diagnostics: { id: string; titre: string; status: string; nb_submissions: number | null }[]
+  /** Analyse par règles des sessions passées (thèmes, priorités, propositions calculées). */
+  analyse: AnalyseEntreprise
+}
+
+/** Détail Studia Live des sessions passées d'une entreprise, pour l'analyse. */
+export async function lireDonneesSessions(admin: Admin, companyId: string): Promise<{ donnees: DonneesSessionLive | null }[] | null> {
+  const rattachees = await lireSessionsRattachees(admin, companyId, Date.now(), true)
+  if (rattachees.erreur) return null
+  return rattachees.lives.map((s) => ({ donnees: s.donnees ?? null }))
 }
 
 /** Le dossier complet d'une entreprise, ou null si elle n'existe pas. */
@@ -172,6 +182,7 @@ export async function lireDossier(admin: Admin, id: string, maintenant = Date.no
     ),
     etiquetes: ((membres.data ?? []) as { user_id: string }[]).map((m) => m.user_id),
     diagnostics: (diagnostics.data ?? []) as DossierEntreprise['diagnostics'],
+    analyse: analyserSessions(rattachees.lives.map((s) => ({ donnees: s.donnees ?? null }))),
   }
 }
 
