@@ -18,6 +18,7 @@ import {
   MessageCircle,
   UserCog,
   GalleryHorizontalEnd,
+  Radio,
 } from 'lucide-react'
 import { InboxNavBadge } from '@/components/inbox/InboxNavBadge'
 import { OuvrirStudiaLiveButton } from '@/components/studia-live/OuvrirStudiaLiveButton'
@@ -72,6 +73,11 @@ export function AdminSidebar({ className }: AdminSidebarProps) {
       title: 'Événements',
       href: '/admin/evenements',
       icon: MapPin,
+    },
+    {
+      title: 'Sessions Studia Live',
+      href: '/admin/studia-live',
+      icon: Radio,
     },
     {
       title: 'Entreprise',

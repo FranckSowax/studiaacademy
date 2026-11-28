@@ -11,6 +11,8 @@ export interface EmailMessage {
   to: string
   subject: string
   text: string
+  /** Version HTML facultative ; le texte reste envoyé comme repli. */
+  html?: string
 }
 
 /** true si l'email est configuré (clé + expéditeur). */
@@ -36,7 +38,13 @@ export async function sendEmail(message: EmailMessage): Promise<boolean> {
     const res = await fetch(RESEND_URL, {
       method: 'POST',
       headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from, to: [message.to], subject: message.subject, text: message.text }),
+      body: JSON.stringify({
+        from,
+        to: [message.to],
+        subject: message.subject,
+        text: message.text,
+        ...(message.html ? { html: message.html } : {}),
+      }),
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     })
     if (!res.ok) {
