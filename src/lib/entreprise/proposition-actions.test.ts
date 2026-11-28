@@ -252,6 +252,20 @@ describe('ajouterProposition et lierFormation', () => {
     expect((await actions.ajouterProposition(ENTREPRISE, { catalogue_ref: 'F99' })).ok).toBe(false)
   })
 
+  it('ajoute une formation en ligne du catalogue Studia Academy, déjà disponible', async () => {
+    expect(await actions.ajouterProposition(ENTREPRISE, { formation_id: FORMATION, justification: ' Demandée par la DRH ' })).toEqual({ ok: true })
+    expect(base.operations.find((o) => o.type === 'insert')?.valeurs).toEqual({
+      company_id: ENTREPRISE, type: 'catalogue', catalogue_ref: `formation:${FORMATION}`, titre: 'Copilot pour la logistique',
+      justification: 'Demandée par la DRH', origine: 'manuelle', formation_id: FORMATION, cree_par: ADMIN,
+    })
+  })
+
+  it('refuse une formation en ligne inconnue ou mal formée', async () => {
+    expect((await actions.ajouterProposition(ENTREPRISE, { formation_id: '12121212-1212-4121-8121-121212121212' })).ok).toBe(false)
+    expect((await actions.ajouterProposition(ENTREPRISE, { formation_id: 'x' })).ok).toBe(false)
+    expect(ecritures()).toEqual([])
+  })
+
   it('signale un doublon', async () => {
     base.erreurInsertion = { code: '23505' }
     expect(await actions.ajouterProposition(ENTREPRISE, { catalogue_ref: 'F4' })).toEqual({

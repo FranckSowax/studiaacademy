@@ -10,6 +10,8 @@ import { estUuid, initiales } from '@/lib/entreprise/dossier-regles'
 import { lireFormationsLiables, lirePropositions } from '@/lib/entreprise/propositions'
 import { EntreprisePropositions } from '@/components/admin/EntreprisePropositions'
 import { EntrepriseBilan } from '@/components/admin/EntrepriseBilan'
+import { EntrepriseDevis } from '@/components/admin/EntrepriseDevis'
+import { lireDevisEntreprise } from '@/lib/entreprise/devis-acces'
 import { lireBilansEnvoyes } from '@/lib/entreprise/bilan-acces'
 import { lireResponsables } from '@/lib/studia-live/suivi'
 import { entier, noteSur, pct } from '@/lib/studia-live/suivi-regles'
@@ -36,13 +38,14 @@ export default async function AdminEntrepriseDossierPage({ params }: { params: P
   if (!estUuid(id)) notFound()
 
   const admin = createAdminClient()
-  const [dossier, disponibles, responsables, propositions, formations, bilans] = await Promise.all([
+  const [dossier, disponibles, responsables, propositions, formations, bilans, devis] = await Promise.all([
     lireDossier(admin, id),
     lireSessionsDisponibles(admin),
     lireResponsables(admin),
     lirePropositions(admin, id),
     lireFormationsLiables(admin),
     lireBilansEnvoyes(admin, id),
+    lireDevisEntreprise(admin, id),
   ])
   if (!dossier) notFound()
 
@@ -127,6 +130,14 @@ export default async function AdminEntrepriseDossierPage({ params }: { params: P
         possible={analyse.sessions_analysees > 0}
         formationsRetenues={propositions.propositions.filter((p) => p.statut === 'retenue').length}
         admins={responsables}
+      />
+      <EntrepriseDevis
+        entrepriseId={id}
+        devis={devis}
+        contactNom={e.contact_nom}
+        contactEmail={e.contact_email}
+        effectif={participants.length}
+        themes={propositions.propositions.filter((p) => p.statut === 'retenue').map((p) => p.titre.replace(/^Sur mesure : /, ''))}
       />
       <EntrepriseParticipants entrepriseId={id} participants={participants} etiquetes={etiquetes} />
 

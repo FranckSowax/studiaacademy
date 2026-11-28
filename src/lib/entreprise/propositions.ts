@@ -12,6 +12,14 @@ import { normaliser } from './analyse'
 
 type Admin = ReturnType<typeof createAdminClient>
 
+/**
+ * Préfixe de `catalogue_ref` pour une formation du catalogue Studia
+ * Academy (formations en ligne) : `formation:<uuid>`. Les formations
+ * entreprise gardent leur référence F1…F8.
+ */
+export const REF_FORMATION = 'formation:'
+export const estFormationEnLigne = (ref: string | null | undefined) => !!ref && ref.startsWith(REF_FORMATION)
+
 export type StatutProposition = 'proposee' | 'retenue' | 'ecartee'
 export const STATUTS_PROPOSITION: readonly StatutProposition[] = ['proposee', 'retenue', 'ecartee']
 

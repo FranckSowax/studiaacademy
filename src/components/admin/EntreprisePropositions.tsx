@@ -11,7 +11,9 @@ import { Textarea } from '@/components/ui/textarea'
 import { SEUIL_A_RENFORCER, SEUIL_MAITRISE, type AnalyseEntreprise, type ThemeAgrege } from '@/lib/entreprise/analyse'
 import { CATALOGUE_B2B } from '@/lib/entreprise/catalogue'
 import { ajouterProposition, deciderProposition, lancerAnalyse, lierFormation } from '@/lib/entreprise/proposition-actions'
-import { estACreer, type FormationLiable, type Proposition, type StatutProposition } from '@/lib/entreprise/propositions'
+import {
+  estACreer, estFormationEnLigne, REF_FORMATION, type FormationLiable, type Proposition, type StatutProposition,
+} from '@/lib/entreprise/propositions'
 
 const SELECT = 'h-9 w-full rounded-xl border border-input bg-white px-3 text-sm'
 type Info = { ok: boolean; texte: string } | null
@@ -65,7 +67,8 @@ export function EntreprisePropositions({
   const [occupe, setOccupe] = useState<string | null>(null)
   const [info, setInfo] = useState<Info>(erreur ? { ok: false, texte: erreur } : null)
   const [ajout, setAjout] = useState(false)
-  const [form, setForm] = useState({ catalogue_ref: '', titre: '', justification: '' })
+  // `choix` : '' (sur mesure), une référence F1…F8, ou `formation:<uuid>` (formation en ligne).
+  const [form, setForm] = useState({ choix: '', titre: '', justification: '' })
   const [erreurAjout, setErreurAjout] = useState<string | null>(null)
 
   const titresFormations = new Map(formations.map((f) => [f.id, f]))
@@ -120,10 +123,16 @@ export function EntreprisePropositions({
   const ajouter = () => {
     setErreurAjout(null)
     lancer('ajout', async () => {
-      const r = await ajouterProposition(entrepriseId, form)
+      const enLigne = estFormationEnLigne(form.choix)
+      const r = await ajouterProposition(entrepriseId, {
+        formation_id: enLigne ? form.choix.slice(REF_FORMATION.length) : null,
+        catalogue_ref: enLigne ? null : form.choix,
+        titre: form.titre,
+        justification: form.justification,
+      })
       if (!r.ok) return setErreurAjout(r.error)
       setAjout(false)
-      setForm({ catalogue_ref: '', titre: '', justification: '' })
+      setForm({ choix: '', titre: '', justification: '' })
       router.refresh()
     })
   }
@@ -192,7 +201,11 @@ export function EntreprisePropositions({
                 <div className="min-w-0 flex-1">
                   <p className="flex flex-wrap items-center gap-2">
                     <span className={`whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium ${p.type === 'catalogue' ? 'bg-teal-50 text-teal-700' : 'bg-violet-50 text-violet-700'}`}>
-                      {p.type === 'catalogue' ? `Catalogue ${p.catalogue_ref ?? ''}`.trim() : 'Sur mesure'}
+                      {p.type !== 'catalogue'
+                        ? 'Sur mesure'
+                        : estFormationEnLigne(p.catalogue_ref)
+                          ? 'Catalogue en ligne'
+                          : `Catalogue ${p.catalogue_ref ?? ''}`.trim()}
                     </span>
                     <span className="font-medium text-gray-900">{p.titre}</span>
                     {p.statut === 'retenue' && !aFaire && (
@@ -257,7 +270,9 @@ export function EntreprisePropositions({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Ajouter une proposition</DialogTitle>
-            <DialogDescription>Choisissez une formation du catalogue, ou décrivez un besoin sur mesure.</DialogDescription>
+            <DialogDescription>
+              Choisissez une formation en ligne du catalogue Studia Academy, une formation entreprise, ou décrivez un besoin sur mesure.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
             <div className="space-y-1.5">
@@ -265,16 +280,25 @@ export function EntreprisePropositions({
               <select
                 id="prop-catalogue"
                 className={SELECT}
-                value={form.catalogue_ref}
-                onChange={(e) => setForm((f) => ({ ...f, catalogue_ref: e.target.value }))}
+                value={form.choix}
+                onChange={(e) => setForm((f) => ({ ...f, choix: e.target.value }))}
               >
                 <option value="">Aucune : formation sur mesure</option>
-                {CATALOGUE_B2B.filter((f) => !dejaAuCatalogue.has(f.ref)).map((f) => (
-                  <option key={f.ref} value={f.ref}>{f.ref} · {f.titre}</option>
-                ))}
+                <optgroup label="Formations en ligne Studia Academy">
+                  {formations
+                    .filter((f) => f.publiee && !dejaAuCatalogue.has(`${REF_FORMATION}${f.id}`))
+                    .map((f) => (
+                      <option key={f.id} value={`${REF_FORMATION}${f.id}`}>{f.titre}</option>
+                    ))}
+                </optgroup>
+                <optgroup label="Formations entreprise">
+                  {CATALOGUE_B2B.filter((f) => !dejaAuCatalogue.has(f.ref)).map((f) => (
+                    <option key={f.ref} value={f.ref}>{f.ref} · {f.titre}</option>
+                  ))}
+                </optgroup>
               </select>
             </div>
-            {form.catalogue_ref === '' && (
+            {form.choix === '' && (
               <div className="space-y-1.5">
                 <Label htmlFor="prop-titre">Titre de la formation sur mesure</Label>
                 <Input
@@ -300,7 +324,7 @@ export function EntreprisePropositions({
           {erreurAjout && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{erreurAjout}</p>}
           <DialogFooter>
             <Button variant="outline" disabled={enCours} onClick={() => setAjout(false)}>Annuler</Button>
-            <Button disabled={enCours || (form.catalogue_ref === '' && form.titre.trim() === '')} onClick={ajouter}>
+            <Button disabled={enCours || (form.choix === '' && form.titre.trim() === '')} onClick={ajouter}>
               {occupe === 'ajout' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Ajouter
             </Button>
