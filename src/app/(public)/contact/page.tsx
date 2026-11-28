@@ -231,8 +231,8 @@ export default function ContactPage() {
                 {
                   icon: Mail,
                   label: 'Email',
-                  value: 'contact@studiaacademy.com',
-                  href: 'mailto:contact@studiaacademy.com',
+                  value: 'contact@studia.academy',
+                  href: 'mailto:contact@studia.academy',
                 },
               ].map((item) => {
                 const Icon = item.icon
