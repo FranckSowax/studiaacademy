@@ -8,7 +8,7 @@ import { analyserSessions } from './analyse'
 import { getCatalogueByRef } from './catalogue'
 import { lireDonneesSessions } from './dossier'
 import { estUuid } from './dossier-regles'
-import { enregistrerAnalyse, messagePropositions, STATUTS_PROPOSITION, type StatutProposition } from './propositions'
+import { enregistrerAnalyse, messagePropositions, REF_FORMATION, STATUTS_PROPOSITION, type StatutProposition } from './propositions'
 
 /**
  * Actions de l'admin sur les formations proposées à une entreprise :
@@ -122,10 +122,37 @@ export async function deciderProposition(
 /** Ajoute une proposition à la main : une formation du catalogue, ou un besoin sur mesure. */
 export async function ajouterProposition(
   id: string,
-  saisie: { catalogue_ref?: string | null; titre?: string | null; justification?: string | null },
+  saisie: { catalogue_ref?: string | null; formation_id?: string | null; titre?: string | null; justification?: string | null },
 ): Promise<{ ok: true } | Echec> {
   const { userId } = await requireAdmin()
   if (!estUuid(id)) return { ok: false, error: 'Entreprise introuvable.' }
+
+  // Formation du catalogue Studia Academy (formations en ligne) : déjà créée, donc disponible.
+  if (saisie?.formation_id) {
+    if (!estUuid(saisie.formation_id)) return { ok: false, error: 'Formation inconnue.' }
+    const admin = createAdminClient()
+    const lue = await admin.from('formations').select('id, titre').eq('id', saisie.formation_id).maybeSingle()
+    const enLigne = lue.data as { id: string; titre: string } | null
+    if (!enLigne) return { ok: false, error: 'Cette formation n’existe plus au catalogue.' }
+    const { error } = await admin.from('company_proposals').insert({
+      company_id: id,
+      type: 'catalogue',
+      catalogue_ref: `${REF_FORMATION}${enLigne.id}`,
+      titre: enLigne.titre.slice(0, 200),
+      justification: typeof saisie.justification === 'string' ? saisie.justification.trim().slice(0, 1000) || null : null,
+      origine: 'manuelle',
+      formation_id: enLigne.id,
+      cree_par: userId,
+    })
+    if (error) {
+      console.error(`[entreprises] proposition non ajoutée (${error.code})`)
+      if (error.code === '23505') return { ok: false, error: 'Cette formation est déjà proposée à l’entreprise.' }
+      if (error.code === '23503') return { ok: false, error: 'Entreprise introuvable.' }
+      return { ok: false, error: messagePropositions(error.code) }
+    }
+    revalider(id)
+    return { ok: true }
+  }
 
   const ref = typeof saisie?.catalogue_ref === 'string' ? saisie.catalogue_ref.trim() : ''
   const formation = ref ? getCatalogueByRef(ref) : undefined
