@@ -45,6 +45,19 @@ export interface FormationIA {
 export const WHATSAPP_NUMBER =
   process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '24107670158'
 
+/**
+ * Numéro WhatsApp tel qu'on l'affiche : « +241 07 67 01 58 » (indicatif Gabon puis paires).
+ * Un numéro d'un autre format est rendu tel quel, précédé de « + ».
+ */
+export function afficherNumeroWhatsApp(numero: string): string {
+  const chiffres = numero.replace(/\D/g, '')
+  if (!chiffres.startsWith('241')) return `+${chiffres}`
+  const paires = chiffres.slice(3).match(/\d{1,2}/g) ?? []
+  return `+241 ${paires.join(' ')}`.trim()
+}
+
+export const WHATSAPP_AFFICHAGE = afficherNumeroWhatsApp(WHATSAPP_NUMBER)
+
 export const AIRTEL_MONEY_NUMBER =
   process.env.NEXT_PUBLIC_AIRTEL_MONEY ?? '+241 0X XX XX XX'
 export const MOOV_MONEY_NUMBER =
