@@ -12,6 +12,7 @@ export default function robots(): MetadataRoute.Robots {
         '/admin/',
         '/dashboard/',
         '/api/',
+        '/bilan/',
         '/formations-ia/merci',
         '/formations-ia/inscription',
       ],

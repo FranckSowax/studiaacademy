@@ -9,6 +9,8 @@ import { lireDossier, lireSessionsDisponibles } from '@/lib/entreprise/dossier'
 import { estUuid, initiales } from '@/lib/entreprise/dossier-regles'
 import { lireFormationsLiables, lirePropositions } from '@/lib/entreprise/propositions'
 import { EntreprisePropositions } from '@/components/admin/EntreprisePropositions'
+import { EntrepriseBilan } from '@/components/admin/EntrepriseBilan'
+import { lireBilansEnvoyes } from '@/lib/entreprise/bilan-acces'
 import { lireResponsables } from '@/lib/studia-live/suivi'
 import { entier, noteSur, pct } from '@/lib/studia-live/suivi-regles'
 import { createAdminClient } from '@/lib/supabase/admin'
@@ -34,12 +36,13 @@ export default async function AdminEntrepriseDossierPage({ params }: { params: P
   if (!estUuid(id)) notFound()
 
   const admin = createAdminClient()
-  const [dossier, disponibles, responsables, propositions, formations] = await Promise.all([
+  const [dossier, disponibles, responsables, propositions, formations, bilans] = await Promise.all([
     lireDossier(admin, id),
     lireSessionsDisponibles(admin),
     lireResponsables(admin),
     lirePropositions(admin, id),
     lireFormationsLiables(admin),
+    lireBilansEnvoyes(admin, id),
   ])
   if (!dossier) notFound()
 
@@ -115,6 +118,15 @@ export default async function AdminEntrepriseDossierPage({ params }: { params: P
         propositions={propositions.propositions}
         formations={formations}
         erreur={propositions.erreur}
+      />
+      <EntrepriseBilan
+        entrepriseId={id}
+        directionNom={e.direction_nom}
+        directionEmail={e.direction_email}
+        bilans={bilans}
+        possible={analyse.sessions_analysees > 0}
+        formationsRetenues={propositions.propositions.filter((p) => p.statut === 'retenue').length}
+        admins={responsables}
       />
       <EntrepriseParticipants entrepriseId={id} participants={participants} etiquetes={etiquetes} />
 

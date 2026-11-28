@@ -4,11 +4,16 @@ import { AlertTriangle, Award, GraduationCap, UserCheck, UserPlus, Users } from 
 import { requireAdmin } from '@/lib/auth/require-admin'
 import { chargerUtilisateurs } from '@/lib/admin/users-data'
 import { AdminUsersTable } from '@/components/admin/AdminUsersTable'
+import { lireEtiquettesEntreprise } from '@/lib/entreprise/dossier'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 export default async function AdminUsersPage() {
   const { role } = await requireAdmin()
   const isSuperAdmin = role === 'super_admin'
-  const { utilisateurs, formations, chiffres, indisponibles } = await chargerUtilisateurs()
+  const [{ utilisateurs, formations, chiffres, indisponibles }, entreprises] = await Promise.all([
+    chargerUtilisateurs(),
+    lireEtiquettesEntreprise(createAdminClient()),
+  ])
 
   const cartes = [
     { icon: Users, label: 'Comptes', valeur: chiffres.comptes },
@@ -50,7 +55,7 @@ export default async function AdminUsersPage() {
         ))}
       </div>
 
-      <AdminUsersTable users={utilisateurs} formations={formations} isSuperAdmin={isSuperAdmin} />
+      <AdminUsersTable users={utilisateurs} formations={formations} isSuperAdmin={isSuperAdmin} entreprises={entreprises} />
     </div>
   )
 }
