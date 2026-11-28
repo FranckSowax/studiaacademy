@@ -10,6 +10,7 @@ import {
   GraduationCap, Sparkles, Flame,
 } from 'lucide-react'
 import { codeLiveActif } from '@/lib/studia-live/lancement'
+import { estFormationMetier } from '@/lib/formations/secteur-link'
 import type { Formation } from '@/types/formation'
 
 interface EnrolledFormation {
@@ -111,7 +112,7 @@ export default async function MesFormationsPage() {
       .order('ordre', { ascending: true })
       .limit(6)
     // Hors collection « Upgrade Métier », réservée à sa section de l'accueil.
-    suggestions = ((data ?? []) as Formation[]).filter((f) => !f.secteur_slug)
+    suggestions = ((data ?? []) as Formation[]).filter((f) => !estFormationMetier(f))
   }
 
   const kpis = [
