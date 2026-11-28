@@ -33,20 +33,43 @@ export function horsCollectionMetier<T extends { slug: string }>(
   return formations.filter((f) => !slugs.has(f.slug))
 }
 
+/** Titre comparable : sans accents, sans ponctuation, en minuscules. */
+function cleTitre(titre: string): string {
+  return titre
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+}
+
+const SECTEUR_PAR_TITRE = new Map(SECTEURS.map((s) => [cleTitre(s.formation.titre), s.slug]))
+
+/** Vrai si la formation fait partie de la collection « Upgrade Métier » (rattachée ou reconnue à son titre). */
+export function estFormationMetier(f: { titre: string; secteur_slug?: string | null }): boolean {
+  return Boolean(f.secteur_slug) || SECTEUR_PAR_TITRE.has(cleTitre(f.titre))
+}
+
 /**
- * Range les formations par secteur. Les lignes sans secteur ou au secteur inconnu sont
- * ignorées ; si deux lignes visent le même secteur, la première l'emporte.
+ * Range les formations par secteur. Une formation appartient à un secteur si elle y est
+ * rattachée dans l'admin (`secteur_slug`) ou, à défaut, si son titre est celui de la formation
+ * métier de ce secteur. Le rattachement explicite l'emporte ; à égalité, la première ligne gagne.
+ * WHY: les formations créées avec le bon titre mais sans remplir le champ « Formation métier
+ * du secteur » restaient mêlées au catalogue général.
  */
 export function indexerParSecteur(lignes: LigneFormationSecteur[]): Map<string, FormationSecteur> {
   const index = new Map<string, FormationSecteur>()
+  const ranger = (secteur: string, l: LigneFormationSecteur) => {
+    if (index.has(secteur)) return
+    index.set(secteur, { slug: l.slug, titre: l.titre, prix_fcfa: l.prix_fcfa, live_code: l.live_code })
+  }
   for (const l of lignes) {
-    if (!l.secteur_slug || !estSecteurValide(l.secteur_slug) || index.has(l.secteur_slug)) continue
-    index.set(l.secteur_slug, {
-      slug: l.slug,
-      titre: l.titre,
-      prix_fcfa: l.prix_fcfa,
-      live_code: l.live_code,
-    })
+    if (l.secteur_slug && estSecteurValide(l.secteur_slug)) ranger(l.secteur_slug, l)
+  }
+  for (const l of lignes) {
+    if (l.secteur_slug) continue
+    const secteur = SECTEUR_PAR_TITRE.get(cleTitre(l.titre))
+    if (secteur) ranger(secteur, l)
   }
   return index
 }

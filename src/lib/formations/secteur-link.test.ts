@@ -57,6 +57,25 @@ describe('indexerParSecteur', () => {
     expect(index.size).toBe(0)
   })
 
+  it('reconnaît une formation non rattachée à son titre, malgré la casse et la ponctuation', () => {
+    const index = indexerParSecteur([
+      ligne({ slug: 'courriers-a0oa', titre: 'Courriers, notes et dossiers en deux fois moins de temps' }),
+      ligne({ slug: 'assistant-2ew0', titre: "L’ASSISTANT(E) AUGMENTÉ(E) : e-mails, comptes rendus, agenda " }),
+      ligne({ slug: 'pc-express', titre: 'PC Express' }),
+    ])
+    expect(index.get('administration')?.slug).toBe('courriers-a0oa')
+    expect(index.get('secretariat')?.slug).toBe('assistant-2ew0')
+    expect(index.size).toBe(2)
+  })
+
+  it('fait passer le rattachement de l’admin avant la reconnaissance par titre', () => {
+    const index = indexerParSecteur([
+      ligne({ slug: 'par-titre', titre: 'Moins de paperasse, plus de temps pour les patients' }),
+      ligne({ slug: 'choisie', titre: 'Autre titre', secteur_slug: 'sante' }),
+    ])
+    expect(index.get('sante')?.slug).toBe('choisie')
+  })
+
   it('garde la première formation quand deux visent le même secteur', () => {
     const index = indexerParSecteur([
       ligne({ slug: 'recente', secteur_slug: 'sante' }),

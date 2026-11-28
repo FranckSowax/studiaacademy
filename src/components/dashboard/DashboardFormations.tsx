@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import { ChevronRight, ArrowRight, Flame, GraduationCap, PlayCircle, Sparkles } from 'lucide-react'
 import { lancementLiveConfigure } from '@/lib/studia-live/etat'
+import { estFormationMetier } from '@/lib/formations/secteur-link'
 import type { Formation } from '@/types/formation'
 
 interface EnrolledCard {
@@ -100,7 +101,7 @@ export function DashboardFormations() {
           .order('ordre', { ascending: true })
           .limit(8)
         // Hors collection « Upgrade Métier », réservée à sa section de l'accueil.
-        if (active) setSuggestions(((data ?? []) as Formation[]).filter((f) => !f.secteur_slug))
+        if (active) setSuggestions(((data ?? []) as Formation[]).filter((f) => !estFormationMetier(f)))
       }
 
       if (active) {
