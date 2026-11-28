@@ -3,7 +3,9 @@
 import { useMemo, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Building2, CalendarDays, ChevronRight, Image as ImageIcon, Loader2, Plus, Search, Tag } from 'lucide-react'
+import { Building2, CalendarDays, ChevronRight, Hammer, Image as ImageIcon, Loader2, Plus, Search, Tag } from 'lucide-react'
+import type { SurMesureACreer } from '@/lib/entreprise/propositions'
+import { jourLong } from '@/lib/studia-live/suivi-regles'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
@@ -174,9 +176,12 @@ export function EntrepriseFormDialog({
 export function EntreprisesList({
   entreprises,
   responsables,
+  aCreer = [],
 }: {
   entreprises: EntrepriseResume[]
   responsables: { id: string; nom: string }[]
+  /** Formations sur mesure retenues, pas encore créées. */
+  aCreer?: SurMesureACreer[]
 }) {
   const [recherche, setRecherche] = useState('')
   const [creation, setCreation] = useState(false)
@@ -224,6 +229,33 @@ export function EntreprisesList({
           </div>
         ))}
       </div>
+
+      {aCreer.length > 0 && (
+        <section className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-amber-900">
+            <Hammer className="h-4 w-4" />
+            {aCreer.length} formation{aCreer.length > 1 ? 's' : ''} sur mesure à créer
+          </h2>
+          <p className="mt-0.5 text-xs text-amber-800">
+            Créez la formation dans « Formations en ligne », puis reliez-la depuis la fiche de l’entreprise.
+          </p>
+          <ul className="mt-3 divide-y divide-amber-200/70">
+            {aCreer.map((f) => (
+              <li key={f.id} className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm">
+                <span className="min-w-0">
+                  <span className="font-medium text-amber-950">{f.titre}</span>
+                  <span className="block text-xs text-amber-800">
+                    {f.entreprise}{f.decidee_le ? ` · retenue le ${jourLong(f.decidee_le)}` : ''}
+                  </span>
+                </span>
+                <Link href={`/admin/entreprise/${f.company_id}`} className="text-xs font-medium text-amber-900 underline underline-offset-2">
+                  Ouvrir le dossier
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <label className="relative block max-w-md">
         <span className="sr-only">Rechercher une entreprise</span>

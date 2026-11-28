@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'
 import { EntreprisesList } from '@/components/admin/EntreprisesList'
 import { requireAdmin } from '@/lib/auth/require-admin'
 import { lireEntreprises } from '@/lib/entreprise/dossier'
+import { lireSurMesureACreer } from '@/lib/entreprise/propositions'
 import { lireResponsables } from '@/lib/studia-live/suivi'
 import { createAdminClient } from '@/lib/supabase/admin'
 
@@ -10,7 +11,11 @@ import { createAdminClient } from '@/lib/supabase/admin'
 export default async function AdminEntreprisePage() {
   await requireAdmin()
   const admin = createAdminClient()
-  const [{ entreprises, erreur }, responsables] = await Promise.all([lireEntreprises(admin), lireResponsables(admin)])
+  const [{ entreprises, erreur }, responsables, aCreer] = await Promise.all([
+    lireEntreprises(admin),
+    lireResponsables(admin),
+    lireSurMesureACreer(admin),
+  ])
 
   if (erreur) {
     return (
@@ -19,5 +24,5 @@ export default async function AdminEntreprisePage() {
       </div>
     )
   }
-  return <EntreprisesList entreprises={entreprises} responsables={responsables} />
+  return <EntreprisesList entreprises={entreprises} responsables={responsables} aCreer={aCreer} />
 }

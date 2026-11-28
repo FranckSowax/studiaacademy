@@ -7,6 +7,8 @@ import { EntrepriseModifier, EntrepriseParticipants, EntrepriseSessions } from '
 import { requireAdmin } from '@/lib/auth/require-admin'
 import { lireDossier, lireSessionsDisponibles } from '@/lib/entreprise/dossier'
 import { estUuid, initiales } from '@/lib/entreprise/dossier-regles'
+import { lireFormationsLiables, lirePropositions } from '@/lib/entreprise/propositions'
+import { EntreprisePropositions } from '@/components/admin/EntreprisePropositions'
 import { lireResponsables } from '@/lib/studia-live/suivi'
 import { entier, noteSur, pct } from '@/lib/studia-live/suivi-regles'
 import { createAdminClient } from '@/lib/supabase/admin'
@@ -32,14 +34,16 @@ export default async function AdminEntrepriseDossierPage({ params }: { params: P
   if (!estUuid(id)) notFound()
 
   const admin = createAdminClient()
-  const [dossier, disponibles, responsables] = await Promise.all([
+  const [dossier, disponibles, responsables, propositions, formations] = await Promise.all([
     lireDossier(admin, id),
     lireSessionsDisponibles(admin),
     lireResponsables(admin),
+    lirePropositions(admin, id),
+    lireFormationsLiables(admin),
   ])
   if (!dossier) notFound()
 
-  const { entreprise: e, sessions, indicateurs: i, participants, etiquetes, diagnostics } = dossier
+  const { entreprise: e, sessions, indicateurs: i, participants, etiquetes, diagnostics, analyse } = dossier
   const responsable = responsables.find((r) => r.id === e.responsable_id)?.nom
 
   return (
@@ -105,6 +109,13 @@ export default async function AdminEntrepriseDossierPage({ params }: { params: P
       </div>
 
       <EntrepriseSessions entrepriseId={id} sessions={sessions} disponibles={disponibles} />
+      <EntreprisePropositions
+        entrepriseId={id}
+        analyse={analyse}
+        propositions={propositions.propositions}
+        formations={formations}
+        erreur={propositions.erreur}
+      />
       <EntrepriseParticipants entrepriseId={id} participants={participants} etiquetes={etiquetes} />
 
       {diagnostics.length > 0 && (
