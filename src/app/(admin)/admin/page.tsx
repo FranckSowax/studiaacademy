@@ -1,102 +1,102 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Users, Briefcase, DollarSign, Activity } from 'lucide-react'
+export const dynamic = 'force-dynamic'
 
-export default function AdminOverviewPage() {
-  return (
-    <div className="space-y-6">
-      <h2 className="text-3xl font-bold tracking-tight">Vue d'ensemble</h2>
-      
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Utilisateurs Totaux
-            </CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">2,350</div>
-            <p className="text-xs text-muted-foreground">
-              +180 le mois dernier
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Services Actifs
-            </CardTitle>
-            <Briefcase className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">12</div>
-            <p className="text-xs text-muted-foreground">
-              +2 nouveaux services
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Revenus (Mensuel)
-            </CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">4.5M XAF</div>
-            <p className="text-xs text-muted-foreground">
-              +12% depuis le mois dernier
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Taux d'Activité
-            </CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">573</div>
-            <p className="text-xs text-muted-foreground">
-              Utilisateurs actifs aujourd'hui
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+import type { Metadata } from 'next'
+import { requireAdmin } from '@/lib/auth/require-admin'
+import { createAdminClient } from '@/lib/supabase/admin'
+import {
+  calculerTableauDeBord, isPeriode, tranches, type DonneesBrutes, type Periode,
+} from '@/lib/admin/dashboard-metrics'
+import { donneesExemple } from '@/lib/admin/dashboard-demo'
+import { DashboardView } from '@/components/admin/dashboard/DashboardView'
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4">
-          <CardHeader>
-            <CardTitle>Aperçu des Inscriptions</CardTitle>
-          </CardHeader>
-          <CardContent className="pl-2">
-            <div className="flex h-[300px] items-center justify-center text-muted-foreground bg-muted/10 rounded-md">
-               Graphique des inscriptions (Placeholder)
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="col-span-3">
-          <CardHeader>
-            <CardTitle>Activités Récentes</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-8">
-                {/* Mock Activities */}
-                {[1, 2, 3, 4, 5].map((i) => (
-                    <div key={i} className="flex items-center">
-                        <div className="space-y-1">
-                            <p className="text-sm font-medium leading-none">Nouvel utilisateur inscrit</p>
-                            <p className="text-sm text-muted-foreground">
-                                Il y a {i * 15} minutes
-                            </p>
-                        </div>
-                    </div>
-                ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  )
+export const metadata: Metadata = { title: 'Vue d’ensemble — Studia Admin', robots: { index: false } }
+
+const PAGE = 1000
+const PAGES_MAX = 20
+
+/** Instant de la requête (hors du rendu : la page est recalculée à chaque visite). */
+const horloge = () => new Date()
+
+type Requete = (debut: number, fin: number) => PromiseLike<{ data: unknown[] | null; error: { message: string } | null }>
+
+/**
+ * Lit toutes les lignes d'une requête, page par page (l'API en renvoie 1 000
+ * au plus par appel). Une table indisponible donne une liste vide et son nom
+ * dans `indisponibles`, plutôt qu'une page en erreur.
+ */
+async function lireTout<T>(nom: string, requete: Requete, indisponibles: string[]): Promise<T[]> {
+  const lignes: T[] = []
+  for (let page = 0; page < PAGES_MAX; page++) {
+    const { data, error } = await requete(page * PAGE, page * PAGE + PAGE - 1)
+    if (error) {
+      console.error(`[admin] lecture ${nom}:`, error.message)
+      indisponibles.push(nom)
+      return []
+    }
+    lignes.push(...((data ?? []) as T[]))
+    if ((data ?? []).length < PAGE) break
+  }
+  return lignes
+}
+
+/** Lignes nécessaires à la période affichée et à la période de comparaison. */
+async function lireDonnees(periode: Periode, maintenant: Date): Promise<{ donnees: DonneesBrutes; indisponibles: string[] }> {
+  const admin = createAdminClient()
+  const cases = tranches(periode, maintenant)
+  const debut = cases[0].debut
+  const depuis = new Date(debut - (cases[cases.length - 1].fin - debut)).toISOString()
+  const hier = new Date(maintenant.getTime() - 24 * 3600 * 1000).toISOString()
+  const indisponibles: string[] = []
+
+  const [comptes, inscriptions, reservations, formations, evenements, conversations] = await Promise.all([
+    lireTout<DonneesBrutes['comptes'][number]>('comptes', (a, b) =>
+      admin.from('profiles').select('created_at').gte('created_at', depuis).order('created_at').range(a, b), indisponibles),
+    lireTout<DonneesBrutes['inscriptions'][number]>('inscriptions', (a, b) =>
+      admin
+        .from('formation_enrollments')
+        .select('formation_id, status, requested_at, granted_at, payment_method, payment_amount_fcfa')
+        .or(`requested_at.gte."${depuis}",granted_at.gte."${depuis}",status.eq.pending`)
+        .order('requested_at')
+        .range(a, b), indisponibles),
+    lireTout<DonneesBrutes['reservations'][number]>('réservations', (a, b) =>
+      admin
+        .from('presentiel_reservations')
+        .select('session_id, status, created_at, decided_at, payment_method, payment_amount_fcfa')
+        .or(`created_at.gte."${depuis}",decided_at.gte."${depuis}",status.eq.reserved`)
+        .order('created_at')
+        .range(a, b), indisponibles),
+    lireTout<DonneesBrutes['formations'][number]>('formations', (a, b) =>
+      admin.from('formations').select('id, titre').order('created_at').range(a, b), indisponibles),
+    lireTout<DonneesBrutes['evenements'][number]>('événements', (a, b) =>
+      admin
+        .from('presentiel_sessions')
+        .select('id, titre, date_debut, places_total, places_reservees')
+        .eq('is_published', true)
+        .gte('date_debut', hier)
+        .order('date_debut')
+        .range(a, b), indisponibles),
+    lireTout<DonneesBrutes['conversations'][number]>('conversations WhatsApp', (a, b) =>
+      admin.from('wa_conversations').select('created_at, source').gte('created_at', depuis).order('created_at').range(a, b), indisponibles),
+  ])
+
+  return { donnees: { comptes, inscriptions, reservations, formations, evenements, conversations }, indisponibles }
+}
+
+/**
+ * /admin — vue d'ensemble : indicateurs de toutes les activités (comptes,
+ * inscriptions en ligne, présentiel, paiements, contacts WhatsApp) sur une
+ * période, comparés à la période précédente, avec les graphiques de suivi.
+ * `?p=30j|90j|12m` choisit la période ; `?demo=1` affiche des données d'exemple.
+ */
+export default async function AdminOverviewPage({ searchParams }: { searchParams: Promise<{ p?: string; demo?: string }> }) {
+  await requireAdmin()
+  const { p, demo } = await searchParams
+  const periode: Periode = isPeriode(p) ? p : '30j'
+  const exemple = demo === '1'
+  const maintenant = horloge()
+
+  const { donnees, indisponibles } = exemple
+    ? { donnees: donneesExemple(maintenant), indisponibles: [] as string[] }
+    : await lireDonnees(periode, maintenant)
+  return <DashboardView tableau={calculerTableauDeBord(donnees, periode, maintenant)} exemple={exemple} indisponibles={indisponibles} />
 }
