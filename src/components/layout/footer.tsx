@@ -3,7 +3,7 @@ import Image from 'next/image'
 import { Mail, MapPin, MessageCircle } from 'lucide-react'
 import { WHATSAPP_AFFICHAGE, WHATSAPP_NUMBER } from '@/lib/formations-ia'
 
-const CONTACT_EMAIL = 'contact@studiaacademy.com'
+const CONTACT_EMAIL = 'contact@studia.academy'
 
 // WHY: uniquement les pages encore proposées dans le menu et sur l'accueil.
 const COLONNES = [
