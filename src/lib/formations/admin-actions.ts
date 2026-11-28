@@ -6,6 +6,7 @@ import { sendWhatsApp } from '@/lib/whatsapp'
 import { LIVE_CODE_FORMAT } from '@/lib/studia-live/lancement'
 import { resoudreVideoIntro } from '@/lib/formations/intro-video'
 import { estSecteurValide } from '@/lib/formations/secteur-link'
+import { canDecide, cleanMessage } from '@/lib/formations/enrollment-payment'
 import type { LessonType } from '@/types/formation'
 
 async function assertAdmin() {
@@ -276,10 +277,20 @@ export async function deleteLesson(id: string, formationId: string) {
 
 // ── Validation des inscriptions ─────────────
 
+/**
+ * Valide ou refuse une demande d'inscription payante. La validation confirme
+ * le paiement (espèces encaissées ou capture Airtel Money vérifiée) et ouvre
+ * l'accès ; le refus garde un motif que l'élève voit sur la fiche.
+ * `notified` indique si le message WhatsApp est bien parti.
+ *
+ * @example
+ * await decideEnrollment(id, 'rejected', 'Montant reçu incomplet')
+ */
 export async function decideEnrollment(
   enrollmentId: string,
-  decision: 'active' | 'rejected'
-): Promise<{ success: boolean; error?: string }> {
+  decision: 'active' | 'rejected',
+  note?: string
+): Promise<{ success: boolean; error?: string; notified?: boolean }> {
   const { ok, supabase, user } = await assertAdmin()
   if (!ok || !user) return { success: false, error: 'Accès admin requis' }
 
@@ -287,36 +298,53 @@ export async function decideEnrollment(
     .from('formation_enrollments')
     .select('*, formations(titre, slug), profiles!formation_enrollments_user_id_fkey(full_name)')
     .eq('id', enrollmentId)
-    .single()
+    .maybeSingle()
+  if (!enr) return { success: false, error: 'Demande introuvable' }
+  if (!canDecide(enr.status, decision)) {
+    return { success: false, error: 'Cette demande a déjà été traitée. Actualisez la page.' }
+  }
 
-  const { error } = await supabase
+  const adminNote = decision === 'rejected' ? cleanMessage(note) : null
+  // WHY: le filtre sur le statut lu évite une double décision si deux admins
+  // cliquent en même temps (la seconde mise à jour ne touche aucune ligne).
+  const { data: updated, error } = await supabase
     .from('formation_enrollments')
     .update({
       status: decision,
       granted_at: decision === 'active' ? new Date().toISOString() : null,
       granted_by: user.id,
+      admin_note: adminNote,
     })
     .eq('id', enrollmentId)
+    .eq('status', enr.status)
+    .select('id')
   if (error) return { success: false, error: error.message }
+  if (!updated?.length) {
+    return { success: false, error: 'Cette demande a déjà été traitée. Actualisez la page.' }
+  }
 
-  // Notifier l'élève
-  if (enr?.phone) {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://studiaacademy-production.up.railway.app'
+  // Notifier l'élève (l'inscription reste décidée même si WhatsApp est indisponible)
+  let notified = false
+  const titre = enr.formations?.titre ?? ''
+  const slug = enr.formations?.slug ?? ''
+  if (enr.phone) {
+    const baseUrl = (process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.studia.academy').replace(/\/+$/, '')
     if (decision === 'active') {
-      await sendWhatsApp(
+      notified = await sendWhatsApp(
         enr.phone,
-        `🎉 Accès accordé !\nVotre formation *${enr.formations?.titre ?? ''}* est disponible.\n▶️ Commencez ici : ${baseUrl}/formations/${enr.formations?.slug ?? ''}/suivre\n— Studia Academy`
+        `🎉 Paiement confirmé, accès ouvert !\nVotre formation *${titre}* est disponible.\n▶️ Commencez ici : ${baseUrl}/formations/${slug}/suivre\n— Studia Academy`
       )
     } else {
-      await sendWhatsApp(
+      notified = await sendWhatsApp(
         enr.phone,
-        `Bonjour, concernant votre demande pour *${enr.formations?.titre ?? ''}*, contactez-nous pour finaliser votre inscription. — Studia Academy`
+        `Bonjour, votre inscription à *${titre}* n'a pas pu être validée.${adminNote ? `\nMotif : ${adminNote}` : ''}\nVous pouvez refaire votre demande ici : ${baseUrl}/formations/en-ligne/${slug}\n— Studia Academy`
       )
     }
   }
 
   revalidatePath('/admin/formations/inscriptions')
-  return { success: true }
+  if (slug) revalidatePath(`/formations/en-ligne/${slug}`)
+  return { success: true, notified }
 }
 
 // ── Sessions présentiel CRUD ────────────────

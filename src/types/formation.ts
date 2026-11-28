@@ -81,6 +81,14 @@ export interface FormationEnrollment {
   granted_at: string | null
   granted_by: string | null
   completed_at: string | null
+  /** Paiement (absents tant que la migration enrollment_payments n'est pas appliquée). */
+  payment_method?: 'cash' | 'airtel_money' | null
+  payment_amount_fcfa?: number | null
+  payment_reference?: string | null
+  /** Chemin dans le bucket privé `payment-proofs`. */
+  payment_proof_path?: string | null
+  /** Motif laissé par l'admin lors d'un refus. */
+  admin_note?: string | null
 }
 
 export interface PresentielSession {
