@@ -14,6 +14,9 @@ import { getFormationsParSecteur } from '@/lib/formations/secteur-formations'
 import { horsCollectionMetier } from '@/lib/formations/secteur-link'
 import { EVENT_TYPE_LABELS, lienEvenement, placesRestantes, typeEvenement } from '@/lib/events/rules'
 import { formatNumber } from '@/lib/utils'
+import { PlacesLimiteesBandeau } from '@/components/formations/PlacesLimiteesBandeau'
+import { etatPlaces } from '@/lib/formations/places'
+import { getPlacesFormations } from '@/lib/formations/places-data'
 import type { PresentielSession } from '@/types/formation'
 
 export const metadata: Metadata = {
@@ -60,8 +63,9 @@ export default async function FormationsLandingPage() {
   const supabase = await createClient()
   const hier = depuisHier()
 
-  const [collection, formationsRes, evenementsRes] = await Promise.all([
+  const [collection, places, formationsRes, evenementsRes] = await Promise.all([
     getFormationsParSecteur(),
+    getPlacesFormations(supabase),
     supabase
       .from('formations')
       .select('id, slug, titre, categorie, niveau, duree_estimee, prix_fcfa, cover_image')
@@ -258,7 +262,7 @@ export default async function FormationsLandingPage() {
                     href={`/formations/en-ligne/${f.slug}`}
                     className="group flex flex-col overflow-hidden rounded-2xl border border-[#f0ebe3] bg-white transition-shadow hover:shadow-lg"
                   >
-                    <div className="relative aspect-[16/9] bg-gradient-to-br from-[#fff7ed] to-[#fde8d3]">
+                    <div className="relative aspect-[16/9] overflow-hidden bg-gradient-to-br from-[#fff7ed] to-[#fde8d3]">
                       {f.cover_image && (
                         // eslint-disable-next-line @next/next/no-img-element -- adresse libre saisie par l'admin (hôte non prévu par next/image)
                         <img src={f.cover_image} alt="" loading="lazy" className="h-full w-full object-cover" />
@@ -266,6 +270,7 @@ export default async function FormationsLandingPage() {
                       <span className="absolute right-3 top-3 rounded-full bg-gray-900/80 px-2.5 py-1 text-xs font-semibold text-white">
                         {prix(f.prix_fcfa)}
                       </span>
+                      <PlacesLimiteesBandeau etat={etatPlaces(places[f.id]?.max, places[f.id]?.prises)} />
                     </div>
                     <div className="flex flex-1 flex-col p-4">
                       {f.categorie && <p className="text-xs font-semibold uppercase tracking-wide text-[#a84d16]">{f.categorie}</p>}

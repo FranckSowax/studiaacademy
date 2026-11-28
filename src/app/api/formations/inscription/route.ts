@@ -18,6 +18,7 @@ import {
   proofPath,
   submissionBlocker,
 } from '@/lib/formations/enrollment-payment'
+import { estErreurComplet, etatPlaces, MESSAGE_COMPLET, STATUTS_AVEC_PLACE } from '@/lib/formations/places'
 import type { EnrollmentStatus } from '@/types/formation'
 
 export const dynamic = 'force-dynamic'
@@ -95,6 +96,18 @@ export async function POST(request: Request) {
   const blocker = submissionBlocker((existing?.status ?? null) as EnrollmentStatus | null)
   if (blocker) return refuse(blocker, 409)
 
+  // Formation à places limitées : refus avant tout envoi de fichier (la base
+  // revérifie au moment de l'enregistrement, en cas d'inscriptions simultanées).
+  if (typeof formation.places_max === 'number') {
+    const { count } = await admin
+      .from('formation_enrollments')
+      .select('id', { count: 'exact', head: true })
+      .eq('formation_id', formationId)
+      .in('status', [...STATUTS_AVEC_PLACE])
+      .neq('user_id', user.id)
+    if (etatPlaces(formation.places_max, count)?.complet) return refuse(MESSAGE_COMPLET, 409)
+  }
+
   // Capture d'écran : obligatoire pour Airtel Money, ignorée pour les espèces.
   let path: string | null = null
   if (method === 'airtel_money') {
@@ -135,6 +148,7 @@ export async function POST(request: Request) {
   if (error) {
     console.error('[inscription] enregistrement:', error.code)
     if (path) await admin.storage.from(PROOF_BUCKET).remove([path])
+    if (estErreurComplet(error.message)) return refuse(MESSAGE_COMPLET, 409)
     return refuse('Inscription impossible pour le moment. Écrivez-nous sur WhatsApp.', 500)
   }
 

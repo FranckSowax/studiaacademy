@@ -6,6 +6,7 @@ import { Footer } from '@/components/layout/footer'
 import { createClient } from '@/lib/supabase/server'
 import { ArrowLeft, Monitor, PlayCircle } from 'lucide-react'
 import { FormationsBrowser, type BrowserFormation } from '@/components/formations/FormationsBrowser'
+import { getPlacesFormations } from '@/lib/formations/places-data'
 
 const firstParam = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v)?.slice(0, 100)
 
@@ -61,6 +62,7 @@ export default async function FormationsEnLignePage({
           ) : (
             <FormationsBrowser
               formations={formations}
+              places={await getPlacesFormations(supabase)}
               initialQuery={firstParam(params.q) ?? ''}
               initialSecteur={firstParam(params.secteur)}
             />

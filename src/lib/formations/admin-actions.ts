@@ -7,6 +7,7 @@ import { LIVE_CODE_FORMAT } from '@/lib/studia-live/lancement'
 import { resoudreVideoIntro } from '@/lib/formations/intro-video'
 import { estSecteurValide } from '@/lib/formations/secteur-link'
 import { canDecide, cleanMessage } from '@/lib/formations/enrollment-payment'
+import { lirePlacesMax } from '@/lib/formations/places'
 import type { LessonType } from '@/types/formation'
 
 async function assertAdmin() {
@@ -111,6 +112,8 @@ export async function updateFormation(
     intro_video_url?: string
     /** Secteur dont c'est la formation métier ; chaîne vide pour la détacher. */
     secteur_slug?: string
+    /** Nombre maximal d'inscriptions ; null pour retirer la limite. */
+    places_max?: number | null
   }
 ): Promise<{ success: boolean; error?: string }> {
   const { ok, supabase } = await assertAdmin()
@@ -167,6 +170,13 @@ export async function updateFormation(
     }
     maj.secteur_slug = secteur || null
   }
+  if (input.places_max !== undefined) {
+    const places = lirePlacesMax(input.places_max)
+    if (places === undefined) {
+      return { success: false, error: 'Nombre de places invalide : entier supérieur à 0, ou vide pour ne pas limiter.' }
+    }
+    maj.places_max = places
+  }
   if (input.sous_titre !== undefined) maj.sous_titre = texte(input.sous_titre, 240)
   if (input.description !== undefined) maj.description = texte(input.description, 10_000)
   if (input.categorie !== undefined) maj.categorie = texte(input.categorie, 80)
@@ -180,7 +190,14 @@ export async function updateFormation(
   if (Object.keys(maj).length === 0) return { success: true }
 
   const { data, error } = await supabase.from('formations').update(maj).eq('id', id).select('slug').maybeSingle()
-  if (error) return { success: false, error: error.message }
+  if (error) {
+    return {
+      success: false,
+      error: /places_max/.test(error.message)
+        ? 'Limite de places impossible à enregistrer : la migration « formations_places_limitees » doit être appliquée.'
+        : error.message,
+    }
+  }
   if (!data) return { success: false, error: 'Formation introuvable' }
 
   revalidatePath('/admin/formations')

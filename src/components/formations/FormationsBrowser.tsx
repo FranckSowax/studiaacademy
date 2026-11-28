@@ -7,6 +7,8 @@ import { Search, BarChart, PlayCircle, X } from 'lucide-react'
 import { formatNumber } from '@/lib/utils'
 import { HorizontalGallery } from '@/components/sections/HorizontalGallery'
 import { SECTEURS } from '@/lib/secteurs'
+import { PlacesLimiteesBandeau } from '@/components/formations/PlacesLimiteesBandeau'
+import { etatPlaces, type EtatPlaces, type PlacesParFormation } from '@/lib/formations/places'
 
 export interface BrowserFormation {
   id: string
@@ -29,7 +31,7 @@ const PRIX_OPTIONS: { key: string; label: string; test: (p: number) => boolean }
   { key: 'gt100', label: '> 100k', test: (p) => p > 100000 },
 ]
 
-function Card({ f }: { f: BrowserFormation }) {
+function Card({ f, places }: { f: BrowserFormation; places: EtatPlaces | null }) {
   return (
     // Couverture en 16:9 : cartes plus larges pour garder une image lisible.
     <Link href={`/formations/en-ligne/${f.slug}`} className="snap-start flex-shrink-0 w-[240px] sm:w-[280px] group">
@@ -39,7 +41,8 @@ function Card({ f }: { f: BrowserFormation }) {
         ) : (
           <div className="w-full h-full flex items-center justify-center"><PlayCircle className="w-10 h-10 text-[#e97e42]/60" /></div>
         )}
-        <span className="absolute bottom-2 left-2 bg-white/95 text-gray-900 text-xs font-bold px-2 py-0.5 rounded-full">
+        <PlacesLimiteesBandeau etat={places} />
+        <span className={`absolute left-2 bg-white/95 text-gray-900 text-xs font-bold px-2 py-0.5 rounded-full ${places ? 'bottom-9' : 'bottom-2'}`}>
           {f.prix_fcfa > 0 ? `${formatNumber(f.prix_fcfa)} FCFA` : 'Gratuit'}
         </span>
       </div>
@@ -53,10 +56,13 @@ function Card({ f }: { f: BrowserFormation }) {
 
 export function FormationsBrowser({
   formations,
+  places = {},
   initialQuery = '',
   initialSecteur,
 }: {
   formations: BrowserFormation[]
+  /** Places prises des formations à places limitées, par identifiant. */
+  places?: PlacesParFormation
   /** Recherche pré-remplie (ex. depuis la page d'accueil : `?q=`). */
   initialQuery?: string
   /** Secteur pré-sélectionné (`?secteur=`), ignoré s'il n'existe pas dans le catalogue. */
@@ -168,7 +174,7 @@ export function FormationsBrowser({
                 <span className="text-xs text-gray-400">{g.items.length} formation{g.items.length > 1 ? 's' : ''}</span>
               </div>
               <HorizontalGallery>
-                {g.items.map((f) => <Card key={f.id} f={f} />)}
+                {g.items.map((f) => <Card key={f.id} f={f} places={etatPlaces(places[f.id]?.max, places[f.id]?.prises)} />)}
               </HorizontalGallery>
             </section>
           ))}

@@ -18,6 +18,9 @@ import { FormationIntroVideo } from '@/components/formations/FormationIntroVideo
 import { UpgradeMetierSticker } from '@/components/formations/UpgradeMetierSticker'
 import { estFormationMetier } from '@/lib/formations/secteur-link'
 import { getAppConfig } from '@/lib/config/app-config'
+import { PlacesLimiteesBandeau } from '@/components/formations/PlacesLimiteesBandeau'
+import { detailPlaces, etatPlaces } from '@/lib/formations/places'
+import { getPlacesFormations } from '@/lib/formations/places-data'
 import type { Formation, FormationLesson, FormationEnrollment } from '@/types/formation'
 
 export default async function FormationDetailPage({
@@ -68,6 +71,10 @@ export default async function FormationDetailPage({
     { icon: Flame, titre: 'Une série de jours', texte: 'Revenez chaque jour pour garder votre série et ancrer les acquis.' },
     { icon: LineChart, titre: 'Votre avancement suivi', texte: 'Points, niveau et exercices réussis s’affichent dans votre tableau de bord Studia Academy.' },
   ]
+
+  // Formation à places limitées : bandeau sur la couverture et blocage quand c'est complet.
+  const placesFormation = (await getPlacesFormations(supabase))[f.id]
+  const places = etatPlaces(placesFormation?.max, placesFormation?.prises)
 
   // Numéro Airtel Money affiché dans le parcours de paiement (NEXT_PUBLIC_AIRTEL_MONEY).
   const airtelNumber =
@@ -137,11 +144,15 @@ export default async function FormationDetailPage({
                       </div>
                     )}
                     {estFormationMetier(f) && <UpgradeMetierSticker className="absolute left-3 top-3" />}
+                    <PlacesLimiteesBandeau etat={places} />
                   </div>
                   <div className="p-6">
                     <div className="text-3xl font-extrabold font-heading text-gray-900 mb-4">
                       {f.prix_fcfa > 0 ? <>{formatNumber(f.prix_fcfa)} <span className="text-base font-medium text-gray-400">FCFA</span></> : 'Gratuit'}
                     </div>
+                    {places && (
+                      <p className={`mb-3 text-sm font-semibold ${places.complet ? 'text-gray-700' : 'text-[#c2410c]'}`}>{detailPlaces(places)}</p>
+                    )}
                     <EnrollCTA
                       formationId={f.id}
                       formationSlug={f.slug}
@@ -153,6 +164,7 @@ export default async function FormationDetailPage({
                       paymentMethod={enrollment?.payment_method ?? null}
                       adminNote={enrollment?.admin_note ?? null}
                       airtelNumber={airtelNumber}
+                      complet={places?.complet ?? false}
                     />
                     <ul className="mt-5 space-y-2">
                       {['Accès à vie au contenu', 'Supports téléchargeables', 'Certificat de réussite', 'Support par l\'équipe'].map((b) => (

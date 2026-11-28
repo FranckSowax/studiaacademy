@@ -7,6 +7,9 @@ import { ArrowUpRight, BarChart, Clock, PlayCircle } from 'lucide-react'
 import { formatNumber } from '@/lib/utils'
 import { SECTEURS } from '@/lib/secteurs'
 
+import { PlacesLimiteesBandeau } from '@/components/formations/PlacesLimiteesBandeau'
+import { etatPlaces, type EtatPlaces, type PlacesParFormation } from '@/lib/formations/places'
+
 export interface CatalogFormation {
   id: string
   slug: string
@@ -24,7 +27,7 @@ const OTHER = 'Autres formations'
 const COLOR_BY_CATEGORY = new Map(SECTEURS.map((s) => [s.label, s.couleur]))
 const ORDER = SECTEURS.map((s) => s.label)
 
-function CourseCard({ f }: { f: CatalogFormation }) {
+function CourseCard({ f, places }: { f: CatalogFormation; places: EtatPlaces | null }) {
   const cat = f.categorie ?? OTHER
   const color = COLOR_BY_CATEGORY.get(cat) ?? '#e97e42'
 
@@ -53,7 +56,8 @@ function CourseCard({ f }: { f: CatalogFormation }) {
         >
           {cat}
         </span>
-        <span className="absolute bottom-3 right-3 flex h-10 w-10 items-center justify-center rounded-full bg-white/95 text-[#e97e42] opacity-0 shadow-lg transition-opacity duration-300 group-hover:opacity-100">
+        <PlacesLimiteesBandeau etat={places} />
+        <span className={`absolute right-3 flex h-10 w-10 items-center justify-center rounded-full bg-white/95 text-[#e97e42] opacity-0 shadow-lg transition-opacity duration-300 group-hover:opacity-100 ${places ? 'bottom-10' : 'bottom-3'}`}>
           <PlayCircle className="h-5 w-5" />
         </span>
       </div>
@@ -105,7 +109,14 @@ function CourseCard({ f }: { f: CatalogFormation }) {
  * Catalogue des formations en ligne de la page d'accueil :
  * filtres par secteur + grille de cartes de cours.
  */
-export function CourseCatalog({ formations }: { formations: CatalogFormation[] }) {
+export function CourseCatalog({
+  formations,
+  places = {},
+}: {
+  formations: CatalogFormation[]
+  /** Places prises des formations à places limitées, par identifiant. */
+  places?: PlacesParFormation
+}) {
   const [active, setActive] = useState('all')
 
   const categories = useMemo(() => {
@@ -155,7 +166,7 @@ export function CourseCatalog({ formations }: { formations: CatalogFormation[] }
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {visible.map((f) => (
-          <CourseCard key={f.id} f={f} />
+          <CourseCard key={f.id} f={f} places={etatPlaces(places[f.id]?.max, places[f.id]?.prises)} />
         ))}
       </div>
 

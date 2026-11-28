@@ -49,6 +49,7 @@ export function AdminFormationEditor({ formation, onClose }: { formation: Format
     formateur_bio: formation.formateur_bio ?? '',
     intro_video_url: formation.intro_video_url ?? '',
     secteur_slug: formation.secteur_slug ?? '',
+    places_max: formation.places_max ? String(formation.places_max) : '',
   })
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -153,6 +154,10 @@ export function AdminFormationEditor({ formation, onClose }: { formation: Format
       // même si la colonne n'existe pas encore en base (migration non appliquée).
       ...(video !== (formation.intro_video_url ?? '') ? { intro_video_url: video } : {}),
       ...(form.secteur_slug !== (formation.secteur_slug ?? '') ? { secteur_slug: form.secteur_slug } : {}),
+      // WHY: envoyé seulement s'il change — l'enregistrement reste possible avant la migration.
+      ...(form.places_max.trim() !== (formation.places_max ? String(formation.places_max) : '')
+        ? { places_max: form.places_max.trim() === '' ? null : Number(form.places_max) }
+        : {}),
     })
     setSaving(false)
     if (!res.success) return setErreur(res.error || 'Enregistrement impossible.')
@@ -187,6 +192,14 @@ export function AdminFormationEditor({ formation, onClose }: { formation: Format
             <Champ id="f-categorie" label="Catégorie"><Input id="f-categorie" {...champ('categorie')} className="rounded-xl" /></Champ>
             <Champ id="f-niveau" label="Niveau"><Input id="f-niveau" placeholder="Tous niveaux" {...champ('niveau')} className="rounded-xl" /></Champ>
           </div>
+
+          <Champ
+            id="f-places"
+            label="Limiter le nombre d’inscriptions"
+            aide="Laissez vide pour ne pas limiter. Avec une limite, la couverture affiche le bandeau « Places limitées », puis « Complet » : les inscriptions se ferment alors toutes seules."
+          >
+            <Input id="f-places" type="number" min={1} step={1} inputMode="numeric" placeholder="Illimité" {...champ('places_max')} className="rounded-xl sm:max-w-[220px]" />
+          </Champ>
 
           <Champ
             id="f-secteur"

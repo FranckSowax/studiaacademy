@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { accesFormationAutorise } from '@/lib/formations/free-access'
+import { estErreurComplet, MESSAGE_COMPLET } from '@/lib/formations/places'
 
 // ── Côté élève ──────────────────────────────
 
@@ -43,7 +44,7 @@ export async function enrollFree(
     },
     { onConflict: 'formation_id,user_id' }
   )
-  if (error) return { success: false, error: error.message }
+  if (error) return { success: false, error: estErreurComplet(error.message) ? MESSAGE_COMPLET : error.message }
 
   revalidatePath('/dashboard/formations')
   return { success: true }

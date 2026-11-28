@@ -32,6 +32,8 @@ export interface Formation {
   intro_video_url?: string | null
   /** Secteur dont c'est la formation métier (slug de `SECTEURS`) ; absent tant que la migration n'est pas appliquée. */
   secteur_slug?: string | null
+  /** Nombre maximal d'inscriptions ; null ou absent = illimité (migration formations_places_limitees). */
+  places_max?: number | null
   created_at: string
   updated_at: string
 }

@@ -2,6 +2,8 @@ import { SECTEURS } from '@/lib/secteurs'
 
 /** Formation créée dans l'admin et rattachée à un secteur d'activité. */
 export interface FormationSecteur {
+  /** Identifiant de la formation (absent des jeux de données qui ne le fournissent pas). */
+  id?: string
   slug: string
   titre: string
   prix_fcfa: number
@@ -61,7 +63,7 @@ export function indexerParSecteur(lignes: LigneFormationSecteur[]): Map<string, 
   const index = new Map<string, FormationSecteur>()
   const ranger = (secteur: string, l: LigneFormationSecteur) => {
     if (index.has(secteur)) return
-    index.set(secteur, { slug: l.slug, titre: l.titre, prix_fcfa: l.prix_fcfa, live_code: l.live_code })
+    index.set(secteur, { ...(l.id ? { id: l.id } : {}), slug: l.slug, titre: l.titre, prix_fcfa: l.prix_fcfa, live_code: l.live_code })
   }
   for (const l of lignes) {
     if (l.secteur_slug && estSecteurValide(l.secteur_slug)) ranger(l.secteur_slug, l)
