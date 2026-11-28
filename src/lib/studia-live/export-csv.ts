@@ -1,5 +1,5 @@
 import type { DonneesSessionLive } from './pilotage'
-import { jourCourt, niveauLabel } from './suivi-regles'
+import { enTexte, jourCourt, niveauLabel } from './suivi-regles'
 
 /**
  * Export CSV des réponses d'une session, pour Excel français :
@@ -76,7 +76,8 @@ export function exporterReponsesCsv(donnees: DonneesSessionLive): string {
     for (const r of p.reponses ?? []) {
       if (idsAnonymes.has(r.activite_id)) continue
       const textes = parActivite.get(r.activite_id) ?? []
-      if (r.texte) textes.push(r.texte)
+      const texte = enTexte(r.texte)
+      if (texte) textes.push(texte)
       parActivite.set(r.activite_id, textes)
     }
     lignes.push(
@@ -91,7 +92,7 @@ export function exporterReponsesCsv(donnees: DonneesSessionLive): string {
   if (anonymes.length > 0) {
     lignes.push('', ligne(['Réponses anonymes (sans nom)']), ligne(['Activité', 'Réponse']))
     for (const a of [...anonymes].sort((x, y) => x.ordre - y.ordre)) {
-      for (const reponse of a.reponses ?? []) lignes.push(ligne([`${a.ordre}. ${a.titre}`, reponse]))
+      for (const reponse of a.reponses ?? []) lignes.push(ligne([`${a.ordre}. ${a.titre}`, enTexte(reponse)]))
     }
   }
 
