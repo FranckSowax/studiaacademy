@@ -10,55 +10,8 @@ import { accesFormationAutorise } from '@/lib/formations/free-access'
 
 // ── Côté élève ──────────────────────────────
 
-/**
- * L'élève demande l'accès à une formation en ligne.
- * Notifie l'équipe Studia via WhatsApp.
- */
-export async function requestEnrollment(input: {
-  formation_id: string
-  phone: string
-  message?: string
-}): Promise<{ success: boolean; error?: string }> {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return { success: false, error: 'Connectez-vous pour demander l\'accès' }
-
-  const { data: formation } = await supabase
-    .from('formations')
-    .select('titre')
-    .eq('id', input.formation_id)
-    .single()
-
-  const { error } = await supabase.from('formation_enrollments').upsert(
-    {
-      formation_id: input.formation_id,
-      user_id: user.id,
-      phone: input.phone,
-      message: input.message ?? null,
-      status: 'pending',
-    },
-    { onConflict: 'formation_id,user_id' }
-  )
-  if (error) return { success: false, error: error.message }
-
-  // Accusé WhatsApp au client : la demande apparaît dans /messagerie
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('full_name')
-    .eq('id', user.id)
-    .single()
-  await acknowledgeSiteRequest(input.phone, {
-    kind: 'formation',
-    name: profile?.full_name,
-    title: formation?.titre,
-    details: input.message,
-  })
-
-  revalidatePath('/dashboard/formations')
-  return { success: true }
-}
+// L'inscription à une formation PAYANTE (mode de paiement, preuve Airtel Money)
+// passe par POST /api/formations/inscription : voir src/app/api/formations/inscription/route.ts.
 
 /**
  * Inscription immédiate à une formation gratuite (compte Studia suffisant).

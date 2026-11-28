@@ -17,6 +17,7 @@ import { accesFormationAutorise } from '@/lib/formations/free-access'
 import { FormationIntroVideo } from '@/components/formations/FormationIntroVideo'
 import { UpgradeMetierSticker } from '@/components/formations/UpgradeMetierSticker'
 import { estFormationMetier } from '@/lib/formations/secteur-link'
+import { getAppConfig } from '@/lib/config/app-config'
 import type { Formation, FormationLesson, FormationEnrollment } from '@/types/formation'
 
 export default async function FormationDetailPage({
@@ -67,6 +68,10 @@ export default async function FormationDetailPage({
     { icon: Flame, titre: 'Une série de jours', texte: 'Revenez chaque jour pour garder votre série et ancrer les acquis.' },
     { icon: LineChart, titre: 'Votre avancement suivi', texte: 'Points, niveau et exercices réussis s’affichent dans votre tableau de bord Studia Academy.' },
   ]
+
+  // Numéro Airtel Money affiché dans le parcours de paiement (NEXT_PUBLIC_AIRTEL_MONEY).
+  const airtelNumber =
+    getAppConfig().payment.methods.find((m) => m.id === 'airtel_money')?.merchantNumber ?? null
 
   const totalMin = lessons.reduce((s, l) => s + (l.duree_minutes || 0), 0)
   const lessonIcon = (t: string) =>
@@ -144,6 +149,10 @@ export default async function FormationDetailPage({
                       enrollmentStatus={enrollment?.status ?? null}
                       isFree={(f.prix_fcfa ?? 0) === 0}
                       accessClosed={!accesFormationAutorise(f, user?.email)}
+                      prixFcfa={f.prix_fcfa ?? 0}
+                      paymentMethod={enrollment?.payment_method ?? null}
+                      adminNote={enrollment?.admin_note ?? null}
+                      airtelNumber={airtelNumber}
                     />
                     <ul className="mt-5 space-y-2">
                       {['Accès à vie au contenu', 'Supports téléchargeables', 'Certificat de réussite', 'Support par l\'équipe'].map((b) => (
