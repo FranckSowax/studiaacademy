@@ -110,7 +110,8 @@ export default async function MesFormationsPage() {
       .eq('is_published', true)
       .order('ordre', { ascending: true })
       .limit(6)
-    suggestions = (data ?? []) as Formation[]
+    // Hors collection « Upgrade Métier », réservée à sa section de l'accueil.
+    suggestions = ((data ?? []) as Formation[]).filter((f) => !f.secteur_slug)
   }
 
   const kpis = [

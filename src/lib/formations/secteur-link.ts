@@ -21,6 +21,19 @@ export function estSecteurValide(valeur: string): boolean {
 }
 
 /**
+ * Retire d'une liste les formations de la collection « Upgrade Métier » (celles rattachées à
+ * un secteur) : elles ne s'affichent que dans leur section de l'accueil, jamais mêlées aux autres.
+ */
+export function horsCollectionMetier<T extends { slug: string }>(
+  formations: T[],
+  collection: Map<string, FormationSecteur>,
+): T[] {
+  if (collection.size === 0) return formations
+  const slugs = new Set([...collection.values()].map((f) => f.slug))
+  return formations.filter((f) => !slugs.has(f.slug))
+}
+
+/**
  * Range les formations par secteur. Les lignes sans secteur ou au secteur inconnu sont
  * ignorées ; si deux lignes visent le même secteur, la première l'emporte.
  */

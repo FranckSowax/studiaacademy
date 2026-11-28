@@ -9,6 +9,9 @@ import { FormationsBrowser, type BrowserFormation } from '@/components/formation
 
 const firstParam = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v)?.slice(0, 100)
 
+import { getFormationsParSecteur } from '@/lib/formations/secteur-formations'
+import { horsCollectionMetier } from '@/lib/formations/secteur-link'
+
 export default async function FormationsEnLignePage({
   searchParams,
 }: {
@@ -23,7 +26,8 @@ export default async function FormationsEnLignePage({
     .order('ordre', { ascending: true })
     .order('created_at', { ascending: false })
 
-  const formations = (data ?? []) as BrowserFormation[]
+  // La collection « Upgrade Métier » ne se montre que dans sa section de l'accueil.
+  const formations = horsCollectionMetier((data ?? []) as BrowserFormation[], await getFormationsParSecteur())
 
   return (
     <div className="relative flex min-h-screen flex-col">
