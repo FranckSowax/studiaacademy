@@ -3,11 +3,13 @@ export const dynamic = 'force-dynamic'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import {
-  AlertTriangle, ArrowLeft, Award, BookOpen, CalendarCheck, CheckCircle2, Flame, GraduationCap, KeyRound,
+  AlertTriangle, ArrowLeft, Award, BookOpen, Building2, CalendarCheck, CheckCircle2, Flame, GraduationCap, KeyRound,
   Mail, MapPin, Phone, Radio, Sparkles, Target, Trophy, UserPlus, Wallet, Wand2,
 } from 'lucide-react'
 import { requireAdmin } from '@/lib/auth/require-admin'
 import { chargerProfilUtilisateur } from '@/lib/admin/users-data'
+import { lireEntreprisesDuCompte } from '@/lib/entreprise/dossier'
+import { createAdminClient } from '@/lib/supabase/admin'
 import {
   ACTIVITE_LABEL,
   ACTIVITE_STYLE,
@@ -76,7 +78,10 @@ export default async function AdminUserProfilePage({ params }: { params: Promise
   const { id } = await params
   if (!UUID.test(id)) notFound()
 
-  const profil = await chargerProfilUtilisateur(id)
+  const [profil, entreprises] = await Promise.all([
+    chargerProfilUtilisateur(id),
+    lireEntreprisesDuCompte(createAdminClient(), id),
+  ])
   if (!profil) notFound()
   const { resume: u, infos, suivis, sessionsLive, bilan, evenements, calendrier, indisponibles } = profil
 
@@ -117,6 +122,16 @@ export default async function AdminUserProfilePage({ params }: { params: Promise
               Provenance : {PROVENANCE_LABEL[u.provenance]}
             </span>
             <span className={`rounded-full px-2 py-0.5 ${ACTIVITE_STYLE[u.activite]}`}>{ACTIVITE_LABEL[u.activite]}</span>
+            {entreprises.map((e) => (
+              <Link
+                key={e.id}
+                href={`/admin/entreprise/${e.id}`}
+                className="inline-flex items-center gap-1 rounded-full bg-[#fff7ed] px-2 py-0.5 text-[#a84d16] hover:underline"
+              >
+                <Building2 className="h-3 w-3" />
+                {e.nom}
+              </Link>
+            ))}
           </div>
         </div>
         <dl className="grid grid-cols-2 gap-x-6 gap-y-1 text-sm">
