@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils'
 import { saveFormation, togglePublishFormation, deleteFormation } from '@/lib/formations/admin-actions'
 import { deleteGeneration } from '@/lib/formations/generation-actions'
 import { AdminFormationCard } from '@/components/formations/AdminFormationCard'
+import { ProgrammerPresentielDialog } from '@/components/formations/ProgrammerPresentielDialog'
 import {
   compterFormations,
   DEFAULT_FILTERS,
@@ -71,6 +72,7 @@ export function AdminFormationsManager({
   const [showForm, setShowForm] = useState(false)
   const [saving, setSaving] = useState(false)
   const [busyId, setBusyId] = useState<string | null>(null)
+  const [aProgrammer, setAProgrammer] = useState<Formation | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [filtres, setFiltres] = useState<AdminFormationFilters>(DEFAULT_FILTERS)
   const [tri, setTri] = useState<SortKey>('recent')
@@ -255,6 +257,7 @@ export function AdminFormationsManager({
               busy={busyId === f.id}
               onTogglePublish={togglePublish}
               onDelete={remove}
+              onProgrammer={setAProgrammer}
             />
           ))}
         </div>
@@ -332,6 +335,8 @@ export function AdminFormationsManager({
           </div>
         </details>
       )}
+
+      {aProgrammer && <ProgrammerPresentielDialog formation={aProgrammer} onClose={() => setAProgrammer(null)} />}
 
       {/* Création rapide */}
       {showForm && (

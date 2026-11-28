@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import {
-  Eye, EyeOff, Trash2, Pencil, Loader2, GraduationCap, ExternalLink, Users, Clock, Radio, BarChart,
+  Eye, EyeOff, Trash2, Pencil, Loader2, GraduationCap, ExternalLink, Users, Clock, Radio, BarChart, CalendarPlus,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn, formatNumber } from '@/lib/utils'
@@ -19,10 +19,12 @@ interface Props {
   busy: boolean
   onTogglePublish: (f: Formation) => void
   onDelete: (f: Formation) => void
+  /** Ouvre la programmation de cette formation en présentiel. */
+  onProgrammer: (f: Formation) => void
 }
 
 /** Carte d'une formation dans la liste admin : couverture, état, chiffres, actions. */
-export function AdminFormationCard({ formation: f, inscrits, enAttente, busy, onTogglePublish, onDelete }: Props) {
+export function AdminFormationCard({ formation: f, inscrits, enAttente, busy, onTogglePublish, onDelete, onProgrammer }: Props) {
   const gratuit = (f.prix_fcfa ?? 0) <= 0
   const edition = `/admin/formations/${f.id}`
 
@@ -100,6 +102,15 @@ export function AdminFormationCard({ formation: f, inscrits, enAttente, busy, on
         <div className="mt-auto flex items-center gap-1 pt-4">
           <Button asChild size="sm" className="flex-1 bg-[#e97e42] text-white hover:bg-[#d56a2e]">
             <Link href={edition}><Pencil className="mr-1.5 h-4 w-4" />Modifier</Link>
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onProgrammer(f)}
+            title="Programmer en présentiel"
+            aria-label={`Programmer ${f.titre} en présentiel`}
+          >
+            <CalendarPlus className="h-4 w-4 text-[#a84d16]" />
           </Button>
           {f.is_published && (
             <Button asChild variant="ghost" size="icon" title="Voir la fiche publique">

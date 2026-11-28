@@ -108,6 +108,12 @@ export interface PresentielSession {
   prix_fcfa: number
   formateur_nom: string | null
   is_published: boolean
+  /** formation | masterclass | presentation | evenement ; absent avant la migration events_types_payments. */
+  type?: string | null
+  /** Formation en ligne dont l'événement est la version en présentiel. */
+  formation_id?: string | null
+  /** Identifiant commun aux dates d'un événement récurrent. */
+  serie_id?: string | null
   created_at: string
 }
 
@@ -120,5 +126,11 @@ export interface PresentielReservation {
   email: string | null
   phone: string
   status: ReservationStatus
+  /** Paiement (absents avant la migration events_types_payments). */
+  payment_method?: 'cash' | 'airtel_money' | null
+  payment_amount_fcfa?: number | null
+  payment_reference?: string | null
+  payment_proof_path?: string | null
+  admin_note?: string | null
   created_at: string
 }
