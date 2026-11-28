@@ -233,6 +233,25 @@ export async function lireEntreprisesDuCompte(admin: Admin, userId: string): Pro
   return ((data ?? []) as { id: string; nom_entreprise: string }[]).map((e) => ({ id: e.id, nom: e.nom_entreprise }))
 }
 
+/** Étiquettes entreprise de tous les comptes, par identifiant de compte (liste des utilisateurs de l'admin). */
+export async function lireEtiquettesEntreprise(admin: Admin): Promise<Record<string, { id: string; nom: string }[]>> {
+  const membres = await admin.from('company_members').select('company_id, user_id').limit(50_000)
+  const lignes = (membres.data ?? []) as { company_id: string; user_id: string }[]
+  // Avant la migration, la table n'existe pas : aucun badge.
+  if (membres.error || lignes.length === 0) return {}
+  const { data } = await admin
+    .from('company_profiles')
+    .select('id, nom_entreprise')
+    .in('id', [...new Set(lignes.map((l) => l.company_id))])
+  const noms = new Map(((data ?? []) as { id: string; nom_entreprise: string }[]).map((e) => [e.id, e.nom_entreprise]))
+  const parCompte: Record<string, { id: string; nom: string }[]> = {}
+  for (const l of lignes) {
+    const nom = noms.get(l.company_id)
+    if (nom) (parCompte[l.user_id] ??= []).push({ id: l.company_id, nom })
+  }
+  return parCompte
+}
+
 /**
  * Recalcule les étiquettes d'une entreprise : les comptes Academy reliés
  * aux participants de ses sessions Studia Live la portent, les autres la

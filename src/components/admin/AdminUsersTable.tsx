@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import {
-  ArrowDown, ArrowUp, ArrowUpDown, ChevronLeft, ChevronRight, Download, Eye, Loader2, LogIn, Search,
+  ArrowDown, ArrowUp, ArrowUpDown, Building2, ChevronLeft, ChevronRight, Download, Eye, Loader2, LogIn, Search,
   SlidersHorizontal, X,
 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
@@ -38,6 +38,7 @@ const FILTRES_VIDES = {
   type: '',
   role: '',
   provenance: '',
+  entreprise: '',
   formation: '',
   statut: '',
   activite: '',
@@ -152,10 +153,13 @@ export function AdminUsersTable({
   users,
   formations,
   isSuperAdmin,
+  entreprises = {},
 }: {
   users: ResumeUtilisateur[]
   formations: { id: string; titre: string }[]
   isSuperAdmin: boolean
+  /** Étiquettes entreprise par identifiant de compte. */
+  entreprises?: Record<string, { id: string; nom: string }[]>
 }) {
   const [f, setF] = useState<Filtres>(FILTRES_VIDES)
   const [ouvert, setOuvert] = useState(true)
@@ -178,10 +182,18 @@ export function AdminUsersTable({
     [users]
   )
 
+  const listeEntreprises = useMemo(() => {
+    const noms = new Map<string, string>()
+    for (const etiquettes of Object.values(entreprises)) for (const e of etiquettes) noms.set(e.id, e.nom)
+    return [...noms.entries()].map(([valeur, label]) => ({ valeur, label })).sort((a, b) => a.label.localeCompare(b.label, 'fr'))
+  }, [entreprises])
+
   const filtres = useMemo(() => {
     const q = f.q.trim().toLowerCase()
     return users.filter((u) => {
-      if (q && ![u.nom, u.email, u.telephone, u.ville].some((v) => v?.toLowerCase().includes(q))) return false
+      const etiquettes = entreprises[u.id] ?? []
+      if (q && ![u.nom, u.email, u.telephone, u.ville, ...etiquettes.map((e) => e.nom)].some((v) => v?.toLowerCase().includes(q))) return false
+      if (f.entreprise && !etiquettes.some((e) => e.id === f.entreprise)) return false
       if (f.type && u.typeCompte !== f.type) return false
       if (f.role && u.role !== f.role) return false
       if (f.provenance && u.provenance !== (f.provenance as Provenance)) return false
@@ -196,7 +208,7 @@ export function AdminUsersTable({
       if (f.au && (!inscrit || inscrit > f.au)) return false
       return true
     })
-  }, [users, f])
+  }, [users, f, entreprises])
 
   const tries = useMemo(() => {
     return [...filtres].sort((a, b) => {
@@ -273,6 +285,9 @@ export function AdminUsersTable({
           <Choix label="Type de compte" valeur={f.type} onChange={changer('type')} options={types} />
           <Choix label="Rôle" valeur={f.role} onChange={changer('role')} options={roles} />
           <Choix label="Provenance" valeur={f.provenance} onChange={changer('provenance')} options={depuis(PROVENANCE_LABEL)} />
+          {listeEntreprises.length > 0 && (
+            <Choix label="Entreprise" valeur={f.entreprise} onChange={changer('entreprise')} options={listeEntreprises} />
+          )}
           <Choix
             label="Formation"
             valeur={f.formation}
@@ -330,6 +345,19 @@ export function AdminUsersTable({
                         )}
                       </span>
                       <span className="block truncate text-xs text-gray-500">{u.email}</span>
+                      {(entreprises[u.id] ?? []).length > 0 && (
+                        <span className="mt-1 flex flex-wrap gap-1">
+                          {(entreprises[u.id] ?? []).map((e) => (
+                            <span
+                              key={e.id}
+                              className="inline-flex items-center gap-1 rounded-full bg-[#fff7ed] px-1.5 py-0.5 text-[10px] font-semibold text-[#a84d16]"
+                            >
+                              <Building2 className="h-2.5 w-2.5" />
+                              {e.nom}
+                            </span>
+                          ))}
+                        </span>
+                      )}
                     </span>
                   </Link>
                 </td>
