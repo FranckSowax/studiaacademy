@@ -34,7 +34,6 @@ import { formationsIA, WHATSAPP_NUMBER } from '@/lib/formations-ia'
 import { getSessionsBySlug } from '@/lib/formations-ia-data'
 import { COLONNES_REGLAGES, estAfficheAccueil, normaliserReglages } from '@/lib/home/event-settings'
 import { MAX_HOME_SLIDES, type HomeSlide } from '@/lib/home/slides'
-import { modules } from '@/lib/modules'
 import { formatNumber } from '@/lib/utils'
 import type { PresentielSession } from '@/types/formation'
 
@@ -567,6 +566,9 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* ─── COLLECTION UPGRADE MÉTIER : une formation par métier ──── */}
+      <MetiersIASection />
+
       {/* ─── 2 · ÉVÉNEMENTS EN PRÉSENTIEL ──────────────────────────── */}
       <section id="evenements" className="w-full scroll-mt-20 py-20 md:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -782,9 +784,6 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ─── UNE FORMATION PAR MÉTIER ──────────────────────────────── */}
-      <MetiersIASection />
-
       {/* ─── TÉMOIGNAGES ───────────────────────────────────────────── */}
       <section className="w-full bg-white py-20 md:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -816,36 +815,6 @@ export default async function HomePage() {
                 </figcaption>
               </figure>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ─── AUSSI CHEZ STUDIA (outils IA + accompagnements) ───────── */}
-      <section id="modules" className="w-full scroll-mt-20 py-14">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col gap-6 rounded-3xl border border-[#ece4d8] bg-white p-6 md:p-8 lg:flex-row lg:items-center lg:gap-10">
-            <div className="lg:w-72 lg:flex-shrink-0">
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#a84d16]">Aussi chez Studia</p>
-              <h2 className="mt-1 font-heading text-xl font-extrabold text-gray-900">Outils IA & accompagnements</h2>
-              <Link
-                href="/outils"
-                className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-[#a84d16] hover:underline"
-              >
-                <Sparkles className="h-4 w-4" />
-                Découvrir les outils IA
-              </Link>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {modules.map((m) => (
-                <Link
-                  key={m.slug}
-                  href={`/modules/${m.slug}`}
-                  className="rounded-full border border-[#ece4d8] bg-[#fbf8f3] px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:border-[#e97e42] hover:text-[#a84d16]"
-                >
-                  {m.titre}
-                </Link>
-              ))}
-            </div>
           </div>
         </div>
       </section>

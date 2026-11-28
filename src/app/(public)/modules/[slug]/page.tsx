@@ -68,7 +68,7 @@ export default async function ModulePage({ params }: Props) {
       {/* Breadcrumb */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <Link
-          href="/#modules"
+          href="/"
           className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-[#e97e42] transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />

@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { modules } from '@/lib/modules'
-import { WHATSAPP_NUMBER } from '@/lib/formations-ia'
+import { WHATSAPP_AFFICHAGE, WHATSAPP_NUMBER } from '@/lib/formations-ia'
 import { submitContactRequest } from '@/lib/site-requests/actions'
 
 export default function ContactPage() {
@@ -220,16 +220,19 @@ export default function ContactPage() {
                   icon: MapPin,
                   label: 'Adresse',
                   value: 'Libreville, Gabon\nAfrique Centrale',
+                  href: null,
                 },
                 {
                   icon: Phone,
-                  label: 'Téléphone',
-                  value: '+241 XX XX XX XX',
+                  label: 'WhatsApp',
+                  value: WHATSAPP_AFFICHAGE,
+                  href: `https://wa.me/${WHATSAPP_NUMBER}`,
                 },
                 {
                   icon: Mail,
                   label: 'Email',
                   value: 'contact@studiaacademy.com',
+                  href: 'mailto:contact@studiaacademy.com',
                 },
               ].map((item) => {
                 const Icon = item.icon
@@ -242,9 +245,19 @@ export default function ContactPage() {
                       <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">
                         {item.label}
                       </p>
-                      <p className="text-gray-700 text-sm font-medium whitespace-pre-line">
-                        {item.value}
-                      </p>
+                      {item.href ? (
+                        <a
+                          href={item.href}
+                          {...(item.href.startsWith('http') ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                          className="text-sm font-semibold text-gray-800 hover:text-[#a84d16]"
+                        >
+                          {item.value}
+                        </a>
+                      ) : (
+                        <p className="text-gray-700 text-sm font-medium whitespace-pre-line">
+                          {item.value}
+                        </p>
+                      )}
                     </div>
                   </div>
                 )

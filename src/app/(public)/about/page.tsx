@@ -211,7 +211,7 @@ export default function AboutPage() {
             Que vous soyez étudiant, professionnel ou entreprise, nous avons un module pour vous.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/#modules">
+            <Link href="/formations">
               <Button
                 size="lg"
                 className="bg-white text-[#e97e42] hover:bg-[#fbf8f3] px-8 rounded-xl font-bold"
