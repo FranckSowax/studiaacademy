@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import type { BilanFinales, ParticipantLive } from '@/lib/studia-live/pilotage'
 import { envoyerFinalesManquantes, relancerParticipants } from '@/lib/studia-live/pilotage-actions'
-import { entier, jourHeure, niveauLabel, pct } from '@/lib/studia-live/suivi-regles'
+import { entier, enTexte, jourHeure, niveauLabel, pct } from '@/lib/studia-live/suivi-regles'
 
 /** Limite du contrat Studia Live pour une relance forcée. */
 const RELANCE_MAX = 50
@@ -167,7 +167,7 @@ export function LiveSessionParticipants({
               const ouvert = ouverts.has(p.id)
               const coche = selection.has(p.id)
               const reponses = [...(p.reponses ?? [])].sort((a, b) => a.ordre - b.ordre)
-              const nom = p.prenom || 'Sans prénom'
+              const nom = enTexte(p.prenom) || 'Sans prénom'
               return (
                 <Fragment key={p.id}>
                   <tr className="border-b">
@@ -191,11 +191,11 @@ export function LiveSessionParticipants({
                         {ouvert ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                         {nom}
                       </button>
-                      <span className="ml-6 block text-xs text-gray-500">{p.email ?? 'Sans e-mail'}</span>
+                      <span className="ml-6 block text-xs text-gray-500">{enTexte(p.email) || 'Sans e-mail'}</span>
                     </td>
                     <td className="px-3 py-2.5">
-                      <span className={`whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium ${NIVEAU_STYLES[p.niveau ?? ''] ?? 'bg-gray-100 text-gray-600'}`}>
-                        {niveauLabel(p.niveau)}
+                      <span className={`whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium ${NIVEAU_STYLES[enTexte(p.niveau)] ?? 'bg-gray-100 text-gray-600'}`}>
+                        {niveauLabel(enTexte(p.niveau) || null)}
                       </span>
                     </td>
                     <td className={TD}>{pct(p.reussite_pct)}</td>
@@ -233,14 +233,14 @@ export function LiveSessionParticipants({
                             {reponses.map((r, i) => (
                               <li key={`${r.activite_id}-${i}`} className="text-sm">
                                 <p className="text-xs font-medium text-gray-500">
-                                  {r.ordre}. {r.titre}
+                                  {r.ordre}. {enTexte(r.titre)}
                                   {r.correct === true && <span className="ml-2 rounded-full bg-green-50 px-1.5 py-0.5 text-green-700">Juste</span>}
                                   {r.correct === false && <span className="ml-2 rounded-full bg-red-50 px-1.5 py-0.5 text-red-600">Faux</span>}
                                   {typeof r.points === 'number' && r.points > 0 && <span className="ml-2">{entier(r.points)} pts</span>}
                                   {duree(r.temps_ms) && <span className="ml-2">{duree(r.temps_ms)}</span>}
                                   {typeof r.note_ia === 'number' && <span className="ml-2">Note IA : {entier(r.note_ia)}</span>}
                                 </p>
-                                <p className="whitespace-pre-wrap break-words text-gray-900">{r.texte || '—'}</p>
+                                <p className="whitespace-pre-wrap break-words text-gray-900">{enTexte(r.texte) || '—'}</p>
                               </li>
                             ))}
                           </ol>
@@ -274,7 +274,7 @@ export function LiveSessionParticipants({
           <ul className="max-h-48 overflow-y-auto text-sm text-gray-700">
             {(aConfirmer ?? []).map((id) => (
               <li key={id} className="truncate">
-                {parId.get(id)?.prenom || 'Sans prénom'} — {parId.get(id)?.email}
+                {enTexte(parId.get(id)?.prenom) || 'Sans prénom'} — {enTexte(parId.get(id)?.email)}
               </li>
             ))}
           </ul>

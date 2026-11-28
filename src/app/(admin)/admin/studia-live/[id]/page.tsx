@@ -11,7 +11,8 @@ import { requireAdmin } from '@/lib/auth/require-admin'
 import { liaisonLiveConfiguree, type TypeRecommandation } from '@/lib/studia-live/pilotage'
 import { lireFicheSuivi, lireJournal, lireResponsables } from '@/lib/studia-live/suivi'
 import {
-  entier, jourHeure, jourLong, NIVEAU_LABELS, noteSur, pct, RECOMMANDATION_LABELS, STATUT_SUIVI_LABELS, STATUT_SUIVI_STYLES,
+  entier, enTexte, groupesVerbatims, jourHeure, jourLong, NIVEAU_LABELS, noteSur, pct, RECOMMANDATION_LABELS, STATUT_SUIVI_LABELS,
+  STATUT_SUIVI_STYLES,
 } from '@/lib/studia-live/suivi-regles'
 import { createAdminClient } from '@/lib/supabase/admin'
 
@@ -70,7 +71,8 @@ export default async function AdminStudiaLiveSessionPage({ params }: { params: P
   const themes = i?.themes ?? []
   const repartition = i?.acquisition?.repartition
   const exercices = i?.impact?.exercices ?? []
-  const verbatims = i?.satisfaction?.verbatims ?? []
+  const verbatims = groupesVerbatims(i?.satisfaction?.verbatims)
+  const synthese = enTexte(i?.synthese)
   const anonymes = [...(d?.reponses_anonymes ?? [])].sort((a, b) => a.ordre - b.ordre)
   const gain = fiche.resume.gain_temps_pct ?? i?.impact?.gain_moyen ?? null
 
@@ -106,7 +108,7 @@ export default async function AdminStudiaLiveSessionPage({ params }: { params: P
               {fiche.synchronise_le ? `Synchronisée le ${jourHeure(fiche.synchronise_le)}` : 'Détail jamais reçu'}
             </span>
           </div>
-          {i?.synthese && <p className="mt-3 max-w-3xl text-sm leading-relaxed text-gray-800">{i.synthese}</p>}
+          {synthese && <p className="mt-3 max-w-3xl text-sm leading-relaxed text-gray-800">{synthese}</p>}
         </div>
       </header>
 
@@ -153,8 +155,8 @@ export default async function AdminStudiaLiveSessionPage({ params }: { params: P
                       <ul className="space-y-2 text-sm text-gray-800">
                         {groupe.map((r, n) => (
                           <li key={n}>
-                            {r.axe && <span className="font-medium">{r.axe} : </span>}
-                            {r.texte}
+                            {enTexte(r.axe) && <span className="font-medium">{enTexte(r.axe)} : </span>}
+                            {enTexte(r.texte)}
                           </li>
                         ))}
                       </ul>
@@ -176,7 +178,7 @@ export default async function AdminStudiaLiveSessionPage({ params }: { params: P
                       <li key={n}>
                         <details className="group rounded-xl border px-3 py-2">
                           <summary className="flex cursor-pointer list-none items-center gap-3 text-sm">
-                            <span className="min-w-0 flex-1 truncate font-medium text-gray-900">{t.titre}</span>
+                            <span className="min-w-0 flex-1 truncate font-medium text-gray-900">{enTexte(t.titre)}</span>
                             <span className="w-28"><Barre taux={t.taux} /></span>
                             <span className="w-14 text-right tabular-nums text-gray-700">{pct(t.taux)}</span>
                             <span className="text-xs text-gray-400 group-open:hidden">Détail</span>
@@ -185,7 +187,7 @@ export default async function AdminStudiaLiveSessionPage({ params }: { params: P
                           <ul className="mt-2 space-y-1 border-t pt-2">
                             {(t.questions ?? []).map((q, m) => (
                               <li key={m} className="flex items-center gap-3 text-sm text-gray-700">
-                                <span className="min-w-0 flex-1">{q.titre}</span>
+                                <span className="min-w-0 flex-1">{enTexte(q.titre)}</span>
                                 <span className="w-14 text-right tabular-nums">{pct(q.taux)}</span>
                                 <span className="w-24 text-right text-xs text-gray-500">{entier(q.nb)} réponse{(q.nb ?? 0) > 1 ? 's' : ''}</span>
                               </li>
@@ -230,7 +232,7 @@ export default async function AdminStudiaLiveSessionPage({ params }: { params: P
                   <tbody>
                     {exercices.map((e, n) => (
                       <tr key={n} className="border-t tabular-nums text-gray-700">
-                        <td className="py-2 pr-3 text-gray-900">{e.titre}</td>
+                        <td className="py-2 pr-3 text-gray-900">{enTexte(e.titre)}</td>
                         <td className="px-3 py-2">{entier(e.n)}</td>
                         <td className="px-3 py-2">{typeof e.sans === 'number' ? `${entier(e.sans)} min` : '—'}</td>
                         <td className="px-3 py-2">{typeof e.avec === 'number' ? `${entier(e.avec)} min` : '—'}</td>
@@ -257,34 +259,36 @@ export default async function AdminStudiaLiveSessionPage({ params }: { params: P
                   <li key={a.activite_id}>
                     <details className="rounded-xl border px-3 py-2">
                       <summary className="cursor-pointer text-sm font-medium text-gray-900">
-                        {a.ordre}. {a.titre}
+                        {a.ordre}. {enTexte(a.titre)}
                         <span className="ml-2 text-xs font-normal text-gray-500">
                           {a.reponses.length} réponse{a.reponses.length > 1 ? 's' : ''}
                         </span>
                       </summary>
                       <ul className="mt-2 list-disc space-y-1 border-t pl-5 pt-2 text-sm text-gray-700">
                         {a.reponses.map((r, n) => (
-                          <li key={n} className="whitespace-pre-wrap break-words">{r}</li>
+                          <li key={n} className="whitespace-pre-wrap break-words">{enTexte(r)}</li>
                         ))}
                       </ul>
                     </details>
                   </li>
                 ))}
-                {verbatims.length > 0 && (
-                  <li>
+                {verbatims.map((g, n) => (
+                  <li key={`verbatims-${n}`}>
                     <details className="rounded-xl border px-3 py-2">
                       <summary className="cursor-pointer text-sm font-medium text-gray-900">
-                        Commentaires de satisfaction
-                        <span className="ml-2 text-xs font-normal text-gray-500">{verbatims.length}</span>
+                        {g.titre ?? 'Commentaires de satisfaction'}
+                        <span className="ml-2 text-xs font-normal text-gray-500">
+                          {g.textes.length} commentaire{g.textes.length > 1 ? 's' : ''}
+                        </span>
                       </summary>
                       <ul className="mt-2 list-disc space-y-1 border-t pl-5 pt-2 text-sm text-gray-700">
-                        {verbatims.map((v, n) => (
-                          <li key={n} className="whitespace-pre-wrap break-words">{v}</li>
+                        {g.textes.map((t, m) => (
+                          <li key={m} className="whitespace-pre-wrap break-words">{t}</li>
                         ))}
                       </ul>
                     </details>
                   </li>
-                )}
+                ))}
               </ul>
             )}
           </Bloc>

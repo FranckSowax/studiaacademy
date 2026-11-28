@@ -1,5 +1,5 @@
 import type { DonneesSessionLive } from './pilotage'
-import { jourLong, noteSur, pct } from './suivi-regles'
+import { enTexte, jourLong, noteSur, pct } from './suivi-regles'
 
 /**
  * E-mail « rapport de formation » envoyé au commanditaire : sobre, aux
@@ -26,7 +26,7 @@ export interface ContenuEmailRapport {
 const html = (v: string) =>
   v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;')
 
-const uneLigne = (v: string | null | undefined, max: number) => (v ?? '').replace(/\s+/g, ' ').trim().slice(0, max)
+const uneLigne = (v: unknown, max: number) => enTexte(v).replace(/\s+/g, ' ').trim().slice(0, max)
 
 /**
  * @example

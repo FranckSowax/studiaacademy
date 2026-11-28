@@ -110,6 +110,49 @@ export function compterFinales(donnees: DonneesSessionLive): { envoyees: number;
   }
 }
 
+/**
+ * Texte affichable à partir d'une valeur reçue de Studia Live : une
+ * forme inattendue (objet, tableau) ne doit jamais faire tomber la page.
+ */
+export function enTexte(v: unknown): string {
+  if (v === null || v === undefined) return ''
+  if (typeof v === 'string') return v
+  if (typeof v === 'number' || typeof v === 'boolean') return String(v)
+  if (Array.isArray(v)) return v.map(enTexte).filter(Boolean).join(' · ')
+  if (typeof v === 'object') {
+    const o = v as Record<string, unknown>
+    const direct = [o.texte, o.text, o.label, o.libelle, o.valeur].find((x) => typeof x === 'string' || typeof x === 'number')
+    return direct !== undefined ? String(direct) : ''
+  }
+  return ''
+}
+
+export interface GroupeVerbatims {
+  titre: string | null
+  textes: string[]
+}
+
+/**
+ * Commentaires de satisfaction : Studia Live les envoie groupés par
+ * question (`{ titre, textes }`) ; un simple texte est aussi accepté.
+ */
+export function groupesVerbatims(verbatims: unknown): GroupeVerbatims[] {
+  if (!Array.isArray(verbatims)) return []
+  const groupes: GroupeVerbatims[] = []
+  const libres: string[] = []
+  for (const v of verbatims) {
+    if (v && typeof v === 'object' && !Array.isArray(v) && Array.isArray((v as { textes?: unknown }).textes)) {
+      const o = v as { titre?: unknown; textes: unknown[] }
+      const textes = o.textes.map(enTexte).filter(Boolean)
+      if (textes.length > 0) groupes.push({ titre: enTexte(o.titre) || null, textes })
+    } else {
+      const t = enTexte(v)
+      if (t) libres.push(t)
+    }
+  }
+  return libres.length > 0 ? [...groupes, { titre: null, textes: libres }] : groupes
+}
+
 // ---------- Mise en forme ----------
 
 const FUSEAU = 'Africa/Libreville'

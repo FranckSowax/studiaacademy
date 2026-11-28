@@ -98,7 +98,8 @@ export interface IndicateursLive {
     moyenne: number | null
     note_finale_moy: number | null
     nb_notes: number | null
-    verbatims: string[]
+    /** Groupés par question : `{ titre, textes }` (lire avec `groupesVerbatims`). */
+    verbatims: unknown[]
   }
   recommandations: { type: TypeRecommandation; axe: string | null; texte: string }[]
 }

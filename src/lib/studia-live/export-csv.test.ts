@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { BOM, celluleCsv, exporterReponsesCsv, nomFichierCsv } from './export-csv'
 import { composerEmailRapport } from './email-rapport'
 import type { DonneesSessionLive } from './pilotage'
-import { detailARecharger, emailValide } from './suivi-regles'
+import { detailARecharger, emailValide, enTexte, groupesVerbatims } from './suivi-regles'
 
 const QCM = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
 const LIBRE = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'
@@ -132,6 +132,45 @@ describe('composerEmailRapport', () => {
     expect(apercu.texte).toContain('Bonjour,')
     expect(apercu.texte).toContain('[lien généré au moment de l’envoi]')
     expect(apercu.html).not.toContain('href=')
+  })
+})
+
+describe('formes inattendues reçues de Studia Live', () => {
+  it('lit les commentaires groupés par question `{ titre, textes }`', () => {
+    expect(
+      groupesVerbatims([
+        { titre: 'Ce que vous retenez', textes: ['Très concret', '', 'À refaire'] },
+        { titre: 'Vide', textes: [] },
+        'Commentaire isolé',
+        null,
+      ]),
+    ).toEqual([
+      { titre: 'Ce que vous retenez', textes: ['Très concret', 'À refaire'] },
+      { titre: null, textes: ['Commentaire isolé'] },
+    ])
+    expect(groupesVerbatims(undefined)).toEqual([])
+    expect(groupesVerbatims('texte')).toEqual([])
+  })
+
+  it('enTexte ne renvoie jamais un objet', () => {
+    expect(enTexte('a')).toBe('a')
+    expect(enTexte(4.5)).toBe('4.5')
+    expect(enTexte(null)).toBe('')
+    expect(enTexte({ texte: 'réponse' })).toBe('réponse')
+    expect(enTexte({ titre: 'T', textes: ['x'] })).toBe('')
+    expect(enTexte(['mot', { label: 'autre' }])).toBe('mot · autre')
+  })
+
+  it('le CSV et l’e-mail tolèrent un texte reçu sous forme d’objet', () => {
+    const d = donnees()
+    ;(d.participants[0].reponses[0] as { texte: unknown }).texte = { texte: 'B — juste' }
+    ;(d.reponses_anonymes[0].reponses as unknown[])[0] = { texte: 'utile' }
+    ;(d.indicateurs as { synthese: unknown }).synthese = { titre: 'x', textes: [] }
+    const csv = exporterReponsesCsv(d)
+    expect(csv).toContain(';B — juste;')
+    expect(csv).toContain('3. Un mot;utile')
+    expect(csv).not.toContain('[object Object]')
+    expect(() => composerEmailRapport({ donnees: d, commanditaireNom: null, lien: null, expireLe: null })).not.toThrow()
   })
 })
 
