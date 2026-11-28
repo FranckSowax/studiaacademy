@@ -35,6 +35,7 @@ import { getSessionsBySlug } from '@/lib/formations-ia-data'
 import { COLONNES_REGLAGES, estAfficheAccueil, normaliserReglages } from '@/lib/home/event-settings'
 import { MAX_HOME_SLIDES, type HomeSlide } from '@/lib/home/slides'
 import { formatNumber } from '@/lib/utils'
+import { EVENT_TYPE_LABELS, lienEvenement, typeEvenement } from '@/lib/events/rules'
 import type { PresentielSession } from '@/types/formation'
 
 // ─── Types & helpers ─────────────────────────────────────────────────
@@ -288,11 +289,11 @@ export default async function HomePage() {
     date: new Date(s.date_debut),
     showTime: true,
     titre: s.titre,
-    tag: s.categorie ?? 'Session en salle',
+    tag: EVENT_TYPE_LABELS[typeEvenement(s)],
     lieu: s.lieu || s.ville,
     placesLeft: s.places_total - s.places_reservees,
     prixLabel: prixLabel(s.prix_fcfa),
-    href: '/formations/presentiel',
+    href: lienEvenement(s.id),
   }))
   for (const f of reglages.journeesIa ? formationsIA : []) {
     // Le repli statique (base injoignable) peut contenir des dates passées : on les écarte.
@@ -573,14 +574,14 @@ export default async function HomePage() {
       <section id="evenements" className="w-full scroll-mt-20 py-20 md:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <SectionHeader
-            eyebrow="02 · Événements en présentiel"
+            eyebrow="02 · Agenda Studia Academy"
             title={
               <>
                 Rendez-vous <span className="text-[#e97e42]">en salle</span>, à Libreville
               </>
             }
-            description="Journées de formation 100 % pratiques et ateliers Studia Academy, en petit groupe avec un formateur."
-            action={{ href: '/formations/presentiel', label: 'Tout le planning' }}
+            description="Formations en présentiel, masterclass, présentations et événements : réservez votre place en ligne, les places sont limitées."
+            action={{ href: '/formations/presentiel', label: 'Tout l’agenda' }}
           />
 
           <div className={`grid gap-8 ${reglages.journeesIa ? 'lg:grid-cols-[1.1fr_0.9fr]' : ''}`}>

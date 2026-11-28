@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { requireAdmin } from '@/lib/auth/require-admin'
 import { AdminEventsManager } from '@/components/admin/AdminEventsManager'
+import { PROOF_BUCKET } from '@/lib/formations/enrollment-payment'
 import type { PresentielReservation, PresentielSession } from '@/types/formation'
 
 /** Un événement commencé depuis moins de 24 h compte encore comme « à venir ». */
@@ -25,10 +26,24 @@ export default async function AdminEvenementsPage() {
     )
   }
 
+  // Captures d'écran Airtel Money : liens signés d'une heure, par réservation.
+  const lignes = (reservations.data ?? []) as PresentielReservation[]
+  const chemins = lignes.map((r) => r.payment_proof_path).filter((p): p is string => !!p)
+  const preuves: Record<string, string> = {}
+  if (chemins.length > 0) {
+    const { data: signes } = await admin.storage.from(PROOF_BUCKET).createSignedUrls(chemins, 3600)
+    const parChemin = new Map((signes ?? []).map((s) => [s.path, s.signedUrl]))
+    for (const r of lignes) {
+      const lien = r.payment_proof_path ? parChemin.get(r.payment_proof_path) : null
+      if (lien) preuves[r.id] = lien
+    }
+  }
+
   return (
     <AdminEventsManager
       evenements={(evenements.data ?? []) as PresentielSession[]}
-      reservations={(reservations.data ?? []) as PresentielReservation[]}
+      reservations={lignes}
+      preuves={preuves}
       limiteIso={limiteAVenir()}
     />
   )

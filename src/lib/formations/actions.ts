@@ -2,10 +2,6 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/admin'
-import { isValidPhone, normalizePhone } from '@/lib/whatsapp'
-import { consumeRateLimit, currentClientIp, RATE_LIMITS } from '@/lib/security/rate-limit'
-import { acknowledgeSiteRequest } from '@/lib/inbox/site-request'
 import { accesFormationAutorise } from '@/lib/formations/free-access'
 
 // ── Côté élève ──────────────────────────────
@@ -128,71 +124,5 @@ export async function saveFinalQuizResult(input: {
   return { success: true }
 }
 
-/**
- * Réservation d'une place pour une session présentiel.
- * Fonctionne avec ou sans compte (user_id facultatif).
- */
-export async function reserveSession(input: {
-  session_id: string
-  prenom: string
-  nom: string
-  email?: string
-  phone: string
-}): Promise<{ success: boolean; error?: string }> {
-  const prenom = String(input.prenom ?? '').trim().slice(0, 60)
-  const nom = String(input.nom ?? '').trim().slice(0, 60)
-  const phone = normalizePhone(String(input.phone ?? ''))
-  if (!prenom || !nom) return { success: false, error: 'Nom et prénom requis' }
-  if (!isValidPhone(phone)) return { success: false, error: 'Numéro de téléphone invalide' }
-
-  if (!(await consumeRateLimit(`reserve:ip:${await currentClientIp()}`, RATE_LIMITS.reservationPerIp))) {
-    return { success: false, error: 'Trop de réservations. Réessayez plus tard.' }
-  }
-
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  // Réservation possible sans compte → client admin (RLS contournée côté serveur)
-  const admin = createAdminClient()
-
-  const { data: session } = await admin
-    .from('presentiel_sessions')
-    .select('titre, date_debut, lieu')
-    .eq('id', input.session_id)
-    .single()
-  if (!session) return { success: false, error: 'Session introuvable' }
-
-  // WHY: décrément atomique — deux réservations simultanées ne peuvent pas
-  // dépasser places_total.
-  const { data: seatOk, error: seatError } = await admin.rpc('reserve_presentiel_seat', {
-    p_session_id: input.session_id,
-  })
-  if (seatError) return { success: false, error: 'Réservation indisponible' }
-  if (seatOk !== true) return { success: false, error: 'Session complète' }
-
-  const { error } = await admin.from('presentiel_reservations').insert({
-    session_id: input.session_id,
-    user_id: user?.id ?? null,
-    prenom,
-    nom,
-    email: input.email ? String(input.email).slice(0, 200) : null,
-    phone,
-    status: 'reserved',
-  })
-  if (error) {
-    await admin.rpc('release_presentiel_seat', { p_session_id: input.session_id })
-    return { success: false, error: 'Réservation impossible' }
-  }
-
-  // Confirmation WhatsApp à l'élève : la réservation apparaît dans /messagerie
-  const date = new Date(session.date_debut).toLocaleDateString('fr-FR', { dateStyle: 'long' })
-  await acknowledgeSiteRequest(phone, {
-    kind: 'presentiel',
-    name: `${prenom} ${nom}`,
-    title: `${session.titre} — ${date}, ${session.lieu ?? 'Libreville'}`,
-  })
-
-  revalidatePath('/formations/presentiel')
-  return { success: true }
-}
+// La réservation d'un événement en présentiel (payant ou non) passe par
+// POST /api/evenements/inscription : voir src/app/api/evenements/inscription/route.ts.

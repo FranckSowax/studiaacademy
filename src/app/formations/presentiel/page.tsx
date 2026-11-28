@@ -6,7 +6,11 @@ import { Footer } from '@/components/layout/footer'
 import { createClient } from '@/lib/supabase/server'
 import { ArrowLeft, MapPin, CalendarDays } from 'lucide-react'
 import { SessionCard } from '@/components/formations/SessionCard'
+import { getAppConfig } from '@/lib/config/app-config'
 import type { PresentielSession } from '@/types/formation'
+
+/** Un événement commencé depuis moins de 24 h compte encore comme « à venir ». */
+const depuisHier = () => new Date(Date.now() - 86400000).toISOString()
 
 export default async function PresentielPage() {
   const supabase = await createClient()
@@ -14,10 +18,12 @@ export default async function PresentielPage() {
     .from('presentiel_sessions')
     .select('*')
     .eq('is_published', true)
-    .gte('date_debut', new Date(Date.now() - 86400000).toISOString())
+    .gte('date_debut', depuisHier())
     .order('date_debut', { ascending: true })
 
   const sessions = (data ?? []) as PresentielSession[]
+  const airtelNumber =
+    getAppConfig().payment.methods.find((m) => m.id === 'airtel_money')?.merchantNumber ?? null
 
   return (
     <div className="relative flex min-h-screen flex-col">
@@ -32,12 +38,14 @@ export default async function PresentielPage() {
           <div className="mb-10">
             <div className="inline-flex items-center gap-2 bg-[#fff7ed] text-[#a84d16] px-4 py-1.5 rounded-full text-sm font-medium mb-3">
               <MapPin className="w-4 h-4" />
-              Formations présentiel · Libreville
+              Agenda · Studia Academy, Libreville
             </div>
             <h1 className="text-3xl md:text-4xl font-extrabold font-heading text-gray-900">
-              Planning des sessions
+              Formations, masterclass et événements
             </h1>
-            <p className="text-gray-500 mt-2">Réservez votre place dans nos prochaines sessions en salle.</p>
+            <p className="text-gray-500 mt-2">
+              Toutes les dates à venir à Studia Academy. Inscrivez-vous en ligne : les places sont limitées.
+            </p>
           </div>
 
           {sessions.length === 0 ? (
@@ -51,7 +59,7 @@ export default async function PresentielPage() {
           ) : (
             <div className="space-y-4">
               {sessions.map((s) => (
-                <SessionCard key={s.id} session={s} />
+                <SessionCard key={s.id} session={s} airtelNumber={airtelNumber} />
               ))}
             </div>
           )}

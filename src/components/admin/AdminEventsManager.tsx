@@ -3,7 +3,8 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
-  CalendarDays, ChevronDown, Eye, EyeOff, Home, ImagePlus, Loader2, Pencil, Phone, Plus, Trash2, Users, X,
+  CalendarDays, Check, ChevronDown, ExternalLink, Eye, EyeOff, Home, ImagePlus, Loader2, Pencil, Phone, Plus, Repeat,
+  Trash2, Users, X,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
@@ -11,8 +12,13 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import {
-  deleteEvenement, saveEvenement, setEvenementAccueil, setEvenementPublie,
+  decideReservation, deleteEvenement, saveEvenement, setEvenementAccueil, setEvenementPublie,
 } from '@/lib/events/actions'
+import {
+  ETAT_RESERVATION_LABELS, etatReservation, EVENT_TYPE_LABELS, EVENT_TYPES, FREQUENCE_LABELS, FREQUENCES,
+  OCCURRENCES_MAX, typeEvenement, type EtatReservation,
+} from '@/lib/events/rules'
+import { PAYMENT_LABELS } from '@/lib/formations/enrollment-payment'
 import { estAfficheAccueil } from '@/lib/home/event-settings'
 import { formatNumber } from '@/lib/utils'
 import type { PresentielReservation, PresentielSession } from '@/types/formation'
@@ -39,6 +45,10 @@ const FORMULAIRE_VIDE = {
   cover_image: '',
   is_published: true,
   afficher_accueil: true,
+  type: 'formation',
+  frequence: 'none',
+  nombre: '4',
+  creer_slide: false,
 }
 type Formulaire = typeof FORMULAIRE_VIDE
 
@@ -59,6 +69,14 @@ const partie = (iso: string, options: Intl.DateTimeFormatOptions) =>
   new Date(iso).toLocaleDateString('fr-FR', { timeZone: FUSEAU, ...options }).replace('.', '')
 const whatsapp = (telephone: string) => `https://wa.me/${telephone.replace(/[^0-9]/g, '')}`
 
+const ETAT_STYLES: Record<EtatReservation, string> = {
+  a_valider: 'bg-amber-50 text-amber-700',
+  reservee: 'bg-blue-50 text-blue-700',
+  confirmee: 'bg-green-50 text-green-700',
+  annulee: 'bg-gray-100 text-gray-500',
+}
+const SELECT = 'h-9 w-full rounded-xl border border-input bg-white px-3 text-sm'
+
 /**
  * Onglet « Événements » de l'administration : création, modification,
  * publication, affichage sur l'accueil et réservations des événements en
@@ -69,10 +87,13 @@ const whatsapp = (telephone: string) => `https://wa.me/${telephone.replace(/[^0-
 export function AdminEventsManager({
   evenements,
   reservations,
+  preuves = {},
   limiteIso,
 }: {
   evenements: PresentielSession[]
   reservations: PresentielReservation[]
+  /** Liens signés (1 h) vers les captures d'écran de paiement, par identifiant de réservation. */
+  preuves?: Record<string, string>
   limiteIso: string
 }) {
   const router = useRouter()
@@ -83,6 +104,8 @@ export function AdminEventsManager({
   const [erreur, setErreur] = useState<string | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
   const [ouvert, setOuvert] = useState<string | null>(null)
+  const [info, setInfo] = useState<{ ok: boolean; texte: string } | null>(null)
+  const aValider = reservations.filter((r) => etatReservation(r) === 'a_valider').length
 
   const aVenir = evenements.filter((e) => e.date_debut >= limiteIso).sort((a, b) => a.date_debut.localeCompare(b.date_debut))
   const passes = evenements.filter((e) => e.date_debut < limiteIso).sort((a, b) => b.date_debut.localeCompare(a.date_debut))
@@ -117,6 +140,10 @@ export function AdminEventsManager({
       cover_image: e.cover_image ?? '',
       is_published: e.is_published,
       afficher_accueil: estAfficheAccueil(e),
+      type: typeEvenement(e),
+      frequence: 'none',
+      nombre: '4',
+      creer_slide: false,
     })
   }
 
@@ -170,6 +197,10 @@ export function AdminEventsManager({
       formateur_nom: form.formateur_nom,
       is_published: form.is_published,
       afficher_accueil: form.afficher_accueil,
+      type: form.type,
+      ...(form.id
+        ? {}
+        : { recurrence: { frequence: form.frequence, nombre: Number(form.nombre) }, creer_slide: form.creer_slide }),
     })
     setSaving(false)
     if (!res.success) {
@@ -177,7 +208,80 @@ export function AdminEventsManager({
       return
     }
     fermer()
+    if (res.avertissement) setInfo({ ok: false, texte: res.avertissement })
+    else if ((res.crees ?? 0) > 1) setInfo({ ok: true, texte: `${res.crees} dates créées pour cet événement récurrent.` })
+    else setInfo(null)
     router.refresh()
+  }
+
+  const decider = async (r: PresentielReservation, decision: 'confirmed' | 'cancelled') => {
+    let note: string | undefined
+    if (decision === 'confirmed') {
+      const montant = r.payment_amount_fcfa ? `${formatNumber(r.payment_amount_fcfa)} FCFA` : null
+      const question = montant
+        ? `Avez-vous bien reçu ${montant} (${r.payment_method ? PAYMENT_LABELS[r.payment_method] : 'paiement'}) de ${r.prenom} ${r.nom} ?`
+        : `Confirmer la place de ${r.prenom} ${r.nom} ?`
+      if (!window.confirm(question)) return
+    } else {
+      const saisie = window.prompt(`Annuler la réservation de ${r.prenom} ${r.nom} ? La place sera libérée.\nMotif (envoyé sur WhatsApp, facultatif) :`, '')
+      if (saisie === null) return
+      note = saisie
+    }
+    setBusy(r.id)
+    const res = await decideReservation(r.id, decision, note)
+    setBusy(null)
+    if (!res.success) setInfo({ ok: false, texte: res.error ?? "L'opération a échoué." })
+    else {
+      const fait = decision === 'confirmed' ? `Place confirmée pour ${r.prenom} ${r.nom}.` : `Réservation de ${r.prenom} ${r.nom} annulée.`
+      setInfo(
+        res.notified
+          ? { ok: true, texte: `${fait} La personne est prévenue sur WhatsApp.` }
+          : { ok: false, texte: `${fait} Le message WhatsApp n’est pas parti : prévenez-la vous-même.` },
+      )
+    }
+    router.refresh()
+  }
+
+  /** Ligne d'une réservation : état, paiement, preuve et décision. */
+  const ligneReservation = (r: PresentielReservation, avecEvenement: boolean) => {
+    const etat = etatReservation(r)
+    return (
+      <li key={r.id} className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border bg-white px-3 py-2 text-sm">
+        <div className="min-w-0 flex-1">
+          <p className="font-medium">
+            {r.prenom} {r.nom}{' '}
+            <span className={`ml-1 rounded-full px-2 py-0.5 text-xs font-normal ${ETAT_STYLES[etat]}`}>{ETAT_RESERVATION_LABELS[etat]}</span>
+          </p>
+          <p className="text-xs text-muted-foreground">
+            {avecEvenement && `${evenements.find((e) => e.id === r.session_id)?.titre ?? 'Événement supprimé'} · `}
+            {r.payment_method
+              ? `${PAYMENT_LABELS[r.payment_method]} · ${formatNumber(r.payment_amount_fcfa ?? 0)} FCFA${r.payment_reference ? ` · réf. ${r.payment_reference}` : ''}`
+              : 'Gratuit'}
+            {r.status === 'cancelled' && r.admin_note ? ` · Motif : ${r.admin_note}` : ''}
+          </p>
+        </div>
+        {preuves[r.id] && (
+          <a href={preuves[r.id]} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-medium text-[#a84d16] hover:underline">
+            <ExternalLink className="h-3.5 w-3.5" />Voir la preuve
+          </a>
+        )}
+        <a href={whatsapp(r.phone)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-green-700 hover:underline">
+          <Phone className="h-3.5 w-3.5" />{r.phone}
+        </a>
+        {r.status !== 'cancelled' && (
+          <span className="flex gap-1">
+            {r.status === 'reserved' && (
+              <Button size="sm" disabled={busy !== null} onClick={() => void decider(r, 'confirmed')} className="h-8 bg-green-600 text-white hover:bg-green-700">
+                {busy === r.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Check className="mr-1 h-4 w-4" />{r.payment_method ? 'Valider le paiement' : 'Confirmer'}</>}
+              </Button>
+            )}
+            <Button size="sm" variant="outline" disabled={busy !== null} onClick={() => void decider(r, 'cancelled')} className="h-8">
+              <X className="mr-1 h-4 w-4" />Annuler
+            </Button>
+          </span>
+        )}
+      </li>
+    )
   }
 
   const lancer = async (id: string, action: () => Promise<{ success: boolean; error?: string }>) => {
@@ -198,7 +302,7 @@ export function AdminEventsManager({
   const onglets: { cle: Onglet; label: string }[] = [
     { cle: 'a_venir', label: `À venir (${aVenir.length})` },
     { cle: 'passes', label: `Passés (${passes.length})` },
-    { cle: 'reservations', label: `Réservations (${reservations.length})` },
+    { cle: 'reservations', label: `Réservations (${reservations.length})${aValider > 0 ? ` · ${aValider} à valider` : ''}` },
   ]
 
   return (
@@ -207,7 +311,7 @@ export function AdminEventsManager({
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Événements</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Événements et sessions en présentiel : planning, publication, affichage sur l&apos;accueil et réservations.
+            Formations en présentiel, masterclass, présentations et événements : dates, places, publication, inscriptions et paiements.
           </p>
         </div>
         <Button
@@ -221,7 +325,13 @@ export function AdminEventsManager({
         </Button>
       </div>
 
-      <div className="flex w-fit gap-1 rounded-xl bg-muted p-1">
+      {info && (
+        <p role="status" className={`rounded-xl border px-4 py-3 text-sm ${info.ok ? 'border-green-200 bg-green-50 text-green-800' : 'border-amber-200 bg-amber-50 text-amber-800'}`}>
+          {info.texte}
+        </p>
+      )}
+
+      <div className="flex w-fit flex-wrap gap-1 rounded-xl bg-muted p-1">
         {onglets.map((o) => (
           <button
             key={o.cle}
@@ -263,6 +373,12 @@ export function AdminEventsManager({
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
                         <h3 className="truncate font-semibold">{e.titre}</h3>
+                        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600">{EVENT_TYPE_LABELS[typeEvenement(e)]}</span>
+                        {e.serie_id && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-violet-50 px-2 py-0.5 text-xs text-violet-700" title="Date d'un événement récurrent">
+                            <Repeat className="h-3 w-3" />Série
+                          </span>
+                        )}
                         <span className={`rounded-full px-2 py-0.5 text-xs ${e.is_published ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
                           {e.is_published ? 'Publié' : 'Brouillon'}
                         </span>
@@ -314,16 +430,7 @@ export function AdminEventsManager({
                       {resa.length === 0 ? (
                         <p className="text-sm text-muted-foreground">Aucune réservation.</p>
                       ) : (
-                        <ul className="space-y-1.5">
-                          {resa.map((r) => (
-                            <li key={r.id} className="flex items-center justify-between rounded-lg border bg-white px-3 py-2 text-sm">
-                              <span>{r.prenom} {r.nom}</span>
-                              <a href={whatsapp(r.phone)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-green-600 hover:underline">
-                                <Phone className="h-3.5 w-3.5" />{r.phone}
-                              </a>
-                            </li>
-                          ))}
-                        </ul>
+                        <ul className="space-y-1.5">{resa.map((r) => ligneReservation(r, false))}</ul>
                       )}
                     </div>
                   )}
@@ -341,21 +448,7 @@ export function AdminEventsManager({
             <p className="text-muted-foreground">Aucune réservation.</p>
           </div>
         ) : (
-          <ul className="space-y-2">
-            {reservations.map((r) => (
-              <li key={r.id} className="flex items-center justify-between rounded-xl border bg-white p-3">
-                <div>
-                  <p className="text-sm font-medium">{r.prenom} {r.nom}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {evenements.find((e) => e.id === r.session_id)?.titre ?? 'Événement supprimé'}
-                  </p>
-                </div>
-                <a href={whatsapp(r.phone)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm text-green-600 hover:underline">
-                  <Phone className="h-3.5 w-3.5" />{r.phone}
-                </a>
-              </li>
-            ))}
-          </ul>
+          <ul className="space-y-2">{reservations.map((r) => ligneReservation(r, true))}</ul>
         ))}
 
       {/* Formulaire création / modification */}
@@ -369,6 +462,11 @@ export function AdminEventsManager({
 
             <div className="max-h-[70vh] space-y-3 overflow-y-auto pr-1">
               <Champ id="ev-titre" label="Titre *"><Input id="ev-titre" maxLength={160} {...champ('titre')} className="rounded-xl" /></Champ>
+              <Champ id="ev-type" label="Type">
+                <select id="ev-type" value={form.type} onChange={(ev) => setForm({ ...form, type: ev.target.value })} className={SELECT}>
+                  {EVENT_TYPES.map((t) => <option key={t} value={t}>{EVENT_TYPE_LABELS[t]}</option>)}
+                </select>
+              </Champ>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <Champ id="ev-debut" label="Début *"><Input id="ev-debut" type="datetime-local" {...champ('date_debut')} className="rounded-xl" /></Champ>
                 <Champ id="ev-fin" label="Fin (optionnel)"><Input id="ev-fin" type="datetime-local" min={form.date_debut || undefined} {...champ('date_fin')} className="rounded-xl" /></Champ>
@@ -422,6 +520,32 @@ export function AdminEventsManager({
                   </div>
                 </div>
               </div>
+
+              {!form.id && (
+                <div className="rounded-xl border border-[#f0ebe3] bg-[#fbf8f3] p-3">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <Champ id="ev-frequence" label="Récurrence">
+                      <select id="ev-frequence" value={form.frequence} onChange={(ev) => setForm({ ...form, frequence: ev.target.value })} className={SELECT}>
+                        {FREQUENCES.map((f) => <option key={f} value={f}>{FREQUENCE_LABELS[f]}</option>)}
+                      </select>
+                    </Champ>
+                    {form.frequence !== 'none' && (
+                      <Champ id="ev-nombre" label={`Nombre de dates (${OCCURRENCES_MAX} max)`}>
+                        <Input id="ev-nombre" type="number" min={2} max={OCCURRENCES_MAX} step={1} inputMode="numeric" {...champ('nombre')} className="rounded-xl bg-white" />
+                      </Champ>
+                    )}
+                  </div>
+                  {form.frequence !== 'none' && (
+                    <p className="mt-2 text-xs text-gray-600">
+                      Une date est créée par période, à la même heure, chacune avec ses propres places. Elles se modifient ensuite séparément.
+                    </p>
+                  )}
+                  <label className="mt-3 flex items-center gap-2 text-sm text-gray-700">
+                    <input type="checkbox" checked={form.creer_slide} onChange={(ev) => setForm({ ...form, creer_slide: ev.target.checked })} className="h-4 w-4 accent-[#e97e42]" />
+                    Annoncer {form.frequence !== 'none' ? 'la première date' : 'cet événement'} dans un slide de la page d&apos;accueil
+                  </label>
+                </div>
+              )}
 
               <label className="flex items-center gap-2 text-sm text-gray-700">
                 <input type="checkbox" checked={form.is_published} onChange={(ev) => setForm({ ...form, is_published: ev.target.checked })} className="h-4 w-4 accent-[#e97e42]" />
