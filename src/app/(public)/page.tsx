@@ -27,6 +27,7 @@ import { MetiersIASection } from '@/components/sections/MetiersIASection'
 import { getFormationsParSecteur } from '@/lib/formations/secteur-formations'
 import { horsCollectionMetier } from '@/lib/formations/secteur-link'
 import { CourseCatalog, type CatalogFormation } from '@/components/home/CourseCatalog'
+import { getPlacesFormations } from '@/lib/formations/places-data'
 import { HomeHeroSlider } from '@/components/home/HomeHeroSlider'
 import { StudiaLiveSection } from '@/components/home/StudiaLiveSection'
 import { createClient } from '@/lib/supabase/server'
@@ -562,7 +563,7 @@ export default async function HomePage() {
               </Link>
             </div>
           ) : (
-            <CourseCatalog formations={formations} />
+            <CourseCatalog formations={formations} places={await getPlacesFormations(supabase)} />
           )}
         </div>
       </section>

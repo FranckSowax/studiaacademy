@@ -5,6 +5,10 @@ import { COLLECTION_METIER, UpgradeMetierSticker } from '@/components/formations
 import { HorizontalGallery } from '@/components/home/HorizontalGallery'
 import { getFormationsParSecteur } from '@/lib/formations/secteur-formations'
 import { SECTEURS } from '@/lib/secteurs'
+import { createClient } from '@/lib/supabase/server'
+import { PlacesLimiteesBandeau } from '@/components/formations/PlacesLimiteesBandeau'
+import { etatPlaces } from '@/lib/formations/places'
+import { getPlacesFormations } from '@/lib/formations/places-data'
 
 const CARD = 'w-[82vw] max-w-[340px] flex-shrink-0 snap-start sm:w-[340px]'
 
@@ -13,7 +17,10 @@ const CARD = 'w-[82vw] max-w-[340px] flex-shrink-0 snap-start sm:w-[340px]'
  * d'abord en avant le secteur, puis la formation et ses outils IA (gratuits en priorité).
  */
 export async function MetiersIASection() {
-  const disponibles = await getFormationsParSecteur()
+  const [disponibles, places] = await Promise.all([
+    getFormationsParSecteur(),
+    createClient().then((supabase) => getPlacesFormations(supabase)),
+  ])
   return (
     <section id="metiers" className="w-full border-y border-[#f0ebe3] bg-[#fbf8f3] py-16 md:py-24">
       <div className="mx-auto mb-8 max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -47,6 +54,10 @@ export async function MetiersIASection() {
                   <Image src={s.cover} alt="" fill sizes="340px" className="object-cover" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
                   <UpgradeMetierSticker className="absolute left-4 top-4" />
+                  <PlacesLimiteesBandeau
+                    variante="pastille"
+                    etat={etatPlaces(places[disponibles.get(s.slug)?.id ?? '']?.max, places[disponibles.get(s.slug)?.id ?? '']?.prises)}
+                  />
                   <div className="absolute inset-x-0 bottom-0 p-5">
                     <span className="mb-3 block h-1 w-10 rounded-full" style={{ backgroundColor: s.couleur }} />
                     <p className="font-heading text-2xl font-extrabold leading-tight text-white drop-shadow">

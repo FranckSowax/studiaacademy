@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button'
 import { cn, formatNumber } from '@/lib/utils'
 import { UpgradeMetierSticker } from '@/components/formations/UpgradeMetierSticker'
 import { estFormationMetier } from '@/lib/formations/secteur-link'
+import { PlacesLimiteesBandeau } from '@/components/formations/PlacesLimiteesBandeau'
+import { etatPlaces } from '@/lib/formations/places'
 import type { Formation } from '@/types/formation'
 
 interface Props {
@@ -27,6 +29,8 @@ interface Props {
 export function AdminFormationCard({ formation: f, inscrits, enAttente, busy, onTogglePublish, onDelete, onProgrammer }: Props) {
   const gratuit = (f.prix_fcfa ?? 0) <= 0
   const edition = `/admin/formations/${f.id}`
+  // Une place est prise par une inscription ouverte ou en attente de validation.
+  const places = etatPlaces(f.places_max, inscrits + enAttente)
 
   return (
     <article className="group flex flex-col overflow-hidden rounded-2xl border border-[#f0ebe3] bg-white shadow-sm transition-shadow hover:shadow-md">
@@ -61,7 +65,8 @@ export function AdminFormationCard({ formation: f, inscrits, enAttente, busy, on
         <span className="absolute right-3 top-3 rounded-full bg-gray-900/80 px-2.5 py-1 text-xs font-semibold text-white">
           {gratuit ? 'Gratuit' : `${formatNumber(f.prix_fcfa)} FCFA`}
         </span>
-        {estFormationMetier(f) && <UpgradeMetierSticker className="absolute bottom-3 left-3" />}
+        {estFormationMetier(f) && <UpgradeMetierSticker className={`absolute left-3 ${places ? 'bottom-10' : 'bottom-3'}`} />}
+        <PlacesLimiteesBandeau etat={places} />
       </Link>
 
       <div className="flex flex-1 flex-col p-4">
@@ -80,6 +85,7 @@ export function AdminFormationCard({ formation: f, inscrits, enAttente, busy, on
           <span className="inline-flex items-center gap-1">
             <Users className="h-3.5 w-3.5" />
             {inscrits} inscrit{inscrits > 1 ? 's' : ''}
+            {places ? ` · ${places.prises}/${places.max} places` : ''}
           </span>
         </div>
 

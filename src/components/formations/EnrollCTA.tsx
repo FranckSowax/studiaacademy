@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
-  Loader2, ArrowRight, CheckCircle, Clock, PlayCircle, Banknote, Smartphone, Upload, XCircle, ImageIcon,
+  Loader2, ArrowRight, CheckCircle, Clock, PlayCircle, Banknote, Smartphone, Upload, XCircle, ImageIcon, Lock,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -36,6 +36,8 @@ interface Props {
   adminNote?: string | null
   /** Numéro Airtel Money de Studia (chiffres), s'il est configuré. */
   airtelNumber?: string | null
+  /** Vrai si la formation est à places limitées et n'en a plus. */
+  complet?: boolean
 }
 
 const BOUTON = 'w-full bg-gradient-to-r from-[#e97e42] to-[#d56a2e] text-white rounded-xl'
@@ -51,6 +53,7 @@ export function EnrollCTA({
   paymentMethod = null,
   adminNote = null,
   airtelNumber = null,
+  complet = false,
 }: Props) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
@@ -92,6 +95,25 @@ export function EnrollCTA({
           Commencer la formation
         </a>
       </Button>
+    )
+  }
+
+  // Plus de place : aucune nouvelle inscription (une demande déjà envoyée garde la sienne).
+  if (complet && enrollmentStatus !== 'pending') {
+    return (
+      <div className="rounded-xl border border-[#e2e8f0] bg-[#f8fafc] p-4 text-center">
+        <Lock className="mx-auto mb-2 h-6 w-6 text-[#141828]" />
+        <p className="text-sm font-semibold text-gray-900">Formation complète</p>
+        <p className="mt-1 text-xs text-gray-600">Toutes les places sont prises. Écrivez-nous pour être prévenu·e si une place se libère.</p>
+        <a
+          href={`https://wa.me/${WHATSAPP_NUMBER}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-3 inline-block text-sm font-medium text-[#a84d16] hover:underline"
+        >
+          WhatsApp {afficherNumeroWhatsApp(WHATSAPP_NUMBER)}
+        </a>
+      </div>
     )
   }
 
