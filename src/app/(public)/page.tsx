@@ -24,6 +24,8 @@ import {
 import { Button } from '@/components/ui/button'
 import { FAQSection } from '@/components/sections/FAQSection'
 import { MetiersIASection } from '@/components/sections/MetiersIASection'
+import { getFormationsParSecteur } from '@/lib/formations/secteur-formations'
+import { horsCollectionMetier } from '@/lib/formations/secteur-link'
 import { CourseCatalog, type CatalogFormation } from '@/components/home/CourseCatalog'
 import { HomeHeroSlider } from '@/components/home/HomeHeroSlider'
 import { StudiaLiveSection } from '@/components/home/StudiaLiveSection'
@@ -270,7 +272,11 @@ export default async function HomePage() {
 
   // Table absente ou vide → hero par défaut (recherche) plutôt qu'une page cassée.
   const slides = (slidesRes.data ?? []) as HomeSlide[]
-  const formations = (formationsRes.data ?? []) as CatalogFormation[]
+  // La collection « Upgrade Métier » ne se montre que dans sa section, pas dans le catalogue.
+  const formations = horsCollectionMetier(
+    (formationsRes.data ?? []) as CatalogFormation[],
+    await getFormationsParSecteur(),
+  )
   const sessions = ((sessionsRes.data ?? []) as PresentielSession[]).filter((s) => estAfficheAccueil(s))
   const featured = formations[0]
   const popularCategories = [...new Set(formations.map((f) => f.categorie).filter(Boolean) as string[])].slice(0, 4)

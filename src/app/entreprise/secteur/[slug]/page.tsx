@@ -9,6 +9,7 @@ import { Footer } from '@/components/layout/footer'
 import { getSecteur, SECTEURS, type OutilIA } from '@/lib/secteurs'
 import { WHATSAPP_NUMBER } from '@/lib/formations-ia'
 import { getFormationsParSecteur } from '@/lib/formations/secteur-formations'
+import { UpgradeMetierSticker } from '@/components/formations/UpgradeMetierSticker'
 import {
   ArrowLeft, ArrowRight, Calculator, CheckCircle2, ChevronRight, ClipboardList, GraduationCap,
   HeartPulse, Landmark, MapPin, Megaphone, MessageCircle, Rocket, ShieldCheck, ShoppingBag,
@@ -61,6 +62,7 @@ export default async function SecteurPage({ params }: { params: Promise<{ slug: 
                 Toutes les formations métier
               </Link>
               <div className="max-w-2xl">
+                <UpgradeMetierSticker className="mb-4 mr-3" />
                 <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-sm font-medium backdrop-blur">
                   <SectorIcon className="h-4 w-4" />
                   {secteur.label}

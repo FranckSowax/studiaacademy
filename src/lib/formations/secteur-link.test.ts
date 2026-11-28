@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { estSecteurValide, indexerParSecteur, type LigneFormationSecteur } from './secteur-link'
+import {
+  estSecteurValide,
+  horsCollectionMetier,
+  indexerParSecteur,
+  type LigneFormationSecteur,
+} from './secteur-link'
 
 const ligne = (p: Partial<LigneFormationSecteur>): LigneFormationSecteur => ({
   slug: 'formation-x',
@@ -15,6 +20,19 @@ describe('estSecteurValide', () => {
     expect(estSecteurValide('secretariat')).toBe(true)
     expect(estSecteurValide('dirigeant')).toBe(false)
     expect(estSecteurValide('')).toBe(false)
+  })
+})
+
+describe('horsCollectionMetier', () => {
+  const liste = [{ slug: 'pc-express' }, { slug: 'assistant-ab12' }, { slug: 'sbam' }]
+
+  it('retire des listes les formations rattachées à un secteur', () => {
+    const collection = indexerParSecteur([ligne({ slug: 'assistant-ab12', secteur_slug: 'secretariat' })])
+    expect(horsCollectionMetier(liste, collection).map((f) => f.slug)).toEqual(['pc-express', 'sbam'])
+  })
+
+  it('laisse la liste intacte quand la collection est vide', () => {
+    expect(horsCollectionMetier(liste, new Map())).toBe(liste)
   })
 })
 

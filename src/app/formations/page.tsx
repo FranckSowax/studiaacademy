@@ -10,13 +10,19 @@ import {
   Users, Sparkles, PlayCircle, CalendarDays,
 } from 'lucide-react'
 
+import { getFormationsParSecteur } from '@/lib/formations/secteur-formations'
+
 export default async function FormationsLandingPage() {
   const supabase = await createClient()
 
-  const [{ count: nbOnline }, { count: nbSessions }] = await Promise.all([
+  const [collection, { count: nbPubliees }, { count: nbSessions }] = await Promise.all([
+    getFormationsParSecteur(),
     supabase.from('formations').select('*', { count: 'exact', head: true }).eq('is_published', true),
     supabase.from('presentiel_sessions').select('*', { count: 'exact', head: true }).eq('is_published', true),
   ])
+
+  // La collection « Upgrade Métier » a sa propre section sur l'accueil : hors décompte du catalogue.
+  const nbOnline = Math.max(0, (nbPubliees ?? 0) - collection.size)
 
   const avantages = [
     { icon: Award, label: 'Certification reconnue' },

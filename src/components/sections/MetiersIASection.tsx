@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowRight, Briefcase, CheckCircle2, Sparkles } from 'lucide-react'
+import { COLLECTION_METIER, UpgradeMetierSticker } from '@/components/formations/UpgradeMetierSticker'
 import { HorizontalGallery } from '@/components/home/HorizontalGallery'
 import { getFormationsParSecteur } from '@/lib/formations/secteur-formations'
 import { SECTEURS } from '@/lib/secteurs'
@@ -19,7 +20,7 @@ export async function MetiersIASection() {
         <div className="max-w-3xl">
           <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-[#fff7ed] px-3 py-1 text-sm font-medium text-[#a84d16]">
             <Briefcase className="h-4 w-4" />
-            Une formation par métier
+            Collection {COLLECTION_METIER} · une formation par métier
           </span>
           <h2 className="font-heading text-3xl font-extrabold text-gray-900 md:text-4xl">
             Boostez votre métier avec les bons outils IA
@@ -45,6 +46,7 @@ export async function MetiersIASection() {
                 <div className="relative aspect-[4/3] w-full" style={{ backgroundColor: s.couleur }}>
                   <Image src={s.cover} alt="" fill sizes="340px" className="object-cover" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
+                  <UpgradeMetierSticker className="absolute left-4 top-4" />
                   <div className="absolute inset-x-0 bottom-0 p-5">
                     <span className="mb-3 block h-1 w-10 rounded-full" style={{ backgroundColor: s.couleur }} />
                     <p className="font-heading text-2xl font-extrabold leading-tight text-white drop-shadow">

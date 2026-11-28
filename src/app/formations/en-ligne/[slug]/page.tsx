@@ -15,6 +15,7 @@ import { codeLiveActif } from '@/lib/studia-live/lancement'
 import { EnrollCTA } from '@/components/formations/EnrollCTA'
 import { accesFormationAutorise } from '@/lib/formations/free-access'
 import { FormationIntroVideo } from '@/components/formations/FormationIntroVideo'
+import { UpgradeMetierSticker } from '@/components/formations/UpgradeMetierSticker'
 import type { Formation, FormationLesson, FormationEnrollment } from '@/types/formation'
 
 export default async function FormationDetailPage({
@@ -129,6 +130,7 @@ export default async function FormationDetailPage({
                         <PlayCircle className="w-12 h-12 text-[#e97e42]" />
                       </div>
                     )}
+                    {f.secteur_slug && <UpgradeMetierSticker className="absolute left-3 top-3" />}
                   </div>
                   <div className="p-6">
                     <div className="text-3xl font-extrabold font-heading text-gray-900 mb-4">
